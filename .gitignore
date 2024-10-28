@@ -1,0 +1,15 @@
+.idea
+.DS_Store
+.vscode
+.pytest_cache
+*.pyc
+*.xml
+*.jpg
+*.dat
+*.log
+*.csv
+*.temp
+*.tmp
+*.xlsx
+
+
