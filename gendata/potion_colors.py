@@ -1,0 +1,36 @@
+from .formula import formula
+
+basic_colors = [
+    "Red",
+    "Orange",
+    "Yellow",
+    "Green",
+    "Blue",
+    "Purple",
+    "Magenta",
+    "Cyan",
+    "White",
+    "Gray",
+]
+
+special_colors = [
+    ("Transparent ", basic_colors)
+    ("Glowing ", basic_colors)
+    ("Sparkling ", basic_colors)
+    ("Dark ", basic_colors)
+    ("Neon ", basic_colors)
+    ("Metallic ", basic_colors)
+]
+
+secondary_colors = basic_colors + special_colors
+double_secondary_colors = formula([secondary_colors]*2, ["color"]*2)
+
+double_colors = [
+    (double_secondary_colors, " Checker")
+    (double_secondary_colors, " Polka-dot")
+    (double_secondary_colors, " Swirled")
+    (double_secondary_colors, " Striped")
+]
+
+potion_color = secondary_colors + double_colors
+Potion_colors = formula(potion_color, ["Potion color"], 4)
