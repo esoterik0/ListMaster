@@ -74,7 +74,6 @@ def gen(lst: list | tuple) -> str:
 
 def general_generator(
     form: formula,
-    split: int = 6,
     lines: int = 50
 ) -> Callable[[], Generator[list[str], Any, None]]:
     """
@@ -86,6 +85,8 @@ def general_generator(
     If the size is larger than the split then it takes more than one line. We try to
     fit as many full sets of lines as we can without a partial set.
     """
+
+    split = form.split
 
     def food():
         size = len(form.labels)  # first get the size of the formula;

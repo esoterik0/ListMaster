@@ -117,7 +117,7 @@ def Generate(
 def Manufacture(
     # callable that returns a callable that return's a generator
     gentoo: Callable[[], Callable[[], Generator[list[str], Any, None]]],
-    prefix: str = "gen",  # file teplate prefix
+    prefix: str = "gen",  # file template prefix
     p: int = 5,  # number of pages
     split: int = 6,
     le: bool | None = True,
