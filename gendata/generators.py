@@ -2,9 +2,9 @@
 
 from math import ceil
 from random import choice, sample, shuffle
-from typing import Callable, Generator, Any
+from typing import Any, Callable, Generator
 
-from .formula import formula, meta_formula
+from .formulas import formula, meta_formula
 
 
 def gen3(form: formula | meta_formula | list | str | tuple) -> list[str] | str | formula | tuple:
@@ -45,25 +45,23 @@ def gen3(form: formula | meta_formula | list | str | tuple) -> list[str] | str |
                     case meta_formula():
                         return conv(choice(obj.formula))
                     case formula():
-                        return gen3(obj).join(" & ")
-                    case list():
+                        return " & ".join(gen3(obj))
+                    case _:
                         return gen3(obj)
-                    case str():
-                        return obj
 
-            return [conv(o) for o in t].join("")
+            return "".join([conv(o) for o in t])
 
 
 def gen_form(form: meta_formula | formula) -> list[str]:
     """
     Wrapper function to hide all the intermediary types that gen3 can return
 
-    Generates a formula or meta_formual
+    Generates a formula or meta_formuala
     """
     return gen3(form)
 
 
-def gen(lst: list | tuple) -> str:
+def gen_list(lst: list | tuple) -> str:
     """
     Wrapper function to hide all the intermediary types that gen3 can return
 
@@ -99,10 +97,9 @@ def general_generator(
             loop *= rep  # increase the count by the multiple
             yield form.labels * rep  # yield the correct label
         else:
-            loop = loop//ceil(size/split)  # reduce the loop for larger formulas
             yield form.labels  # yield the label
 
-        for _ in loop:
+        for _ in range(loop):
             yield gen_form(form)  # yield the content
 
     return food

@@ -1,5 +1,5 @@
 
-from types import Callable, Generator, Any
+from typing import Any, Callable, Generator
 
 import openpyxl as pyxl
 from openpyxl.styles import Border, Font, Side
@@ -38,7 +38,7 @@ def Generate(
 ):
     "generate a page, with a name, and margin, default = single"
     # global cols  # excel cols n.b. we don't write to this so it doesn't need to be global.
-    width: float = 96.0  # width of a sheet, this may change if the paper size or orientation changes etc.
+    width: float = 94.0  # width of a sheet, this may change if the paper size or orientation changes etc.
 
     if not outname:
         outname = "foo.xlsx"  # default filename

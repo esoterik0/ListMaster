@@ -5,7 +5,7 @@
 from .addnames import (name_female_apriori, name_female_gothic, name_female_old, name_female_short,
                        name_male_apriori, name_male_gothic, name_male_old, name_male_short,
                        surname_other)
-from .formula import meta_formula
+from .formulas import meta_formula
 
 
 character_items = [
@@ -3417,14 +3417,14 @@ wild_acts.append(dun_acts)
 inn_quirks.append(dun_forms)
 
 mr_pages = [
-    ("PC", ["character_items", "appear", "phys", "character_background", "personality", "mannerism"]),
+    ("PC", ["character_items", "appear", "phys", "character_background", "clothing", "personality", "mannerism"]),
     ("Magic", ["phy_efc", "phy_ele", "phy_form", "eth_efc", "eth_ele", "eth_form", "mutations", "insanities", "omens"]),
     ("Monster",
         [
             "arial",
             "land",
             "sea",
-            "mob_feats",
+            "mob_feat",
             "mob_trait",
             "mob_ability",
             "mob_tactics",
