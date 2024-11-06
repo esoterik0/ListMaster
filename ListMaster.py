@@ -44,6 +44,8 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
         self.gen_buttons()
         self.gen_form_buttons()
         self.gen_clipboard()
+        self.ungrid_form()
+        self.ungrid_roll()
         self.config_grid()
 
         if autostart:
@@ -99,12 +101,6 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
 
         self.reroll = ttk.Button(self.button_frame, text="Re-Roll", command=self.do_reroll)
         self.reroll.grid(column=0, row=0)
-        self.reroll.grid_remove()
-
-    def gen_form_buttons(self):
-        "generates the extra buttons for dealing with formulas"
-        self.gen_xls = ttk.Button(self.button_frame, text="Generate .xls file", command=self.do_xls)
-        self.gen_xls.grid(column=1, row=0)
 
         self.num_pages_label = ttk.Label(self.button_frame, text="No. Pages")
         self.num_pages_label.grid(column=0, row=1)
@@ -115,13 +111,15 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
         self.num_pages = tk.Entry(self.button_frame, textvariable=self.num_pages_var)
         self.num_pages.grid(column=1, row=1)
 
-        self.ungrid_form()
+    def gen_form_buttons(self):
+        "generates the extra buttons for dealing with formulas"
+        self.gen_xls = ttk.Button(self.button_frame, text="Generate .xls file", command=self.do_xls)
+        self.gen_xls.grid(column=1, row=0)
 
     def gen_clipboard(self):
         "button to copy to clipboard."
         self.clip_copy = ttk.Button(self.button_frame, text="Copy to clip board", command=self.copy_clip)
         self.clip_copy.grid(column=2, row=0)
-        self.clip_copy.grid_remove()
 
     def copy_clip(self):
         "copy the results to the clipboard"
@@ -161,18 +159,12 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
 
     def grid_roll(self):
         "adds reroll and clip_copy to the button_frame"
-        self.reroll.grid()
-        self.num_pages.grid()
-        self.num_pages_label.grid()
-        self.clip_copy.grid()
+        self.button_frame.grid()
 
     def ungrid_roll(self):
         "removes reroll and clip_copy from the button frame"
-        self.reroll.grid_remove()
-        self.clip_copy.grid_remove()
-        self.num_pages.grid_remove()
-        self.num_pages_label.grid_remove()
-
+        self.button_frame.grid_remove()
+        
     def do_what(self, e):  # pylint: disable=unused-argument
         "handles the 'what' column, which is the top level category, and fills out the page choices"
         sel = self.what.curselection()
