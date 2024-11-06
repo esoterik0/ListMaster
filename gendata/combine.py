@@ -1,5 +1,5 @@
-from .formulas import formula
-from .mazedat import (afterparty, animals, appear, arial, asset, book_sub, build_rooms,
+from .formulas import Formula
+from .mazedat import (after_party, animals, appear, arial, asset, book_sub, build_rooms,
                       character_background, character_items, city_acts, city_events, city_themes,
                       civilized_job, clothing, district_themes, divine_domains, dun_acts, dun_enter,
                       dun_forms, dun_hazards, dun_layout, dun_rewards, dun_room_details, dun_rooms,
@@ -11,17 +11,18 @@ from .mazedat import (afterparty, animals, appear, arial, asset, book_sub, build
                       mob_ability, mob_feat, mob_person, mob_tactics, mob_trait, mob_type, mob_weak,
                       mr_pages, mutations, name_big, name_female_big, name_female_full,
                       name_female_mr, name_full, name_male_big, name_male_full, name_male_mr, omens,
-                      ordinarymat, personality, phy_efc, phy_ele, phy_form, phys, poisonous_plants,
-                      potions, relationships, reputation, sea, secret, surname_all,
-                      surname_lower_mr, surname_other, surname_upper_mr, tactical_building,
-                      tactical_street, tool_items, trap_effects, trap_triggers, treasure_items,
-                      treasure_traits, underworld_job, up_class_build, valuemats, weapon_items,
-                      wild_acts, wild_discoveries, wild_hazards, wild_landmarks, wild_region_traits,
-                      wild_regions, wild_structures, wilderness_job, worn_items)
-from .potion_colors import Potion_colors, basic_colors, double_colors, potion_color, special_colors
+                      ordinary_materials, personality, phy_efc, phy_ele, phy_form, phys,
+                      poisonous_plants, potions, relationships, reputation, sea, secret,
+                      surname_all, surname_lower_mr, surname_other, surname_upper_mr,
+                      tactical_building, tactical_street, tool_items, trap_effects, trap_triggers,
+                      treasure_items, treasure_traits, underworld_job, up_class_build,
+                      valuable_materials, weapon_items, wild_acts, wild_discoveries, wild_hazards,
+                      wild_landmarks, wild_region_traits, wild_regions, wild_structures,
+                      wilderness_job, worn_items)
+from .potion_colors import basic_colors, double_colors, potion_color, potion_colors, special_colors
 
 tables = {
-    "afterparty": afterparty,
+    "after_party": after_party,
     "all surnames": surname_all,
     "animals": animals,
     "appear": appear,
@@ -94,7 +95,7 @@ tables = {
     "name_male_full": name_male_full,
     "name_male_mr": name_male_mr,
     "omens": omens,
-    "ordinarymat": ordinarymat,
+    "ordinary_materials": ordinary_materials,
     "personality": personality,
     "phy_efc": phy_efc,
     "phy_ele": phy_ele,
@@ -121,7 +122,7 @@ tables = {
     "treasure_traits": treasure_traits,
     "underworld_job": underworld_job,
     "up_class_build": up_class_build,
-    "valuemats": valuemats,
+    "valuable_materials": valuable_materials,
     "weapon_items": weapon_items,
     "wild_acts": wild_acts,
     "wild_discoveries": wild_discoveries,
@@ -134,7 +135,7 @@ tables = {
     "worn_items": worn_items,
 }
 printTables = {
-    "afterparty": "After the Party",
+    "after_party": "After the Party",
     "animals": "Animals",
     "appear": "Appearance",
     "arial": "Arial creature",
@@ -160,7 +161,7 @@ printTables = {
     "dun_rewards": "Dungeon Rewards",
     "dun_room_details": "Dungeon Room Details",
     "dun_rooms": "Dungeon rooms",
-    "dun_ruins": "Dungeon ruins",
+    "dun_ruins": "Dungeon ruinations",
     "dun_tricks": "Dungeon tricks",
     "edible_plants": "Edible Plants",
     "eth_efc": "Ethereal_Effect",
@@ -206,7 +207,7 @@ printTables = {
     "name_male_full": "Full list of males names (includes archaic & gothic)",
     "name_male_mr": "Male Names",
     "omens": "Omens",
-    "ordinarymat": "Ordinary Materials",
+    "ordinary_materials": "Ordinary Materials",
     "personality": "Personality",
     "phy_efc": "Physical Effects",
     "phy_ele": "Physical Elements",
@@ -214,7 +215,7 @@ printTables = {
     "phys": "Physical Details",
     "poisonous_plants": "Poisonous Plants",
     "potion_color": "All potion colors",
-    "potions": "Potions",
+    "potions": "Potion Ingredients",
     "relationships": "Relationships",
     "reputation": "Reputations",
     "sea": "Sea Creatures",
@@ -233,7 +234,7 @@ printTables = {
     "treasure_traits": "Treasure Traits",
     "underworld_job": "Underworld [npc] Job",
     "up_class_build": "Upper Class Building",
-    "valuemats": "Valuable Materials",
+    "valuable_materials": "Valuable Materials",
     "weapon_items": "Weapon Items",
     "wild_acts": "Wilderness Activities",
     "wild_discoveries": "Wilderness Discoveries",
@@ -247,7 +248,7 @@ printTables = {
 }
 
 # create the maze rats pages formulas from mr_pages
-Maze_Rats_pages = [(n, formula([tables[t] for t in p], [printTables[t] for t in p])) for n, p in mr_pages]
+Maze_Rats_pages = [(n, Formula([tables[t] for t in p], [printTables[t] for t in p], n)) for n, p in mr_pages]
 
 All_tables = sorted([(n, tables[t]) for t, n in printTables.items()], key=lambda x: x[0])
 
@@ -288,9 +289,10 @@ npc_labels_part = [
     "jobs",
 ]
 
-mission_formula = formula(
+mission_formula = Formula(
     [missions, mission_targets, book_sub],
-    [printTables[idx] for idx in ["missions", "mission_targets", "book_sub"]]
+    [printTables[idx] for idx in ["missions", "mission_targets", "book_sub"]],
+    "Mission"
 )
 
 mob_form_feats = [
@@ -309,40 +311,58 @@ mob_form_feats_txt = [
     "mob_person",
     "mob_weak",
 ]
-mob_Formula = formula(
+mob_Formula = Formula(
     [magic_formula] + [mob_type] + mob_form_feats,
-    magic_formula.labels + ["Monster type"] + [printTables[idx] for idx in mob_form_feats_txt]
+    magic_formula.labels + ["Monster type"] + [printTables[idx] for idx in mob_form_feats_txt],
+    "Monster"
 )
-mob_Double_Formula = formula(
+mob_Double_Formula = Formula(
     [magic_formula] + [mob_type]*2 + mob_form_feats,
-    magic_formula.labels + ["Monster type"]*2 + [printTables[idx] for idx in mob_form_feats_txt]
+    magic_formula.labels + ["Monster type"]*2 + [printTables[idx] for idx in mob_form_feats_txt],
+    "Monster, Double"
 )
-mob_Triple_Formula = formula(
+mob_Triple_Formula = Formula(
     [magic_formula] + [mob_type]*3 + mob_form_feats,
-    magic_formula.labels + ["Monster type"]*3 + [printTables[idx] for idx in mob_form_feats_txt]
+    magic_formula.labels + ["Monster type"]*3 + [printTables[idx] for idx in mob_form_feats_txt],
+    "Monster, Triple"
 )
 
-trinames = formula([name_male_big, name_female_big, surname_all], ["Male Name", "Female Name", "Surname"])
-trinames_mr = formula([name_male_mr, name_female_mr, surname_all], ["Male Name", "Female Name", "Surname"])
-trinames_full = formula([name_male_full, name_female_full, surname_all], ["Male Name", "Female Name", "Surname"])
-names = formula([name_female_big + name_male_big, surname_all], ["Name", "Surname"])
-names_mr = formula([name_female_mr + name_male_mr, surname_all], ["Name", "Surname"])
-names_full = formula([name_female_full + name_male_full, surname_all], ["Name", "Surname"])
+tri_names = Formula(
+    [name_male_big, name_female_big, surname_all],
+    ["Male Name", "Female Name", "Surname"],
+    "Names M,F,S"
+)
+tri_names_mr = Formula(
+    [name_male_mr, name_female_mr, surname_all],
+    ["Male Name", "Female Name", "Surname"],
+    "Maze Rats Names M,F,S"
+)
+tri_names_full = Formula(
+    [name_male_full, name_female_full, surname_all],
+    ["Male Name", "Female Name", "Surname"],
+    "Archaic Names M,F,S"
+)
+names = Formula([name_female_big + name_male_big, surname_all], ["Name", "Surname"], "Names M|F,S")
+names_mr = Formula([name_female_mr + name_male_mr, surname_all], ["Name", "Surname"], "Maze Rats Names M|F,S")
+names_full = Formula([name_female_full + name_male_full, surname_all], ["Name", "Surname"], "Archaic Names M|F,S")
 
-npc_formula = formula(
+npc_formula = Formula(
     names.formula + npc_formula_part,
     names.labels + npc_labels_part,
+    "NPC: Many names",
 )
-npc_formula_mr = formula(
+npc_formula_mr = Formula(
     names_mr.formula + npc_formula_part,
     names_mr.labels + npc_labels_part,
+    "NPC: Maze Rat names",
 )
-npc_formula_full = formula(
+npc_formula_full = Formula(
     names_full.formula + npc_formula_part,
     names_full.labels + npc_labels_part,
+    "NPC: Archaic names",
 )
 
-wild_formula = formula([
+wild_formula = Formula([
         wild_regions,
         wild_landmarks,
         wild_structures,
@@ -352,16 +372,18 @@ wild_formula = formula([
         wild_hazards,
     ],
     [
-        "wild_regions",
-        "wild_landmarks",
-        "wild_structures",
-        "wild_region_traits",
-        "wild_discoveries",
-        "wild_acts",
-        "wild_hazards",
-    ]
+        "Wilderness Region",
+        "Wilderness Landmark",
+        "Wilderness Structure",
+        "Wilderness Region trait",
+        "Wilderness Discovery",
+        "Wilderness Activity",
+        "Wilderness Hazard",
+    ],
+    "Wilderness",
 )
-dun_macro_formula = formula(
+
+dun_macro_formula = Formula(
     [
         dun_enter,
         dun_forms,
@@ -371,15 +393,16 @@ dun_macro_formula = formula(
         dun_rewards,
     ],
     [
-        "dun_enter",
-        "dun_forms",
-        "dun_layout",
-        "dun_ruins",
-        "dun_acts",
-        "dun_rewards",
-    ]
+        "Dungeon Entrance",
+        "Dungeon Form",
+        "Dungeon Layout",
+        "Dungeon Ruination",
+        "Dungeon Activity",
+        "Dungeon Rewards",
+    ],
+    "Dungeon design",
 )
-dun_micro_formula = formula(
+dun_micro_formula = Formula(
     [
         dun_acts,
         dun_rooms,
@@ -387,92 +410,105 @@ dun_micro_formula = formula(
         dun_tricks,
         dun_hazards,
         dun_rewards,
+    ],
+    [
+        "Dungeon Activity",
+        "Dungeon Room",
+        "Dungeon Room Detail",
+        "Dungeon Trick",
+        "Dungeon Hazard",
+        "Dungeon Reward",
+    ],
+    "Dungeon room",
+)
+trap_formula = Formula(
+    [
         trap_effects,
         trap_triggers,
     ],
     [
-        "dun_acts",
-        "dun_rooms",
-        "dun_room_details",
-        "dun_tricks",
-        "dun_hazards",
-        "dun_rewards",
-        "trap_effects",
-        "trap_triggers",
-    ]
+        "Trap Effect",
+        "Trap Trigger",
+    ],
+    "Trap",
 )
-city_district_theme_formula = formula(
+city_district_theme_formula = Formula(
     [
         city_themes,
         district_themes,
     ],
     [
-        "city_themes",
-        "district_themes",
-    ]
+        "City Theme",
+        "District Theme",
+    ],
+    "City & District Theme"
 )
-city_detail_formula = formula(
+city_detail_formula = Formula(
     [
-        up_class_build,
-        low_class_build,
+        [up_class_build, low_class_build],
         city_acts,
+        build_rooms,
         build_rooms,
         tactical_street,
         tactical_building,
     ],
     [
-        "up_class_build",
-        "low_class_build",
-        "city_acts",
-        "build_rooms",
-        "tactical_street",
-        "tactical_building",
-    ]
+        "Building",
+        "City Activity",
+        "Build Room",
+        "Build Room",
+        "Tactical Street",
+        "Tactical Building",
+    ],
+    "Building & details"
 )
-inn_formula = formula(
+inn_formula = Formula(
     [
         inn_adj,
         inn_nouns,
         inn_quirks,
     ],
     [
-        "inn_adj",
-        "inn_nouns",
-        "inn_quirks",
-    ]
+        "Inn Adj",
+        "Inn Nouns",
+        "Inn Quirks",
+    ],
+    "Inns"
 )
-faction_formula = formula(
+faction_formula = Formula(
     [
         factions,
         faction_traits,
         faction_goals,
     ],
     [
-        "factions",
-        "faction_traits",
-        "faction_goals"
-    ]
+        "Faction",
+        "Faction Trait",
+        "Faction Goal"
+    ],
+    "Factions",
 )
 
 formulas = [
-    ("Archaic Names M,F,S", trinames_full),
-    ("Archaic Names M|F,S", names_full),
-    ("City & District Themes", city_district_theme_formula),
-    ("Dungeon Detail", dun_micro_formula),
-    ("Dungeon Origin", dun_macro_formula),
-    ("Factions", faction_formula),
-    ("Magic", magic_formula),
-    ("Maze Rats Names M,F,S", trinames_mr),
-    ("Maze Rats Names M|F,S", names_mr),
-    ("Mission", mission_formula),
-    ("Monster, Double ", mob_Double_Formula),
-    ("Monster, Triple ", mob_Triple_Formula),
-    ("Monster", mob_Formula),
-    ("Names M,F,S", trinames),
-    ("Names M|F,S", names),
-    ("NPC: Archaic names", npc_formula_full),
-    ("NPC: Maze Rat names ", npc_formula_mr),
-    ("NPC: More names", npc_formula),
-    ("Potion Colors", Potion_colors),
-    ("Wilds", wild_formula),
+    (city_district_theme_formula.name, city_district_theme_formula),
+    (dun_macro_formula.name, dun_macro_formula),
+    (dun_micro_formula.name, dun_micro_formula),
+    (faction_formula.name, faction_formula),
+    (magic_formula.name, magic_formula),
+    (mission_formula.name, mission_formula),
+    (mob_Double_Formula.name, mob_Double_Formula),
+    (mob_Formula.name, mob_Formula),
+    (mob_Triple_Formula.name, mob_Triple_Formula),
+    (names_full.name, names_full),
+    (names_mr.name, names_mr),
+    (names.name, names),
+    (npc_formula_full.name, npc_formula_full),
+    (npc_formula_mr.name, npc_formula_mr),
+    (npc_formula.name, npc_formula),
+    (potion_colors.name, potion_colors),
+    (trap_formula.name, trap_formula),
+    (tri_names_full.name, tri_names_full),
+    (tri_names_mr.name, tri_names_mr),
+    (tri_names.name, tri_names),
+    (wild_formula.name, wild_formula),
 ]

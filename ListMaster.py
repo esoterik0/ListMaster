@@ -1,14 +1,16 @@
+"ListMaster.py program to dice random lists"
 import tkinter as tk
 from tkinter import E, N, S, W, ttk
 
 import gendata as dat
 
 
-def ridgeFrame(content, **kwargs):
+def ridge_frame(content, **kwargs):
+    "returns a window with borderwidth=5 and relief='ridge' plus any kwargs"
     return ttk.Frame(content, borderwidth=5, relief="ridge", **kwargs)
 
 
-def intnun(s: str) -> int | None:
+def int_nun(s: str) -> int | None:
     "returns the int represented by the string or None if it cannot be converted"
     try:
         return int(s)
@@ -16,139 +18,174 @@ def intnun(s: str) -> int | None:
         return None
 
 
-width = 75
-height = 25
+WIDTH = 75
+HEIGHT = 25
 
 
-class ListMaster:
-    def __init__(self):
+class ListMaster:  # pylint: disable=too-many-instance-attributes
+    """
+    Tkinter UI for generating random choices, and creating tables and formulas.
+    """
+    def __init__(self, autostart=True):
+        "Initializes the the UI; utilizes many helper functions"
         self.root = tk.Tk()
-        self.main = ttk.Frame(self.root, padding=5, width=width, height=height)
+        self.form: dat.Formula | list = None
+        self.form_name = ""
+        self.path = ""
+        self.cur_page = None
+
+        self.gen_main()
+        self.gen_what()
+        self.gen_page()
+        self.gen_results()
+        self.gen_buttons()
+        self.gen_form_buttons()
+        self.config_grid()
+
+        if autostart:
+            self.start()
+
+    def start(self):
+        "Runs the tk main loop"
+        self.root.mainloop()
+
+    def gen_main(self):
+        "Generates the main frame that all widgets will be part of"
+        self.main = ttk.Frame(self.root, padding=5, width=WIDTH, height=HEIGHT)
         self.main.grid(column=0, row=0, sticky=(N, S, E, W))
 
-        self.whatframe = ridgeFrame(self.main)
-        self.whatframe.grid(column=0, row=0, sticky=(N, S, E, W))
+    def gen_what(self):
+        "Generates the what frame, for choosing what category"
+        self.what_frame = ridge_frame(self.main)
+        self.what_frame.grid(column=0, row=0, sticky=(N, S, E, W))
 
-        self.whatlist = [dat.All_tables, dat.Maze_Rats_pages, dat.formulas]
-        whatchoices = ["All tables", "Maze Rats pages", "Formulas"]
-        whatchoicevar = tk.StringVar(value=whatchoices)
+        self.what_list = [dat.All_tables, dat.Maze_Rats_pages, dat.formulas]
+        what_choices = ["All tables", "Maze Rats pages", "Formulas"]
+        what_choice_var = tk.StringVar(value=what_choices)
 
-        self.what = tk.Listbox(self.whatframe, listvariable=whatchoicevar, width=int(width/5), height=height)
+        self.what = tk.Listbox(self.what_frame, listvariable=what_choice_var, width=int(WIDTH/5), height=HEIGHT)
         self.what.grid(column=0, row=0, sticky=(N, S, E, W))
-        self.what.bind("<<ListboxSelect>>", self.dowhat)
+        self.what.bind("<<ListboxSelect>>", self.do_what)
 
-        self.pageframe = ridgeFrame(self.main)
-        self.pageframe.grid(column=1, row=0, sticky=(N, S, E, W))
+    def gen_page(self):
+        "generates the page frame, for choosing, inspecting, or editing which 'page', formula or table"
+        self.page_frame = ridge_frame(self.main)
+        self.page_frame.grid(column=1, row=0, sticky=(N, S, E, W))
 
-        self.pagechoices = tk.StringVar()
+        self.page_choices = tk.StringVar()
 
-        self.page = tk.Listbox(self.pageframe, listvariable=self.pagechoices, width=int(3*width/5), height=height)
+        self.page = tk.Listbox(self.page_frame, listvariable=self.page_choices, width=int(3*WIDTH/5), height=HEIGHT)
         self.page.grid(column=0, row=0, sticky=(N, S, E, W))
-        self.page.bind("<<ListboxSelect>>", self.dopage)
+        self.page.bind("<<ListboxSelect>>", self.do_page)
 
-        self.resultframe = ridgeFrame(self.main)
-        self.resultframe.grid(column=2, row=0, sticky=(N, S, E, W))
+    def gen_results(self):
+        "generates the result frame, for viewing the results, inspecting or editing formulas or tables."
+        self.result_frame = ridge_frame(self.main)
+        self.result_frame.grid(column=2, row=0, sticky=(N, S, E, W))
 
         self.results = tk.StringVar()
 
-        self.result = tk.Listbox(self.resultframe, listvariable=self.results, width=int(4*width/5), height=height)
+        self.result = tk.Listbox(self.result_frame, listvariable=self.results, width=int(4*WIDTH/5), height=HEIGHT)
         self.result.grid(column=0, row=0, sticky=(N, S, E, W))
 
-        self.buttonframe = ttk.Frame(self.resultframe)
-        self.buttonframe.grid(column=0, row=1, sticky=(E, W))
+    def gen_buttons(self):
+        "generate button frame and some buttons; must be called before other gen_*_buttons. "
+        self.button_frame = ttk.Frame(self.result_frame)
+        self.button_frame.grid(column=0, row=1, sticky=(E, W))
 
-        self.reroll = ttk.Button(self.buttonframe, text="Re-Roll", command=self.doreroll)
+        self.reroll = ttk.Button(self.button_frame, text="Re-Roll", command=self.do_reroll)
         self.reroll.grid(column=0, row=0)
         self.reroll.grid_remove()
 
-        self.genxls = ttk.Button(self.buttonframe, text="Generate .xls file", command=self.doxls)
-        self.genxls.grid(column=1, row=0)
+    def gen_form_buttons(self):
+        "generates the extra buttons for dealing with formulas"
+        self.gen_xls = ttk.Button(self.button_frame, text="Generate .xls file", command=self.do_xls)
+        self.gen_xls.grid(column=1, row=0)
 
-        self.numpageslabel = ttk.Label(self.buttonframe, text="No. Pages")
-        self.numpageslabel.grid(column=0, row=1)
+        self.num_pages_label = ttk.Label(self.button_frame, text="No. Pages")
+        self.num_pages_label.grid(column=0, row=1)
 
-        self.numpagesvar = tk.StringVar()
-        self.numpagesvar.set("5")
+        self.num_pages_var = tk.StringVar()
+        self.num_pages_var.set("5")
 
-        self.numpages = tk.Entry(self.buttonframe, textvariable=self.numpagesvar)
-        self.numpages.grid(column=1, row=1)
+        self.num_pages = tk.Entry(self.button_frame, textvariable=self.num_pages_var)
+        self.num_pages.grid(column=1, row=1)
 
-        self.ungridform()
+        self.ungrid_form()
 
+    def config_grid(self):
+        "calls column/rowconfigure on all our frames to set weights for resizing"
         self.root.rowconfigure(0, weight=1)
         self.root.columnconfigure(0, weight=1)
         self.main.rowconfigure(0, weight=1)
         self.main.columnconfigure(0, weight=1)
         self.main.columnconfigure(1, weight=2)
         self.main.columnconfigure(2, weight=4)
-        self.whatframe.rowconfigure(0, weight=1)
-        self.whatframe.columnconfigure(0, weight=1)
-        self.pageframe.rowconfigure(0, weight=1)
-        self.pageframe.columnconfigure(0, weight=1)
-        self.resultframe.rowconfigure(0, weight=1)
-        self.resultframe.columnconfigure(0, weight=1)
-        self.buttonframe.rowconfigure(0, weight=1)
-        self.buttonframe.rowconfigure(1, weight=1)
-        self.buttonframe.columnconfigure(0, weight=1)
-        self.buttonframe.columnconfigure(1, weight=1)
+        self.what_frame.rowconfigure(0, weight=1)
+        self.what_frame.columnconfigure(0, weight=1)
+        self.page_frame.rowconfigure(0, weight=1)
+        self.page_frame.columnconfigure(0, weight=1)
+        self.result_frame.rowconfigure(0, weight=1)
+        self.result_frame.columnconfigure(0, weight=1)
+        self.button_frame.rowconfigure(0, weight=1)
+        self.button_frame.rowconfigure(1, weight=1)
+        self.button_frame.columnconfigure(0, weight=1)
+        self.button_frame.columnconfigure(1, weight=1)
 
-        self.form: dat.formula | list = None
-        self.formname = ""
-        self.curpage = None
+    def grid_form(self):
+        "grids buttons for formulas."
+        self.gen_xls.grid()
+        self.num_pages.grid()
+        self.num_pages_label.grid()
 
-        self.root.mainloop()
+    def ungrid_form(self):
+        "ungrids buttons for formulas"
+        self.gen_xls.grid_remove()
+        self.num_pages.grid_remove()
+        self.num_pages_label.grid_remove()
 
-    def gridform(self):
-        self.genxls.grid()
-        self.numpages.grid()
-        self.numpageslabel.grid()
-
-    def ungridform(self):
-        self.genxls.grid_remove()
-        self.numpages.grid_remove()
-        self.numpageslabel.grid_remove()
-
-    def dowhat(self, e):
+    def do_what(self, e):  # pylint: disable=unused-argument
+        "handles the 'what' column, which is the top level category, and fills out the page choices"
         sel = self.what.curselection()
 
-        if (len(sel) == 1):
-            self.curpage = self.whatlist[sel[0]]
-            self.pagechoices.set([n for n, _ in self.curpage])
+        if len(sel) == 1:
+            self.cur_page = self.what_list[sel[0]]
+            self.page_choices.set([n for n, _ in self.cur_page])
             self.results.set([])
             self.reroll.grid_remove()
-            self.ungridform()
+            self.ungrid_form()
 
-    def dopage(self, e):
+    def do_page(self, e):  # pylint: disable=unused-argument
+        "handles the 'page' column to choose which table, page, or formula to generate from; triggers re-roll"
         sel = self.page.curselection()
         if (len(sel) == 1):
-            self.formname, self.form = self.curpage[sel[0]]
+            self.form_name, self.form = self.cur_page[sel[0]]
             self.reroll.grid()
 
-            if isinstance(self.form, dat.formula):
-                self.gridform()
+            if isinstance(self.form, dat.Formula):
+                self.grid_form()
             else:
-                self.ungridform()
+                self.ungrid_form()
 
-            self.doreroll()
+            self.do_reroll()
 
-    def doreroll(self):
+    def do_reroll(self):
+        "handles the re-roll button, generates and populates the results column"
         if (self.form is not None):
             out = dat.gen3(self.form)
             match(out):
                 case str():
-                    self.results.set([self.formname + ": " + out])
+                    self.results.set([f"{self.form_name}: {out}"])
                 case list():
-                    reout = []
-                    for b, o in zip(self.form.labels, out):
-                        reout.append(b + ": " + o)
-                    self.results.set(reout)
+                    self.results.set([f"{b}: {o}" for b, o in zip(self.form.labels, out)])
                 case _:
                     self.results.set([])
 
-    def doxls(self):
-        num = intnun(self.numpagesvar.get())
-        num = num if num else 5
-        dat.Manufacture(lambda: dat.general_generator(self.form), self.formname, num, self.form.split)
+    def do_xls(self):
+        "Handles the Generate .xls button, currently makes double sided three hole punched 8 1/2 x 11 pages."
+        num = int_nun(self.num_pages_var.get())  # try to get the number
+        num = num if num else 5  # if we don't have a number num is None
+        dat.manufacture(self.form, self.path, self.form_name, num)
 
 
 if __name__ == "__main__":

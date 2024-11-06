@@ -1,4 +1,4 @@
-from .formulas import formula
+from .formulas import Formula
 
 basic_colors = [
     "Red",
@@ -23,7 +23,7 @@ special_colors = [
 ]
 
 secondary_colors = basic_colors + special_colors
-double_secondary_colors = formula([secondary_colors]*2, ["color"]*2)
+double_secondary_colors = Formula([secondary_colors]*2, ["color"]*2, "Double secondary colors")
 
 double_colors = [
     (double_secondary_colors, " Checker"),
@@ -33,4 +33,4 @@ double_colors = [
 ]
 
 potion_color = secondary_colors + double_colors
-Potion_colors = formula(potion_color, ["Potion color"], 4)
+potion_colors = Formula([potion_color], ["Potion color"], "Potion color", 4)

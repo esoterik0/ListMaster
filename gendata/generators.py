@@ -4,10 +4,10 @@ from math import ceil
 from random import choice, sample, shuffle
 from typing import Any, Callable, Generator
 
-from .formulas import formula, meta_formula
+from .formulas import Formula, MetaFormula
 
 
-def gen3(form: formula | meta_formula | list | str | tuple) -> list[str] | str | formula | tuple:
+def gen3(form: Formula | MetaFormula | list | str | tuple) -> list[str] | str | Formula | tuple:
     """
     Recursive work function.
 
@@ -23,13 +23,13 @@ def gen3(form: formula | meta_formula | list | str | tuple) -> list[str] | str |
         type should be str or list[str]
     """
     match (form):
-        case meta_formula() as meta:
+        case MetaFormula() as meta:
             return gen3(choice(meta.formula))  # choose a formula from the meta formula list
-        case formula():  # formula creates a list based on the formula
+        case Formula():  # formula creates a list based on the formula
             ret = []
             for f in form.formula:
                 match(f):
-                    case formula():
+                    case Formula():
                         ret += gen3(f)
                     case _:
                         ret.append(gen3(f))
@@ -39,12 +39,12 @@ def gen3(form: formula | meta_formula | list | str | tuple) -> list[str] | str |
         case str() as st:
             return st  # just return the string
         case tuple() as t:  # creates a string based on a tuple
-            def conv(obj: list | str | formula | meta_formula) -> str | formula:
+            def conv(obj: list | str | Formula | MetaFormula) -> str | Formula:
                 "sub function to match tuple elements"
                 match (obj):
-                    case meta_formula():
+                    case MetaFormula():
                         return conv(choice(obj.formula))
-                    case formula():
+                    case Formula():
                         return " & ".join(gen3(obj))
                     case _:
                         return gen3(obj)
@@ -52,7 +52,7 @@ def gen3(form: formula | meta_formula | list | str | tuple) -> list[str] | str |
             return "".join([conv(o) for o in t])
 
 
-def gen_form(form: meta_formula | formula) -> list[str]:
+def gen_form(form: MetaFormula | Formula) -> list[str]:
     """
     Wrapper function to hide all the intermediary types that gen3 can return
 
@@ -71,7 +71,7 @@ def gen_list(lst: list | tuple) -> str:
 
 
 def general_generator(
-    form: formula,
+    form: Formula,
     lines: int = 50
 ) -> Callable[[], Generator[list[str], Any, None]]:
     """
