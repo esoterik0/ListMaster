@@ -1,4 +1,4 @@
-"ListMaster.py program to dice random lists"
+"listmaster: roll on random tables"
 import tkinter as tk
 from tkinter import E, N, S, W, ttk
 
@@ -20,6 +20,7 @@ def int_nun(s: str) -> int | None:
 
 WIDTH = 75
 HEIGHT = 25
+SINGLE = 5
 
 
 class ListMaster:  # pylint: disable=too-many-instance-attributes
@@ -33,6 +34,8 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
         self.form_name = ""
         self.path = ""
         self.cur_page = None
+        self.result_list = []
+        self.num = SINGLE
 
         self.gen_main()
         self.gen_what()
@@ -40,6 +43,7 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
         self.gen_results()
         self.gen_buttons()
         self.gen_form_buttons()
+        self.gen_clipboard()
         self.config_grid()
 
         if autostart:
@@ -106,12 +110,24 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
         self.num_pages_label.grid(column=0, row=1)
 
         self.num_pages_var = tk.StringVar()
-        self.num_pages_var.set("5")
+        self.num_pages_var.set(f"{SINGLE}")
 
         self.num_pages = tk.Entry(self.button_frame, textvariable=self.num_pages_var)
         self.num_pages.grid(column=1, row=1)
 
         self.ungrid_form()
+
+    def gen_clipboard(self):
+        "button to copy to clipboard."
+        self.clip_copy = ttk.Button(self.button_frame, text="Copy to clip board", command=self.copy_clip)
+        self.clip_copy.grid(column=2, row=0)
+        self.clip_copy.grid_remove()
+
+    def copy_clip(self):
+        "copy the results to the clipboard"
+        self.root.clipboard_clear()  # clear the clipboard because we are setting its contents
+        # this is safe because the button that calls this method will not be shown unless results has contents
+        self.root.clipboard_append("\n".join(self.result_list))
 
     def config_grid(self):
         "calls column/rowconfigure on all our frames to set weights for resizing"
@@ -131,16 +147,29 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
         self.button_frame.rowconfigure(1, weight=1)
         self.button_frame.columnconfigure(0, weight=1)
         self.button_frame.columnconfigure(1, weight=1)
+        self.button_frame.columnconfigure(2, weight=1)
 
     def grid_form(self):
         "grids buttons for formulas."
         self.gen_xls.grid()
-        self.num_pages.grid()
-        self.num_pages_label.grid()
+        self.num_pages_label.configure(text="No. Pages")
 
     def ungrid_form(self):
         "ungrids buttons for formulas"
         self.gen_xls.grid_remove()
+        self.num_pages_label.configure(text="No. to Roll")
+
+    def grid_roll(self):
+        "adds reroll and clip_copy to the button_frame"
+        self.reroll.grid()
+        self.num_pages.grid()
+        self.num_pages_label.grid()
+        self.clip_copy.grid()
+
+    def ungrid_roll(self):
+        "removes reroll and clip_copy from the button frame"
+        self.reroll.grid_remove()
+        self.clip_copy.grid_remove()
         self.num_pages.grid_remove()
         self.num_pages_label.grid_remove()
 
@@ -152,15 +181,15 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
             self.cur_page = self.what_list[sel[0]]
             self.page_choices.set([n for n, _ in self.cur_page])
             self.results.set([])
-            self.reroll.grid_remove()
+            self.ungrid_roll()
             self.ungrid_form()
 
     def do_page(self, e):  # pylint: disable=unused-argument
         "handles the 'page' column to choose which table, page, or formula to generate from; triggers re-roll"
         sel = self.page.curselection()
-        if (len(sel) == 1):
+        if len(sel) == 1:
             self.form_name, self.form = self.cur_page[sel[0]]
-            self.reroll.grid()
+            self.grid_roll()
 
             if isinstance(self.form, dat.Formula):
                 self.grid_form()
@@ -171,21 +200,33 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
 
     def do_reroll(self):
         "handles the re-roll button, generates and populates the results column"
-        if (self.form is not None):
-            out = dat.gen3(self.form)
-            match(out):
-                case str():
-                    self.results.set([f"{self.form_name}: {out}"])
+        if self.form is not None:
+            match(self.form):
                 case list():
-                    self.results.set([f"{b}: {o}" for b, o in zip(self.form.labels, out)])
-                case _:
-                    self.results.set([])
+                    self.update_num()
+                    self.result_list = [self.form_name] + [dat.gen_list(self.form) for _ in range(self.num)]
+                case dat.Formula():
+                    self.result_list = [
+                        b + ": " + o
+                        for b, o in zip(
+                            self.form.labels,
+                            dat.gen_form(self.form)
+                        )
+                    ]
+        else:
+            self.result_list = []
+
+        self.results.set(self.result_list)
+
+    def update_num(self):
+        "updates self.num"
+        num = int_nun(self.num_pages_var.get())  # try to get the number
+        self.num = num if num else SINGLE  # if we don't have a number num is None
 
     def do_xls(self):
         "Handles the Generate .xls button, currently makes double sided three hole punched 8 1/2 x 11 pages."
-        num = int_nun(self.num_pages_var.get())  # try to get the number
-        num = num if num else 5  # if we don't have a number num is None
-        dat.manufacture(self.form, self.path, self.form_name, num)
+        self.update_num()
+        dat.manufacture(self.form, self.path, self.form_name, self.num)
 
 
 if __name__ == "__main__":
