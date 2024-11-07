@@ -33,4 +33,4 @@ double_colors = [
 ]
 
 potion_color = secondary_colors + double_colors
-potion_colors = Formula([potion_color], ["Potion color"], "Potion color", 4)
+potion_colors = Formula([potion_color]*4, ["Potion color"]*4, "Potion color", 4)

@@ -1,6 +1,9 @@
 "listmaster: roll on random tables"
+
 import tkinter as tk
-from tkinter import E, N, S, W, ttk
+from tkinter import E, N, S, W, filedialog, ttk
+
+import dill as pickle
 
 import gendata as dat
 
@@ -21,9 +24,10 @@ def int_nun(s: str) -> int | None:
 WIDTH = 75
 HEIGHT = 25
 SINGLE = 5
+DATA = "tables.dat"
 
 
-class ListMaster:  # pylint: disable=too-many-instance-attributes, too-few-public-methods
+class ListMaster:  # pylint: disable=too-many-instance-attributes
     """
     Tkinter UI for generating random choices, and creating tables and formulas.
     """
@@ -36,14 +40,15 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes, too-few-publi
         self.cur_page = None
         self.result_list = []
         self.num = SINGLE
+        self.root.protocol("WM_DELETE_WINDOW", self.on_close)
+
+        self._try_load()
 
         self._gen_main()
         self._gen_what()
         self._gen_page()
         self._gen_results()
         self._gen_buttons()
-        self._gen_form_buttons()
-        self._gen_clipboard()
         self._ungrid_form()
         self._ungrid_roll()
         self._config_grid()
@@ -55,6 +60,33 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes, too-few-publi
         "Runs the tk main loop"
         self.root.mainloop()
 
+    def _try_load(self):
+        "try to load data from the disk"
+        try:
+            with open(DATA, "rb", ) as f:
+                data = pickle.load(f)
+                self.what_list = data["what_list"]
+                self.what_choices = data["what_choices"]
+        except FileNotFoundError:
+            self.what_list = [dat.All_tables, dat.Maze_Rats_pages, dat.formulas]
+            self.what_choices = ["All tables", "Maze Rats pages", "Formulas"]
+
+    def _save(self):
+        try:
+            with open(DATA, "wb") as f:
+                data = {
+                    "what_list": self.what_list,
+                    "what_choices": self.what_choices
+                }
+                pickle.dump(data, f)
+        except FileNotFoundError:
+            pass
+
+    def on_close(self):
+        "save before close"
+        self._save()
+        self.root.destroy()
+
     def _gen_main(self):
         "Generates the main frame that all widgets will be part of"
         self.main = ttk.Frame(self.root, padding=5, width=WIDTH, height=HEIGHT)
@@ -65,13 +97,11 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes, too-few-publi
         self.what_frame = ridge_frame(self.main)
         self.what_frame.grid(column=0, row=0, sticky=(N, S, E, W))
 
-        self.what_list = [dat.All_tables, dat.Maze_Rats_pages, dat.formulas]
-        self.what_choices = ["All tables", "Maze Rats pages", "Formulas"]
         self.what_choice_var = tk.StringVar(value=self.what_choices)
 
         self.what = tk.Listbox(self.what_frame, listvariable=self.what_choice_var, width=int(WIDTH/5), height=HEIGHT)
         self.what.grid(column=0, row=0, sticky=(N, S, E, W))
-        self.what.bind("<<ListboxSelect>>", self._do_what)
+        self.what.bind("<<ListboxSelect>>", self.do_what)
 
     def _gen_page(self):
         "generates the page frame, for choosing, inspecting, or editing which 'page', formula or table"
@@ -82,7 +112,7 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes, too-few-publi
 
         self.page = tk.Listbox(self.page_frame, listvariable=self.page_choices, width=int(3*WIDTH/5), height=HEIGHT)
         self.page.grid(column=0, row=0, sticky=(N, S, E, W))
-        self.page.bind("<<ListboxSelect>>", self._do_page)
+        self.page.bind("<<ListboxSelect>>", self.do_page)
 
     def _gen_results(self):
         "generates the result frame, for viewing the results, inspecting or editing formulas or tables."
@@ -95,11 +125,11 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes, too-few-publi
         self.result.grid(column=0, row=0, sticky=(N, S, E, W))
 
     def _gen_buttons(self):
-        "generate button frame and some buttons; must be called before other gen_*_buttons. "
+        "generate button frame and some buttons."
         self.button_frame = ttk.Frame(self.result_frame)
         self.button_frame.grid(column=0, row=1, sticky=(E, W))
 
-        self.reroll = ttk.Button(self.button_frame, text="Re-Roll", command=self._do_reroll)
+        self.reroll = ttk.Button(self.button_frame, text="Re-Roll", command=self.do_reroll)
         self.reroll.grid(column=0, row=0)
 
         self.num_pages_label = ttk.Label(self.button_frame, text="No. Pages")
@@ -111,15 +141,14 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes, too-few-publi
         self.num_pages = tk.Entry(self.button_frame, textvariable=self.num_pages_var)
         self.num_pages.grid(column=1, row=1)
 
-    def _gen_form_buttons(self):
-        "generates the extra buttons for dealing with formulas"
-        self.gen_xls = ttk.Button(self.button_frame, text="Generate .xls file", command=self._do_xls)
-        self.gen_xls.grid(column=1, row=0)
-
-    def _gen_clipboard(self):
-        "button to copy to clipboard."
         self.clip_copy = ttk.Button(self.button_frame, text="Copy to clip board", command=self._copy_clip)
-        self.clip_copy.grid(column=2, row=0)
+        self.clip_copy.grid(column=1, row=0)
+
+        self.gen_xls = ttk.Button(self.button_frame, text="Generate .xls file", command=self.do_xls)
+        self.gen_xls.grid(column=2, row=1)
+
+        self.get_path = ttk.Button(self.button_frame, text="Choose path", command=self.do_path)
+        self.get_path.grid(column=2, row=0)
 
     def _copy_clip(self):
         "copy the results to the clipboard"
@@ -150,11 +179,13 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes, too-few-publi
     def _grid_form(self):
         "grids buttons for formulas."
         self.gen_xls.grid()
+        self.get_path.grid()
         self.num_pages_label.configure(text="No. Pages")
 
     def _ungrid_form(self):
         "ungrids buttons for formulas"
         self.gen_xls.grid_remove()
+        self.get_path.grid_remove()
         self.num_pages_label.configure(text="No. to Roll")
 
     def _grid_roll(self):
@@ -165,7 +196,13 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes, too-few-publi
         "removes reroll and clip_copy from the button frame"
         self.button_frame.grid_remove()
 
-    def _do_what(self, e):  # pylint: disable=unused-argument
+    def do_path(self):
+        "gets the path"
+        self.path = filedialog.askdirectory()
+        if self.path:
+            self.path += "/"
+
+    def do_what(self, e):  # pylint: disable=unused-argument
         "handles the 'what' column, which is the top level category, and fills out the page choices"
         sel = self.what.curselection()
 
@@ -176,7 +213,7 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes, too-few-publi
             self._ungrid_roll()
             self._ungrid_form()
 
-    def _do_page(self, e):  # pylint: disable=unused-argument
+    def do_page(self, e):  # pylint: disable=unused-argument
         "handles the 'page' column to choose which table, page, or formula to generate from; triggers re-roll"
         sel = self.page.curselection()
         if len(sel) == 1:
@@ -188,9 +225,9 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes, too-few-publi
             else:
                 self._ungrid_form()
 
-            self._do_reroll()
+            self.do_reroll()
 
-    def _do_reroll(self):
+    def do_reroll(self):
         "handles the re-roll button, generates and populates the results column"
         if self.form is not None:
             match(self.form):
@@ -215,7 +252,7 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes, too-few-publi
         num = int_nun(self.num_pages_var.get())  # try to get the number
         self.num = num if num else SINGLE  # if we don't have a number num is None
 
-    def _do_xls(self):
+    def do_xls(self):
         "Handles the Generate .xls button, currently makes double sided three hole punched 8 1/2 x 11 pages."
         self._update_num()
         dat.manufacture(self.form, self.path, self.form_name, self.num)
