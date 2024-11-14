@@ -8,17 +8,16 @@ import dill as pickle
 
 import gendata as dat
 
+WIDTH = 75
+HEIGHT = 25
+SINGLE = 5
+DATA = "tables.dat"
+
 
 class Widgets(Enum):
     "enums to define which widgets to grid and ungrid at various points"
     ROLL = 1
     FORM = 2
-    FRAME = 3
-
-
-def ridge_frame(content, **kwargs):
-    "returns a window with borderwidth=5 and relief='ridge' plus any kwargs"
-    return ttk.Frame(content, borderwidth=5, relief="ridge", **kwargs)
 
 
 def int_nun(s: str) -> int | None:
@@ -29,14 +28,8 @@ def int_nun(s: str) -> int | None:
         return None
 
 
-WIDTH = 75
-HEIGHT = 25
-SINGLE = 5
-DATA = "tables.dat"
-
-
 class WhatPanel(ttk.Frame):
-    "UI for the What panel of the application"
+    "generates the What panel, for choosing what top level category to use"
     def __init__(self, parent, **kwargs):
         super().__init__(parent, borderwidth=5, relief="ridge", **kwargs)
         self.grid(column=0, row=0, sticky=(N, S, E, W))
@@ -70,7 +63,7 @@ class WhatPanel(ttk.Frame):
         if len(sel) == 1:
             self._parent.set_page(self.what_list[sel[0]])
             self._parent.set_result([])
-            self._parent.ungrid_set(Widgets.ROLL, Widgets.FORM, Widgets.FRAME)
+            self._parent.ungrid_set(Widgets.ROLL, Widgets.FORM)
 
 
 class PagePanel(ttk.Frame):
@@ -105,7 +98,7 @@ class PagePanel(ttk.Frame):
         if len(sel) == 1:
             _, form = self._cur_page[sel[0]]
             self._parent.set_formula(self._cur_page[sel[0]])
-            self._parent.grid_set(Widgets.ROLL, Widgets.FRAME)
+            self._parent.grid_set(Widgets.ROLL)
 
             if isinstance(form, dat.Formula):
                 self._parent.grid_set(Widgets.FORM)
@@ -218,12 +211,11 @@ class ResultsPanel(ttk.Frame):
             match w:
                 case Widgets.ROLL:
                     self.reroll.grid_remove()
+                    self.button_frame.grid_remove()
                 case Widgets.FORM:
                     self.gen_xls.grid_remove()
                     self.get_path.grid_remove()
                     self.num_pages_label.configure(text="No. to Roll")
-                case Widgets.FRAME:
-                    self.button_frame.grid_remove()
 
     def grid_set(self, *widgets: Widgets):
         "adds widgets to the grid"
@@ -231,12 +223,11 @@ class ResultsPanel(ttk.Frame):
             match w:
                 case Widgets.ROLL:
                     self.reroll.grid()
+                    self.button_frame.grid()
                 case Widgets.FORM:
                     self.gen_xls.grid()
                     self.get_path.grid()
                     self.num_pages_label.configure(text="No. Pages")
-                case Widgets.FRAME:
-                    self.button_frame.grid()
 
 
 class MainPanel(ttk.Frame):
@@ -254,14 +245,13 @@ class MainPanel(ttk.Frame):
         self.columnconfigure(1, weight=2)
         self.columnconfigure(2, weight=4)
 
-        self.ungrid_set(Widgets.ROLL, Widgets.FORM, Widgets.FRAME)
+        self.ungrid_set(Widgets.ROLL, Widgets.FORM)
 
         self._try_load()
 
     def clipboard(self, out):
         "copy the results to the clipboard"
         self.root.clipboard_clear()  # clear the clipboard because we are setting its contents
-        # this is safe because the button that calls this method will not be shown unless results has contents
         self.root.clipboard_append(out)
 
     def set_page(self, page):
