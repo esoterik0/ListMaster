@@ -1,11 +1,18 @@
-"listmaster: roll on random tables"
+"listmaster: roll on random tables; create and edit random tables;"
 
 import tkinter as tk
+from enum import Enum
 from tkinter import E, N, S, W, filedialog, ttk
 
 import dill as pickle
 
 import gendata as dat
+
+
+class Widgets(Enum):
+    "enums to define which widgets to grid and ungrid at various points"
+    ROLL = 1
+    FORM = 2
 
 
 def ridge_frame(content, **kwargs):
@@ -27,106 +34,104 @@ SINGLE = 5
 DATA = "tables.dat"
 
 
-class ListMaster:  # pylint: disable=too-many-instance-attributes
-    """
-    Tkinter UI for generating random choices, and creating tables and formulas.
-    """
-    def __init__(self, autostart=True):
-        "Initializes the the UI; utilizes many helper functions"
-        self.root = tk.Tk()
-        self.form: dat.Formula | list = None
-        self.form_name = ""
-        self.path = ""
-        self.cur_page = None
-        self.result_list = []
-        self.num = SINGLE
-        self.root.protocol("WM_DELETE_WINDOW", self.on_close)
+class WhatPanel(ttk.Frame):
+    "UI for the What panel of the application"
+    def __init__(self, parent, **kwargs):
+        super().__init__(parent, borderwidth=5, relief="ridge", **kwargs)
+        self.grid(column=0, row=0, sticky=(N, S, E, W))
+        self._parent = parent
 
-        self._try_load()
+        self.what_list = []
+        self.choices = []
+        self.what_choice_var = tk.StringVar()
 
-        self._gen_main()
-        self._gen_what()
-        self._gen_page()
-        self._gen_results()
-        self._gen_buttons()
-        self._ungrid_form()
-        self._ungrid_roll()
-        self._config_grid()
-
-        if autostart:
-            self.start()
-
-    def start(self):
-        "Runs the tk main loop"
-        self.root.mainloop()
-
-    def _try_load(self):
-        "try to load data from the disk"
-        try:
-            with open(DATA, "rb", ) as f:
-                data = pickle.load(f)
-                self.what_list = data["what_list"]
-                self.what_choices = data["what_choices"]
-        except FileNotFoundError:
-            self.what_list = [dat.All_tables, dat.Maze_Rats_pages, dat.formulas]
-            self.what_choices = ["All tables", "Maze Rats pages", "Formulas"]
-
-    def _save(self):
-        try:
-            with open(DATA, "wb") as f:
-                data = {
-                    "what_list": self.what_list,
-                    "what_choices": self.what_choices
-                }
-                pickle.dump(data, f)
-        except FileNotFoundError:
-            pass
-
-    def on_close(self):
-        "save before close"
-        self._save()
-        self.root.destroy()
-
-    def _gen_main(self):
-        "Generates the main frame that all widgets will be part of"
-        self.main = ttk.Frame(self.root, padding=5, width=WIDTH, height=HEIGHT)
-        self.main.grid(column=0, row=0, sticky=(N, S, E, W))
-
-    def _gen_what(self):
-        "Generates the what frame, for choosing what category"
-        self.what_frame = ridge_frame(self.main)
-        self.what_frame.grid(column=0, row=0, sticky=(N, S, E, W))
-
-        self.what_choice_var = tk.StringVar(value=self.what_choices)
-
-        self.what = tk.Listbox(self.what_frame, listvariable=self.what_choice_var, width=int(WIDTH/5), height=HEIGHT)
+        self.what = tk.Listbox(self, listvariable=self.what_choice_var, width=int(WIDTH/5), height=HEIGHT)
         self.what.grid(column=0, row=0, sticky=(N, S, E, W))
         self.what.bind("<<ListboxSelect>>", self.do_what)
 
-    def _gen_page(self):
-        "generates the page frame, for choosing, inspecting, or editing which 'page', formula or table"
-        self.page_frame = ridge_frame(self.main)
-        self.page_frame.grid(column=1, row=0, sticky=(N, S, E, W))
+        self.rowconfigure(0, weight=1)
+        self.columnconfigure(0, weight=1)
+
+    def set_what(self, lst, choice):
+        "sets the values for the what panel, the list needs to have data in it, choice should have the labels."
+        self.what_list = lst
+        self.choices = choice
+        self.what_choice_var.set(choice)
+
+    def get_what(self) -> tuple[list, list]:
+        return self.what_list, self.choices
+
+    def do_what(self, e):  # pylint: disable=unused-argument
+        "handles the 'what' column, which is the top level category, and fills out the page choices"
+        sel = self.what.curselection()
+
+        if len(sel) == 1:
+            self._parent.set_page(self.what_list[0])
+            self._parent.set_result([])
+            self._parent.ungrid_set(Widgets.ROLL, Widgets.FORM)
+
+
+class PagePanel(ttk.Frame):
+    "generates the page frame, for choosing, inspecting, or editing which 'page', formula or table"
+    def __init__(self, parent, **kwargs):
+        super().__init__(parent, borderwidth=5, relief="ridge", **kwargs)
+        self.grid(column=1, row=0, sticky=(N, S, E, W))
+        self._parent = parent
 
         self.page_choices = tk.StringVar()
 
-        self.page = tk.Listbox(self.page_frame, listvariable=self.page_choices, width=int(3*WIDTH/5), height=HEIGHT)
-        self.page.grid(column=0, row=0, sticky=(N, S, E, W))
-        self.page.bind("<<ListboxSelect>>", self.do_page)
+        self._page = tk.Listbox(self, listvariable=self.page_choices, width=int(3*WIDTH/5), height=HEIGHT)
+        self._page.grid(column=0, row=0, sticky=(N, S, E, W))
+        self._page.bind("<<ListboxSelect>>", self.do_page)
 
-    def _gen_results(self):
-        "generates the result frame, for viewing the results, inspecting or editing formulas or tables."
-        self.result_frame = ridge_frame(self.main)
-        self.result_frame.grid(column=2, row=0, sticky=(N, S, E, W))
+        self.rowconfigure(0, weight=1)
+        self.columnconfigure(0, weight=1)
+
+        self._cur_page = None
+        self._form = None
+
+    def set_page(self, lst: list):
+        "sets the contents of the page panel"
+        self._cur_page = lst
+        self.page_choices.set([n for n, _ in self._cur_page])
+
+    def do_page(self, e):  # pylint: disable=unused-argument
+        "handles the 'page' column to choose which table, page, or formula to generate from; triggers re-roll"
+        if (self._cur_page is None):
+            return
+
+        sel = self._page.curselection()
+        if len(sel) == 1:
+            self._parent.set_formula(self._cur_page[sel[0]])
+            self._parent.grid_set(Widgets.ROLL)
+
+            if isinstance(self._form, dat.Formula):
+                self._parent.grid_set(Widgets.FORM)
+            else:
+                self._parent.ungrid_set(Widgets.FORM)
+
+            self._parent.reroll()
+
+
+class ResultsPanel(ttk.Frame):
+    "generates the page frame, for choosing, inspecting, or editing which 'page', formula or table"
+    def __init__(self, parent, **kwargs):
+        self._parent = parent
+        self.num = SINGLE
+        self.path = ""
+        self.form = None
+        self.form_name = ""
+
+        super().__init__(parent, borderwidth=5, relief="ridge", **kwargs)
+        self.grid(column=2, row=0, sticky=(N, S, E, W))
 
         self.results = tk.StringVar()
+        self.result_list = []
 
-        self.result = tk.Listbox(self.result_frame, listvariable=self.results, width=int(4*WIDTH/5), height=HEIGHT)
+        self.result = tk.Listbox(self, listvariable=self.results, width=int(4*WIDTH/5), height=HEIGHT)
         self.result.grid(column=0, row=0, sticky=(N, S, E, W))
 
-    def _gen_buttons(self):
-        "generate button frame and some buttons."
-        self.button_frame = ttk.Frame(self.result_frame)
+        self.button_frame = ttk.Frame(self)
         self.button_frame.grid(column=0, row=1, sticky=(E, W))
 
         self.reroll = ttk.Button(self.button_frame, text="Re-Roll", command=self.do_reroll)
@@ -150,82 +155,17 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
         self.get_path = ttk.Button(self.button_frame, text="Choose path", command=self.do_path)
         self.get_path.grid(column=2, row=0)
 
-    def _copy_clip(self):
-        "copy the results to the clipboard"
-        self.root.clipboard_clear()  # clear the clipboard because we are setting its contents
-        # this is safe because the button that calls this method will not be shown unless results has contents
-        self.root.clipboard_append("\n".join(self.result_list))
-
-    def _config_grid(self):
-        "calls column/rowconfigure on all our frames to set weights for resizing"
-        self.root.rowconfigure(0, weight=1)
-        self.root.columnconfigure(0, weight=1)
-        self.main.rowconfigure(0, weight=1)
-        self.main.columnconfigure(0, weight=1)
-        self.main.columnconfigure(1, weight=2)
-        self.main.columnconfigure(2, weight=4)
-        self.what_frame.rowconfigure(0, weight=1)
-        self.what_frame.columnconfigure(0, weight=1)
-        self.page_frame.rowconfigure(0, weight=1)
-        self.page_frame.columnconfigure(0, weight=1)
-        self.result_frame.rowconfigure(0, weight=1)
-        self.result_frame.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
+        self.columnconfigure(0, weight=1)
         self.button_frame.rowconfigure(0, weight=1)
         self.button_frame.rowconfigure(1, weight=1)
         self.button_frame.columnconfigure(0, weight=1)
         self.button_frame.columnconfigure(1, weight=1)
         self.button_frame.columnconfigure(2, weight=1)
 
-    def _grid_form(self):
-        "grids buttons for formulas."
-        self.gen_xls.grid()
-        self.get_path.grid()
-        self.num_pages_label.configure(text="No. Pages")
-
-    def _ungrid_form(self):
-        "ungrids buttons for formulas"
-        self.gen_xls.grid_remove()
-        self.get_path.grid_remove()
-        self.num_pages_label.configure(text="No. to Roll")
-
-    def _grid_roll(self):
-        "adds reroll and clip_copy to the button_frame"
-        self.button_frame.grid()
-
-    def _ungrid_roll(self):
-        "removes reroll and clip_copy from the button frame"
-        self.button_frame.grid_remove()
-
-    def do_path(self):
-        "gets the path"
-        self.path = filedialog.askdirectory()
-        if self.path:
-            self.path += "/"
-
-    def do_what(self, e):  # pylint: disable=unused-argument
-        "handles the 'what' column, which is the top level category, and fills out the page choices"
-        sel = self.what.curselection()
-
-        if len(sel) == 1:
-            self.cur_page = self.what_list[sel[0]]
-            self.page_choices.set([n for n, _ in self.cur_page])
-            self.results.set([])
-            self._ungrid_roll()
-            self._ungrid_form()
-
-    def do_page(self, e):  # pylint: disable=unused-argument
-        "handles the 'page' column to choose which table, page, or formula to generate from; triggers re-roll"
-        sel = self.page.curselection()
-        if len(sel) == 1:
-            self.form_name, self.form = self.cur_page[sel[0]]
-            self._grid_roll()
-
-            if isinstance(self.form, dat.Formula):
-                self._grid_form()
-            else:
-                self._ungrid_form()
-
-            self.do_reroll()
+    def set_formula(self, form):
+        "sets the formula or table to roll on"
+        self.form_name, self.form = form
 
     def do_reroll(self):
         "handles the re-roll button, generates and populates the results column"
@@ -244,8 +184,17 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
                     ]
         else:
             self.result_list = []
+        self.set_result(self.result_list)
 
-        self.results.set(self.result_list)
+    def set_result(self, lst: list):
+        "sets the results string, used for clearing the list"
+        self.results.set(lst)
+
+    def do_path(self):
+        "gets the path"
+        self.path = filedialog.askdirectory()
+        if self.path:
+            self.path += "/"
 
     def _update_num(self):
         "updates self.num"
@@ -257,6 +206,125 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
         self._update_num()
         dat.manufacture(self.form, self.path, self.form_name, self.num)
 
+    def _copy_clip(self):
+        "copy the results to the clipboard"
+        self._parent.clipboard("\n".join(self.result_list))
+
+    def ungrid_set(self, *widgets: Widgets):
+        "removes widgets from the grid"
+        for w in widgets:
+            match w:
+                case Widgets.ROLL:
+                    self.reroll.grid_remove()
+                case Widgets.FORM:
+                    self.gen_xls.grid_remove()
+                    self.get_path.grid_remove()
+                    self.num_pages_label.configure(text="No. to Roll")
+
+    def grid_set(self, *widgets: Widgets):
+        "adds widgets to the grid"
+        for w in widgets:
+            match w:
+                case Widgets.ROLL:
+                    self.reroll.grid()
+                case Widgets.FORM:
+                    self.gen_xls.grid()
+                    self.get_path.grid()
+                    self.num_pages_label.configure(text="No. Pages")
+
+
+class MainPanel(ttk.Frame):
+    "Main frame for the UI"
+    def __init__(self, parent, **kwargs):
+        super().__init__(parent, padding=5, width=WIDTH, height=HEIGHT, **kwargs)
+
+        self.root = parent
+        self._what = WhatPanel(self)
+        self._page = PagePanel(self)
+        self._result = ResultsPanel(self)
+        self.rowconfigure(0, weight=1)
+        self.columnconfigure(0, weight=1)
+        self.columnconfigure(1, weight=2)
+        self.columnconfigure(2, weight=4)
+
+        self._try_load()
+
+    def clipboard(self, out):
+        "copy the results to the clipboard"
+        self.root.clipboard_clear()  # clear the clipboard because we are setting its contents
+        # this is safe because the button that calls this method will not be shown unless results has contents
+        self.root.clipboard_append(out)
+
+    def set_page(self, page):
+        "set page contents"
+        self._page.set_page(page)
+
+    def set_formula(self, form):
+        "set the formula to use"
+        self._result.set_formula(form)
+
+    def set_result(self, result: list):
+        "set results contents"
+        self._result.set_result(result)
+
+    def ungrid_set(self, *widgets: Widgets):
+        "pass to results to remove widgets from the grid"
+        self._result.ungrid_set(*widgets)
+
+    def grid_set(self, *widgets: Widgets):
+        "pass to results to add widgets to the grid."
+        self._result.grid_set(*widgets)
+
+    def reroll(self):
+        "calls reroll to populate results"
+        self._result.do_reroll()
+
+    def save(self):
+        "saves the data to disk"
+        try:
+            with open(DATA, "wb") as f:
+                d = self._what.get_what()
+                data = {
+                    "what_list": d[0],
+                    "what_choices": d[1]
+                }
+                pickle.dump(data, f)
+        except FileNotFoundError:
+            pass
+
+    def _try_load(self):
+        "try to load data from the disk"
+        try:
+            with open(DATA, "rb", ) as f:
+                data = pickle.load(f)
+                self._what.set_what(data["what_list"], data["what_choices"])
+        except FileNotFoundError:
+            self._what.set_what(
+                [dat.All_tables, dat.Maze_Rats_pages, dat.formulas],
+                ["All tables", "Maze Rats pages", "Formulas"],
+            )
+
+
+class ListMaster:  # pylint: disable=too-many-instance-attributes
+    """
+    Tkinter UI for generating random choices, and creating tables and formulas.
+    """
+    def __init__(self, root):
+        "Initializes the the UI; utilizes many helper functions"
+        self.root = root
+        self.root.protocol("WM_DELETE_WINDOW", self.on_close)
+        self.root.rowconfigure(0, weight=1)
+        self.root.columnconfigure(0, weight=1)
+
+        self._main = MainPanel(root)
+
+    def on_close(self):
+        "save before close"
+        self._main.save()
+        self.root.destroy()
+
 
 if __name__ == "__main__":
-    ListMaster()
+    root = tk.Tk()
+    ListMaster(root)
+    root.mainloop()
