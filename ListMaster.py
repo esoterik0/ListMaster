@@ -13,6 +13,7 @@ class Widgets(Enum):
     "enums to define which widgets to grid and ungrid at various points"
     ROLL = 1
     FORM = 2
+    FRAME = 3
 
 
 def ridge_frame(content, **kwargs):
@@ -59,6 +60,7 @@ class WhatPanel(ttk.Frame):
         self.what_choice_var.set(choice)
 
     def get_what(self) -> tuple[list, list]:
+        "gets the top level what lists"
         return self.what_list, self.choices
 
     def do_what(self, e):  # pylint: disable=unused-argument
@@ -66,9 +68,9 @@ class WhatPanel(ttk.Frame):
         sel = self.what.curselection()
 
         if len(sel) == 1:
-            self._parent.set_page(self.what_list[0])
+            self._parent.set_page(self.what_list[sel[0]])
             self._parent.set_result([])
-            self._parent.ungrid_set(Widgets.ROLL, Widgets.FORM)
+            self._parent.ungrid_set(Widgets.ROLL, Widgets.FORM, Widgets.FRAME)
 
 
 class PagePanel(ttk.Frame):
@@ -88,7 +90,6 @@ class PagePanel(ttk.Frame):
         self.columnconfigure(0, weight=1)
 
         self._cur_page = None
-        self._form = None
 
     def set_page(self, lst: list):
         "sets the contents of the page panel"
@@ -97,15 +98,16 @@ class PagePanel(ttk.Frame):
 
     def do_page(self, e):  # pylint: disable=unused-argument
         "handles the 'page' column to choose which table, page, or formula to generate from; triggers re-roll"
-        if (self._cur_page is None):
+        if self._cur_page is None:
             return
 
         sel = self._page.curselection()
         if len(sel) == 1:
+            _, form = self._cur_page[sel[0]]
             self._parent.set_formula(self._cur_page[sel[0]])
-            self._parent.grid_set(Widgets.ROLL)
+            self._parent.grid_set(Widgets.ROLL, Widgets.FRAME)
 
-            if isinstance(self._form, dat.Formula):
+            if isinstance(form, dat.Formula):
                 self._parent.grid_set(Widgets.FORM)
             else:
                 self._parent.ungrid_set(Widgets.FORM)
@@ -220,6 +222,8 @@ class ResultsPanel(ttk.Frame):
                     self.gen_xls.grid_remove()
                     self.get_path.grid_remove()
                     self.num_pages_label.configure(text="No. to Roll")
+                case Widgets.FRAME:
+                    self.button_frame.grid_remove()
 
     def grid_set(self, *widgets: Widgets):
         "adds widgets to the grid"
@@ -231,12 +235,15 @@ class ResultsPanel(ttk.Frame):
                     self.gen_xls.grid()
                     self.get_path.grid()
                     self.num_pages_label.configure(text="No. Pages")
+                case Widgets.FRAME:
+                    self.button_frame.grid()
 
 
 class MainPanel(ttk.Frame):
     "Main frame for the UI"
     def __init__(self, parent, **kwargs):
         super().__init__(parent, padding=5, width=WIDTH, height=HEIGHT, **kwargs)
+        self.grid(column=0, row=0, sticky=(N, S, E, W))
 
         self.root = parent
         self._what = WhatPanel(self)
@@ -246,6 +253,8 @@ class MainPanel(ttk.Frame):
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=2)
         self.columnconfigure(2, weight=4)
+
+        self.ungrid_set(Widgets.ROLL, Widgets.FORM, Widgets.FRAME)
 
         self._try_load()
 
