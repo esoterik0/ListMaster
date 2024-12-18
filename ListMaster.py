@@ -1,8 +1,9 @@
 "listmaster: roll on random tables; create and edit random tables;"
 
+import os
 import tkinter as tk
 from enum import Enum
-from tkinter import E, N, S, W, filedialog, ttk
+from tkinter import E, N, S, W, filedialog, messagebox, ttk
 
 import dill as pickle
 
@@ -247,7 +248,12 @@ class MainPanel(ttk.Frame):
 
         self.ungrid_set(Widgets.ROLL, Widgets.FORM)
 
-        self._try_load()
+        self._data = DATA
+        self.do_try_load()
+
+    def get_data(self):
+        "get the current file name"
+        return self._data
 
     def clipboard(self, out):
         "copy the results to the clipboard"
@@ -274,6 +280,13 @@ class MainPanel(ttk.Frame):
         "pass to results to add widgets to the grid."
         self._result.grid_set(*widgets)
 
+    def set_data(self, data):
+        "sets the data filename"
+        if data:
+            self._data = data
+        else:
+            self._data = DATA
+
     def reroll(self):
         "calls reroll to populate results"
         self._result.do_reroll()
@@ -281,7 +294,7 @@ class MainPanel(ttk.Frame):
     def save(self):
         "saves the data to disk"
         try:
-            with open(DATA, "wb") as f:
+            with open(self._data, "wb") as f:
                 d = self._what.get_what()
                 data = {
                     "what_list": d[0],
@@ -291,17 +304,70 @@ class MainPanel(ttk.Frame):
         except FileNotFoundError:
             pass
 
-    def _try_load(self):
+    def do_try_load(self):
         "try to load data from the disk"
         try:
-            with open(DATA, "rb", ) as f:
+            with open(self._data, "rb", ) as f:
                 data = pickle.load(f)
                 self._what.set_what(data["what_list"], data["what_choices"])
         except FileNotFoundError:
-            self._what.set_what(
-                [dat.All_tables, dat.Maze_Rats_pages, dat.formulas],
-                ["All tables", "Maze Rats pages", "Formulas"],
-            )
+            self.do_reset()
+            return
+
+        self._page.set_page([])
+        self._result.set_result([])
+
+    def do_reset(self):
+        "perform a reset of the data to the hardcoded values"
+        self._what.set_what(
+            [dat.All_tables, dat.Maze_Rats_pages, dat.formulas],
+            ["All tables", "Maze Rats pages", "Formulas"],
+        )
+
+        self._page.set_page([])
+        self._result.set_result([])
+
+    def do_import(self, file):
+        "Import and merge lists"
+        wlist, wchoices = self._what.get_what()
+
+        data = None
+        try:
+            with open(file, "rb", ) as f:
+                data = pickle.load(f)
+        except FileNotFoundError:
+            return
+
+        append = []  # values to add after combining choices with the same name
+
+        # merge existing lists and track new choices to append.
+        for fob, choice in zip(data["what_list"], data["what_choices"]):
+            try:
+                # if the choice exists merge the lists
+                wlist[wchoices.index(choice)] += fob
+            except ValueError:
+                # if the choice is new add it after this loop.
+                append.append((choice, fob))
+
+        # add new choices
+        for choice, fob in append:
+            wlist.append(fob)
+            wchoices.append(choice)
+
+        # set the choices.
+        self._what.set_what(wlist, wchoices)
+
+    def do_clear(self):
+        "Clear all data"
+
+        # we always need an all tables entry.
+        self._what.set_what(
+            [[]],
+            ["All tables"],
+        )
+
+        self._page.set_page([])
+        self._result.set_result([])
 
 
 class ListMaster:  # pylint: disable=too-many-instance-attributes
@@ -311,16 +377,87 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
     def __init__(self, root):
         "Initializes the the UI; utilizes many helper functions"
         self.root = root
+        self.root.option_add('*tearOff', False)
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
+        self.root.title("List Master")
+        self.menu = tk.Menu(self.root)
+        self.file_menu = tk.Menu(self.menu)
+        self.file_menu.add_command(label="New / Clear data", command=self.on_new)
+        self.file_menu.add_command(label="Reset to defaults", command=self.on_reset)
+        self.file_menu.add_separator()
+        self.file_menu.add_command(label="Load", command=self.on_load)
+        self.file_menu.add_command(label="Import", command=self.on_import)
+        self.file_menu.add_separator()
+        self.file_menu.add_command(label="Save", command=self.on_save)
+        self.file_menu.add_command(label="Save as", command=self.on_save_as)
+        self.file_menu.add_separator()
+        self.file_menu.add_command(label="Save & Quit", command=self.on_close)
+        self.file_menu.add_command(label="Just Quit (No prompt)", command=self.on_quit)
+        self.menu.add_cascade(menu=self.file_menu, label="File")
+        self.root["menu"] = self.menu
         self.root.rowconfigure(0, weight=1)
         self.root.columnconfigure(0, weight=1)
 
-        self._main = MainPanel(root)
+        self._main = MainPanel(self.root)
+
+    def get_path_file(self):
+        "gets the path and filename of the current file to save"
+        path = os.getcwd()
+        file = self._main.get_data()
+
+        if x := max(file.rfind('/'), file.rfind('\\')) >= 0:
+            path = file[0:x]
+            file = file[x+1:]
+
+        return path, file
+
+    def on_save(self):
+        "Saves data to the last used filename"
+        self._main.save()
+
+    def on_save_as(self):
+        "Saves data to a file, asks for name"
+        path, file = self.get_path_file()
+        self._main.set_data(filedialog.asksaveasfilename(initialdir=path, initialfile=file, defaultextension=".dat"))
+        self._main.save()
+
+    def on_quit(self):
+        "Quit without saving or prompting"
+        self.root.destroy()  # Quit
 
     def on_close(self):
-        "save before close"
-        self._main.save()
-        self.root.destroy()
+        "handle the close action; save before close"
+        code = messagebox.askyesnocancel(
+            message="Are you sure you want to save and quit?\n\nYes: Save & Quit\nNo: Just Quit\nCancel: Don't quit",
+            title="Save & Quit?"
+        )
+
+        if code is None:
+            return  # don't quit
+
+        if code:
+            self._main.save()  # Save & Quit
+
+        self.root.destroy()  # Quit
+
+    def on_reset(self):
+        "resets to hardcoded values"
+        self._main.do_reset()
+
+    def on_new(self):
+        "clears all data creating a new clean setup"
+        self._main.do_clear()
+
+    def on_load(self):
+        "loads data from a file"
+        path, file = self.get_path_file()
+        self._main.set_data(filedialog.askopenfilename(initialdir=path, initialfile=file, defaultextension=".dat"))
+        self._main.do_try_load()
+
+    def on_import(self):
+        "Imports and merges data from a file"
+        path, file = self.get_path_file()
+        self._main.do_import(filedialog.askopenfilename(initialdir=path, initialfile=file, defaultextension=".dat"))
 
 
 if __name__ == "__main__":
