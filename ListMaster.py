@@ -428,7 +428,10 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
     def on_close(self):
         "handle the close action; save before close"
         code = messagebox.askyesnocancel(
-            message="Are you sure you want to save and quit?\n\nYes: Save & Quit\nNo: Just Quit\nCancel: Don't quit",
+            message="Do you want to Save?\n\n"
+                    "Yes:\tSave & Quit\n"
+                    "No:\tJust Quit\n"
+                    "Cancel:\tDon't Quit",
             title="Save & Quit?"
         )
 
