@@ -1,5 +1,7 @@
 # generator functions that return a function that returns a generartor.
 
+from operator import add
+from functools import reduce
 from math import ceil
 from random import choice, sample, shuffle
 from typing import Any, Callable, Generator
@@ -72,7 +74,8 @@ def gen_list(lst: list | tuple) -> str:
 
 def general_generator(
     form: Formula,
-    lines: int = 50
+    lines: int = 50,
+    half: bool = False
 ) -> Callable[[], Generator[list[str], Any, None]]:
     """
     Generates a generator for a general formula.
@@ -83,24 +86,27 @@ def general_generator(
     If the size is larger than the split then it takes more than one line. We try to
     fit as many full sets of lines as we can without a partial set.
     """
-
     split = form.split
+
+    if half:
+        split /= 2
+        lines /= 2
 
     def food():
         size = len(form.labels)  # first get the size of the formula;
         headlines = ceil(size/split)
         loop = (lines-headlines)//headlines  # total lines
+        rep = 1
 
-        # yield the header first provided by formual.labels
+        # yield the header first provided by formula.labels
         if size < split:
-            rep = split//size  # calculate any repatitions that are needed.
-            loop *= rep  # increase the count by the multiple
+            rep = split//size  # calculate any repetitions that are needed.
             yield form.labels * rep  # yield the correct label
         else:
             yield form.labels  # yield the label
 
         for _ in range(loop):
-            yield gen_form(form)  # yield the content
+            yield reduce(add, [gen_form(form) for _ in range(rep)])  # yield the content
 
     return food
 

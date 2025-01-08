@@ -214,7 +214,7 @@ printTables = {
     "phy_form": "Physical Forms",
     "phys": "Physical Details",
     "poisonous_plants": "Poisonous Plants",
-    "potion_color": "All potion colors",
+    "potion_color": "Potion colors (all)",
     "potions": "Potion Ingredients",
     "relationships": "Relationships",
     "reputation": "Reputations",

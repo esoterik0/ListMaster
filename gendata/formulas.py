@@ -13,4 +13,4 @@ class Formula:
 class MetaFormula(Formula):
     "indicates this is a list of formulas"
     def __init__(self, forms: list[list], labels: list[str], name: str, split: int = 6):
-        super().__init__([Formula(form, labels, name) for form in forms], labels, name, split)
+        super().__init__([Formula(form, labels, name, split) for form in forms], labels, name, split)
