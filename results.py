@@ -4,7 +4,7 @@ import tkinter as tk
 from tkinter import E, N, S, W, filedialog, ttk
 
 import gendata as dat
-from enums import HEIGHT, SINGLE, WIDTH, Widgets
+from enums import HEIGHT, SINGLE, WIDTH, Widgets, State
 
 
 def int_nun(s: str) -> int | None:
@@ -112,26 +112,24 @@ class ResultsPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
         "copy the results to the clipboard"
         self._parent.clipboard("\n".join(self.result_list))
 
-    def ungrid_set(self, *widgets: Widgets):
+    def ungrid_set(self):
         "removes widgets from the grid"
-        for w in widgets:
-            match w:
-                case Widgets.ROLL:
-                    self.reroll.grid_remove()
-                    self.button_frame.grid_remove()
-                case Widgets.FORM:
-                    self.gen_xls.grid_remove()
-                    self.get_path.grid_remove()
-                    self.num_pages_label.configure(text="No. to Roll")
+        self.button_frame.grid_remove()
+        self.reroll.grid_remove()
+        self.gen_xls.grid_remove()
+        self.get_path.grid_remove()
+        self.num_pages_label.configure(text="")
 
-    def grid_set(self, *widgets: Widgets):
+    def grid_set(self, widget: Widgets):
         "adds widgets to the grid"
-        for w in widgets:
-            match w:
-                case Widgets.ROLL:
-                    self.reroll.grid()
-                    self.button_frame.grid()
-                case Widgets.FORM:
-                    self.gen_xls.grid()
-                    self.get_path.grid()
-                    self.num_pages_label.configure(text="No. Pages")
+
+        match widget:
+            case Widgets.ROLL:
+                self.button_frame.grid()
+                self.reroll.grid()
+                self.num_pages_label.configure(text="No. to Roll")
+            case Widgets.FORM:
+                self.button_frame.grid()
+                self.gen_xls.grid()
+                self.get_path.grid()
+                self.num_pages_label.configure(text="No. Pages")

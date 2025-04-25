@@ -24,11 +24,11 @@ class MainPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
         self._page = PagePanel(self)
         self._result = ResultsPanel(self)
         self.rowconfigure(0, weight=1)
-        self.columnconfigure(0, weight=1)
+        self.columnconfigure(0, weight=2)
         self.columnconfigure(1, weight=2)
         self.columnconfigure(2, weight=4)
 
-        self.ungrid_set(Widgets.ROLL, Widgets.FORM)
+        self.result_ungrid_set()
 
         self.state = State.ROLL
         self._data = DATA
@@ -59,13 +59,21 @@ class MainPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
         "set results contents"
         self._result.set_result(result)
 
-    def ungrid_set(self, *widgets: Widgets):
+    def result_ungrid_set(self):
         "pass to results to remove widgets from the grid"
-        self._result.ungrid_set(*widgets)
+        self._result.ungrid_set()
 
-    def grid_set(self, *widgets: Widgets):
+    def result_grid_set(self, widget: Widgets):
         "pass to results to add widgets to the grid."
-        self._result.grid_set(*widgets)
+        self._result.grid_set(widget)
+
+    def what_ungrid_set(self):
+        "pass to results to remove widgets from the grid"
+        self._what.ungrid_set()
+
+    def what_grid_set(self, widget: Widgets):
+        "pass to results to add widgets to the grid."
+        self._what.grid_set(widget)
 
     def set_data(self, data):
         "sets the data filename"

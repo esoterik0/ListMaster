@@ -8,11 +8,12 @@ SINGLE = 1
 
 class Widgets(Enum):
     "enums to define which widgets to grid and ungrid at various points"
-    ROLL = 1
-    FORM = 2
+    ROLL = "ROLL"
+    FORM = "FORM"
+    EDIT = "EDIT"
 
 
 class State(Enum):
     "Enums to define what state the program is in"
-    ROLL = 1
-    EDIT = 2
+    ROLL = "ROLL"
+    EDIT = "EDIT"
