@@ -1,3 +1,10 @@
+"""_summary_
+    These are the tables from maze rats, each page is a formual, as well as other formuals
+
+    This content is taken from Ben Milton's Maze Rats. https://legacy.drivethrurpg.com/product/197158/Maze-Rats
+    Maze rats text is used here by the Creative Commons Attribution 4.0 International License. CC-BY
+"""
+# pylint: disable=too-many-lines
 # This content is taken from Ben Milton's Maze Rats. https://legacy.drivethrurpg.com/product/197158/Maze-Rats
 # Maze rats text is used here by the Creative Commons Attribution 4.0 International License. CC-BY
 

@@ -19,24 +19,37 @@ class MainPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
         super().__init__(parent, padding=5, width=WIDTH, height=HEIGHT, **kwargs)
         self.grid(column=0, row=0, sticky=(N, S, E, W))
 
-        self.root = parent
-        self._what = WhatPanel(self)
-        self._page = PagePanel(self)
-        self._result = ResultsPanel(self)
+        self.root = parent  # this is the same as something in super
+        # all the panels of our application
+        self._what = WhatPanel(self)  # A book, set, list, etc. A collection of rollables
+        self._page = PagePanel(self)  # A page is a list of rollables
+        self._result = ResultsPanel(self)  # this is the resulst of rolling the rollabable
+
+        # our panel are arranged horizontally, in a single row.
         self.rowconfigure(0, weight=1)
-        self.columnconfigure(0, weight=2)
-        self.columnconfigure(1, weight=2)
-        self.columnconfigure(2, weight=4)
+        self.columnconfigure(0, weight=4)
+        self.columnconfigure(1, weight=4)
+        self.columnconfigure(2, weight=7)
 
         self.result_ungrid_set()
 
         self.state = State.ROLL
+        self.widget = Widgets.ROLL
         self._data = DATA
         self.do_try_load()
 
     def set_state(self, state: State):
         "sets the internal state value to a state"
         self.state = state
+
+        match state:
+            case State.ROLL:
+                self.widget = Widgets.ROLL
+            case State.EDIT:
+                self.widget = Widgets.EDIT
+
+        for panel in [self._what, self._page, self._result]:
+            panel.set_state()
 
     def get_data(self):
         "get the current file name"

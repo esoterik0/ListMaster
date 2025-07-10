@@ -35,6 +35,9 @@ class ResultsPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
 
         self.button_frame = ttk.Frame(self)
         self.button_frame.grid(column=0, row=1, sticky=(E, W))
+        self.edit_button_frame = ttk.Frame(self)
+        self.edit_button_frame.grid(column=0, row=1, sticky=(E, W))
+        self.edit_button_frame.grid_remove()
 
         self.reroll = ttk.Button(self.button_frame, text="Re-Roll", command=self.do_reroll)
         self.reroll.grid(column=0, row=0)
@@ -113,7 +116,20 @@ class ResultsPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
         self._parent.clipboard("\n".join(self.result_list))
 
     def ungrid_set(self):
-        "removes widgets from the grid"
+        "dispatch bassed on mode"
+
+        match self._parent.state:
+            case State.ROLL:
+                self.roll_ungrid_set()
+            case State.EDIT:
+                self.edit_ungrid_set()
+
+    def edit_ungrid_set(self):
+        "edit state removes wigets from the grid"
+        self.edit_button_frame.grid_remove()
+
+    def roll_ungrid_set(self):
+        "roll state removes widgets from the grid"
         self.button_frame.grid_remove()
         self.reroll.grid_remove()
         self.gen_xls.grid_remove()
@@ -121,7 +137,19 @@ class ResultsPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
         self.num_pages_label.configure(text="")
 
     def grid_set(self, widget: Widgets):
-        "adds widgets to the grid"
+        "dispatch bassed on mode"
+
+        match self._parent.state:
+            case State.ROLL:
+                self.roll_grid_set(widget)
+            case State.EDIT:
+                self.edit_grid_set(widget)
+
+    def edit_grid_set(self, widget: Widgets):
+        "in edit mode adds widgets to the grid"
+
+    def roll_grid_set(self, widget: Widgets):
+        "in roll mode adds widgets to the grid"
 
         match widget:
             case Widgets.ROLL:
@@ -133,3 +161,16 @@ class ResultsPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
                 self.gen_xls.grid()
                 self.get_path.grid()
                 self.num_pages_label.configure(text="No. Pages")
+
+    def set_state(self):
+        "set state handler called when _parent changes state"
+        match self._parent.state:
+            case State.ROLL:
+                self.edit_button_frame.grid_remove()
+                self.button_frame.grid()
+            case State.EDIT:
+                self.button_frame.grid_remove()
+                self.edit_button_frame.grid()
+
+        self.ungrid_set()
+        self.grid_set(self._parent.widget)

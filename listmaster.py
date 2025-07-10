@@ -14,27 +14,41 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
     def __init__(self, root):
         "Initializes the the UI; utilizes many helper functions"
         self.root = root
-        self.root.option_add('*tearOff', False)
-        self.root.protocol("WM_DELETE_WINDOW", self.on_close)
-        self.root.title("List Master")
+        self.root.option_add('*tearOff', False)  # disable obsolete default ui setting
+        self.root.protocol("WM_DELETE_WINDOW", self.on_close)  # handle close messages
+        self.root.title("List Master")  # set's main (root) menu title
+
+        # menu setup
+        # -| menu bar (root)
+        #  |- File
+        #   |- Commands
         self.menu = tk.Menu(self.root)
         self.file_menu = tk.Menu(self.menu)
+        # self.import_menu = tk.Menu(self.menu)
+        # add commands
         self.file_menu.add_command(label="New / Clear data", command=self.on_new)
         self.file_menu.add_command(label="Reset to defaults", command=self.on_reset)
         self.file_menu.add_separator()
-        self.file_menu.add_command(label="Load", command=self.on_load)
-        self.file_menu.add_command(label="Import", command=self.on_import)
+        self.file_menu.add_command(label="Load", command=self.on_load)  # Replaces the data
+        self.file_menu.add_command(label="Import", command=self.on_import)  # Adds the the data
         self.file_menu.add_separator()
-        self.file_menu.add_command(label="Save", command=self.on_save)
-        self.file_menu.add_command(label="Save as", command=self.on_save_as)
+        self.file_menu.add_command(label="Save", command=self.on_save)  # Save over the current file
+        self.file_menu.add_command(label="Save as", command=self.on_save_as)  # Save to a New file
         self.file_menu.add_separator()
         self.file_menu.add_command(label="Save & Quit", command=self.on_close)
         self.file_menu.add_command(label="Just Quit (No prompt)", command=self.on_quit)
-        self.menu.add_cascade(menu=self.file_menu, label="File")
-        self.root["menu"] = self.menu
+        self.menu.add_cascade(menu=self.file_menu, label="File")  # put file menu in root
+        # self.import_menu.add_command(label="Import list (pdf)", command=self.on_import_pdf)
+        # self.import_menu.add_command(label="Import list (txt)", command=self.on_import_txt)
+        # self.menu.add_cascade(menu=self.import_menu, label="Import")  # put import menu in root
+        self.root["menu"] = self.menu  # set root menu
+
+        # we configure root to only have one grid square our applincation will add
+        # a single panel that contains all the application UI.
         self.root.rowconfigure(0, weight=1)
         self.root.columnconfigure(0, weight=1)
 
+        # Main Panel is our single panel application.
         self._main = MainPanel(self.root)
 
     def get_path_file(self):
@@ -55,7 +69,13 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
     def on_save_as(self):
         "Saves data to a file, asks for name"
         path, file = self.get_path_file()
-        self._main.set_data(filedialog.asksaveasfilename(initialdir=path, initialfile=file, defaultextension=".dat"))
+        self._main.set_data(
+            filedialog.asksaveasfilename(
+                initialdir=path,
+                initialfile=file,
+                defaultextension=".dat"
+            )
+        )
         self._main.save()
 
     def on_quit(self):
@@ -72,13 +92,13 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
             title="Save & Quit?"
         )
 
-        if code is None:
+        if code is None:  # Cancel
             return  # don't quit
 
-        if code:
+        if code:  # Yes
             self._main.save()  # Save & Quit
 
-        self.root.destroy()  # Quit
+        self.root.destroy()  # No / Just Quit
 
     def on_reset(self):
         "resets to hardcoded values"
@@ -91,10 +111,26 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
     def on_load(self):
         "loads data from a file"
         path, file = self.get_path_file()
-        self._main.set_data(filedialog.askopenfilename(initialdir=path, initialfile=file, defaultextension=".dat"))
+        self._main.set_data(
+            filedialog.askopenfilename(
+                initialdir=path,
+                initialfile=file,
+                defaultextension=".dat"
+            )
+        )
+
         self._main.do_try_load()
 
     def on_import(self):
         "Imports and merges data from a file"
         path, file = self.get_path_file()
-        self._main.do_import(filedialog.askopenfilename(initialdir=path, initialfile=file, defaultextension=".dat"))
+        self._main.do_import(
+            filedialog.askopenfilename(
+                initialdir=path,
+                initialfile=file,
+                defaultextension=".dat"
+            )
+        )
+
+    # def on_import_pdf(self):
+    # def on_import_txt(self):

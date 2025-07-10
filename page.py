@@ -45,6 +45,17 @@ class PagePanel(ttk.Frame):  # pylint: disable=too-many-ancestors
         self.page_choices.set([n for n, _ in self._cur_page])
 
     def do_page(self, e):  # pylint: disable=unused-argument
+        "Dispatches based on state"
+        match self._parent.state:
+            case State.ROLL:
+                self.do_page_roll()
+            case State.EDIT:
+                self.do_page_edit()
+
+    def do_page_edit(self):
+        "Handle 'page' coloumn edit mode"
+
+    def do_page_roll(self):
         "handles the 'page' column to choose which table, page, or formula to generate from; triggers re-roll"
         if self._cur_page is None:
             return
@@ -63,8 +74,11 @@ class PagePanel(ttk.Frame):  # pylint: disable=too-many-ancestors
 
             self._parent.reroll()
 
+    def set_state(self):
+        "set state handler called when _parent changes state"
+
     def do_new_form(self):
-        pass
+        "Do new Form button"
 
     def do_new_list(self):
-        pass
+        "Do new list button"

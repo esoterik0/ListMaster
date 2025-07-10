@@ -6,7 +6,7 @@ from tkinter import E, N, S, W, ttk
 from enums import HEIGHT, WIDTH, Widgets, State
 
 
-class WhatPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
+class WhatPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-instance-attributes
     "generates the What panel, for choosing what top level category to use"
     def __init__(self, parent, **kwargs):
         super().__init__(parent, borderwidth=5, relief="ridge", **kwargs)
@@ -42,6 +42,8 @@ class WhatPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
         )
 
         self.add_button = ttk.Button(self.button_frame, text="New Category", command=self.add_cat)
+        self.add_button.grid(column=1, row=0, sticky=(N, S, E, W))
+        self.add_button.grid_remove()
 
         self.mode_var.set(State.ROLL.value)
 
@@ -64,7 +66,7 @@ class WhatPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
 
     def set_mode(self):
         "Tells the parent to set the mode"
-        match self.mode_var:
+        match self.mode_var.get():
             case State.ROLL.value:
                 self._parent.set_state(State.ROLL)
             case State.EDIT.value:
@@ -83,6 +85,12 @@ class WhatPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
             self._parent.set_result([])
             self._parent.result_ungrid_set()
 
+    def set_state(self):
+        "set state handler called when _parent changes state"
+
+        self.ungrid_set()
+        self.grid_set(self._parent.widget)
+
     def ungrid_set(self):
         "removes widgets from the grid"
         self.button_frame.grid_remove()
@@ -90,12 +98,12 @@ class WhatPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
     def grid_set(self, widget: Widgets):
         "adds widgets to the grid"
 
+        self.button_frame.grid()
         match widget:
             case Widgets.ROLL:
-                self.button_frame.grid()
+                self.add_button.grid_remove()
             case Widgets.EDIT:
-                self.button_frame.grid()
+                self.add_button.grid()
 
     def add_cat(self):
         "add a new category to the what panel"
-        pass
