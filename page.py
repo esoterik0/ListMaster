@@ -3,8 +3,7 @@
 import tkinter as tk
 from tkinter import E, N, S, W, ttk
 
-import gendata as dat
-from enums import HEIGHT, WIDTH, State, Widgets
+from enums import HEIGHT, WIDTH, State
 
 
 class PagePanel(ttk.Frame):  # pylint: disable=too-many-ancestors
@@ -22,9 +21,12 @@ class PagePanel(ttk.Frame):  # pylint: disable=too-many-ancestors
 
         self.button_frame = ttk.Frame(self)
         self.button_frame.grid(column=0, row=1, sticky=(E, W))
+        self.button_frame.grid_remove()
 
-        self.add_button = ttk.Button(self.button_frame, text="New Form", command=self.do_new_form)
-        self.add_button = ttk.Button(self.button_frame, text="New List", command=self.do_new_list)
+        self.add_form = ttk.Button(self.button_frame, text="New Form", command=self.do_new_form, default='disabled')
+        self.add_form.grid(column=0, row=1, sticky=(N, S, E, W))
+        self.add_list = ttk.Button(self.button_frame, text="New List", command=self.do_new_list)
+        self.add_list.grid(column=0, row=0, sticky=(N, S, E, W))
 
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
@@ -32,7 +34,7 @@ class PagePanel(ttk.Frame):  # pylint: disable=too-many-ancestors
         self.button_frame.rowconfigure(0, weight=1)
         self.button_frame.rowconfigure(1, weight=1)
         self.button_frame.columnconfigure(0, weight=1)
-        self.button_frame.columnconfigure(1, weight=2)
+        # self.button_frame.columnconfigure(1, weight=1)
 
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
@@ -45,37 +47,22 @@ class PagePanel(ttk.Frame):  # pylint: disable=too-many-ancestors
         self.page_choices.set([n for n, _ in self._cur_page])
 
     def do_page(self, e):  # pylint: disable=unused-argument
-        "Dispatches based on state"
-        match self._parent.state:
-            case State.ROLL:
-                self.do_page_roll()
-            case State.EDIT:
-                self.do_page_edit()
-
-    def do_page_edit(self):
-        "Handle 'page' coloumn edit mode"
-
-    def do_page_roll(self):
         "handles the 'page' column to choose which table, page, or formula to generate from; triggers re-roll"
         if self._cur_page is None:
             return
 
         sel = self._page.curselection()
         if len(sel) == 1:
-            _, form = self._cur_page[sel[0]]
-            self._parent.set_formula(self._cur_page[sel[0]])
-            self._parent.result_ungrid_set()
-
-            match form:
-                case dat.Formula():
-                    self._parent.result_grid_set(Widgets.FORM)
-                case list():
-                    self._parent.result_grid_set(Widgets.ROLL)
-
-            self._parent.reroll()
+            self._parent.set_item(self._cur_page[sel[0]])
 
     def set_state(self):
         "set state handler called when _parent changes state"
+        self.button_frame.grid_remove()
+        match self._parent.state:
+            case State.ROLL:
+                pass
+            case State.EDIT:
+                self.button_frame.grid()
 
     def do_new_form(self):
         "Do new Form button"

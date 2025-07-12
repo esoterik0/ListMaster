@@ -24,6 +24,8 @@ def gen3(form: Formula | MetaFormula | list | str | tuple) -> list[str] | str | 
         or the single choice from a list. It has a few intermediary return types but the final return
         type should be str or list[str]
     """
+    if not form:
+        return ""
     match (form):
         case MetaFormula() as meta:
             return gen3(choice(meta.formula))  # choose a formula from the meta formula list

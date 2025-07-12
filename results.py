@@ -1,10 +1,17 @@
 "the results panel: displays the results"
 
 import tkinter as tk
+from enum import Enum
 from tkinter import E, N, S, W, filedialog, ttk
 
 import gendata as dat
-from enums import HEIGHT, SINGLE, WIDTH, Widgets, State
+from enums import HEIGHT, SINGLE, WIDTH, State
+
+
+class Widgets(Enum):
+    "enums to define which widgets to grid and ungrid at various points"
+    ROLL = "ROLL"
+    FORM = "FORM"
 
 
 def int_nun(s: str) -> int | None:
@@ -16,13 +23,14 @@ def int_nun(s: str) -> int | None:
 
 
 class ResultsPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-instance-attributes
-    "generates the page frame, for choosing, inspecting, or editing which 'page', formula or table"
+    "generates the page frame, for choosing, inspecting, or editing formula or table"
     def __init__(self, parent, **kwargs):
         self._parent = parent
+        # state variables, to store between function calls
         self.num = SINGLE
         self.path = ""
-        self.form = None
-        self.form_name = ""
+        self.item = None
+        self.item_name = ""
 
         super().__init__(parent, borderwidth=5, relief="ridge", **kwargs)
         self.grid(column=2, row=0, sticky=(N, S, E, W))
@@ -68,23 +76,48 @@ class ResultsPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
         self.button_frame.columnconfigure(1, weight=1)
         self.button_frame.columnconfigure(2, weight=1)
 
-    def set_formula(self, form):
+    def set_item(self, form):
+        "dispatches based on mode"
+        match self._parent.state:
+            case State.ROLL:
+                self.set_item_roll(form)
+            case State.EDIT:
+                self.set_item_edit(form)
+
+    def set_item_edit(self, form):
+        "sets the item in edit mode"
+        self.item_name, self.item = form
+
+        match self.item:
+            case dat.Formula():
+                self.set_result(self.item.labels)
+            case list():
+                self.grid_set(Widgets.ROLL)
+
+    def set_item_roll(self, form):
         "sets the formula or table to roll on"
-        self.form_name, self.form = form
+        self.item_name, self.item = form
+        self.ungrid_set()
+
+        match self.item:
+            case dat.Formula():
+                self.grid_set(Widgets.FORM)
+            case list():
+                self.grid_set(Widgets.ROLL)
 
     def do_reroll(self):
         "handles the re-roll button, generates and populates the results column"
-        if self.form is not None:
-            match(self.form):
+        if self.item:
+            match(self.item):
                 case list():
                     self._update_num()
-                    self.result_list = [self.form_name] + [dat.gen_list(self.form) for _ in range(self.num)]
+                    self.result_list = [self.item_name] + [dat.gen_list(self.item) for _ in range(self.num)]
                 case dat.Formula():
                     self.result_list = [
                         b + ": " + o
                         for b, o in zip(
-                            self.form.labels,
-                            dat.gen_form(self.form)
+                            self.item.labels,
+                            dat.gen_form(self.item)
                         )
                     ]
         else:
@@ -109,7 +142,7 @@ class ResultsPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
     def do_xls(self):
         "Handles the Generate .xls button, currently makes double sided three hole punched 8 1/2 x 11 pages."
         self._update_num()
-        dat.manufacture(self.form, self.path, self.form_name, self.num)
+        dat.manufacture(self.item, self.path, self.item_name, self.num)
 
     def _copy_clip(self):
         "copy the results to the clipboard"
@@ -158,6 +191,7 @@ class ResultsPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
                 self.num_pages_label.configure(text="No. to Roll")
             case Widgets.FORM:
                 self.button_frame.grid()
+                self.reroll.grid()
                 self.gen_xls.grid()
                 self.get_path.grid()
                 self.num_pages_label.configure(text="No. Pages")
@@ -173,4 +207,3 @@ class ResultsPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
                 self.edit_button_frame.grid()
 
         self.ungrid_set()
-        self.grid_set(self._parent.widget)

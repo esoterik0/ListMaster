@@ -5,12 +5,13 @@ from tkinter import E, N, S, W, ttk
 import dill as pickle
 
 import gendata as dat
-from enums import HEIGHT, WIDTH, State, Widgets
+from enums import HEIGHT, WIDTH, State
 from page import PagePanel
 from results import ResultsPanel
 from what import WhatPanel
 
-DATA = "tables.dat"
+FNAME = "tables.dat"
+table = list[str, list, tuple]
 
 
 class MainPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
@@ -19,10 +20,10 @@ class MainPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
         super().__init__(parent, padding=5, width=WIDTH, height=HEIGHT, **kwargs)
         self.grid(column=0, row=0, sticky=(N, S, E, W))
 
-        self.root = parent  # this is the same as something in super
+        self.root = parent
         # all the panels of our application
         self._what = WhatPanel(self)  # A book, set, list, etc. A collection of rollables
-        self._page = PagePanel(self)  # A page is a list of rollables
+        self._page = PagePanel(self)  # A page is a list of rollables, in a collection
         self._result = ResultsPanel(self)  # this is the resulst of rolling the rollabable
 
         # our panel are arranged horizontally, in a single row.
@@ -31,29 +32,24 @@ class MainPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
         self.columnconfigure(1, weight=4)
         self.columnconfigure(2, weight=7)
 
-        self.result_ungrid_set()
+        # we start without a selection set.
+        self._result.ungrid_set()
 
+        # initial state
         self.state = State.ROLL
-        self.widget = Widgets.ROLL
-        self._data = DATA
+        self._fname = FNAME
         self.do_try_load()
 
     def set_state(self, state: State):
         "sets the internal state value to a state"
         self.state = state
-
-        match state:
-            case State.ROLL:
-                self.widget = Widgets.ROLL
-            case State.EDIT:
-                self.widget = Widgets.EDIT
-
+        # signal our parts that the state has changed.
         for panel in [self._what, self._page, self._result]:
             panel.set_state()
 
     def get_data(self):
         "get the current file name"
-        return self._data
+        return self._fname
 
     def clipboard(self, out):
         "copy the results to the clipboard"
@@ -64,45 +60,39 @@ class MainPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
         "set page contents"
         self._page.set_page(page)
 
-    def set_formula(self, form):
+    def set_item(self, form):
         "set the formula to use"
-        self._result.set_formula(form)
+        self._result.set_item(form)
+        self._result.do_reroll()
 
     def set_result(self, result: list):
         "set results contents"
         self._result.set_result(result)
 
-    def result_ungrid_set(self):
-        "pass to results to remove widgets from the grid"
-        self._result.ungrid_set()
-
-    def result_grid_set(self, widget: Widgets):
-        "pass to results to add widgets to the grid."
-        self._result.grid_set(widget)
-
-    def what_ungrid_set(self):
-        "pass to results to remove widgets from the grid"
-        self._what.ungrid_set()
-
-    def what_grid_set(self, widget: Widgets):
-        "pass to results to add widgets to the grid."
-        self._what.grid_set(widget)
-
-    def set_data(self, data):
+    def set_data(self, fname):
         "sets the data filename"
-        if data:
-            self._data = data
-        else:
-            self._data = DATA
+        self._fname = fname if fname else FNAME
 
-    def reroll(self):
-        "calls reroll to populate results"
-        self._result.do_reroll()
+    def avail(self, name) -> bool:
+        "returns true if a "
+        what, _ = self._what.get_what()
+        tables = what[0]
+        return len([x for x in tables if x[0] == name]) == 0
+
+    def index(self, name) -> tuple[int, str, table] | None:
+        "returns the index of a table"
+        what, _ = self._what.get_what()
+        tables = what[0]
+
+        if len(res := [x for x in tables if x[0] == name]) == 1:
+            return tables.index(res[0]), res[0][0], res[0][1]
+
+        return None
 
     def save(self):
         "saves the data to disk"
         try:
-            with open(self._data, "wb") as f:
+            with open(self._fname, "wb") as f:
                 d = self._what.get_what()
                 data = {
                     "what_list": d[0],
@@ -115,7 +105,7 @@ class MainPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
     def do_try_load(self):
         "try to load data from the disk"
         try:
-            with open(self._data, "rb", ) as f:
+            with open(self._fname, "rb", ) as f:
                 data = pickle.load(f)
                 self._what.set_what(data["what_list"], data["what_choices"])
         except FileNotFoundError:

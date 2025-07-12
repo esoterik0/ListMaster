@@ -3,7 +3,9 @@
 import tkinter as tk
 from tkinter import E, N, S, W, ttk
 
-from enums import HEIGHT, WIDTH, Widgets, State
+from enums import HEIGHT, WIDTH,  State
+
+table = list[str, list, tuple]
 
 
 class WhatPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-instance-attributes
@@ -13,8 +15,8 @@ class WhatPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
         self.grid(column=0, row=0, sticky=(N, S, E, W))
         self._parent = parent
 
-        self.what_list = []
-        self.choices = []
+        self.what_list: list[tuple[str, table]] = []
+        self.choices: list[str] = []
         self.what_choice_var = tk.StringVar()
 
         self.what = tk.Listbox(self, listvariable=self.what_choice_var, width=int(WIDTH/5), height=HEIGHT)
@@ -72,7 +74,7 @@ class WhatPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
             case State.EDIT.value:
                 self._parent.set_state(State.EDIT)
 
-    def get_what(self) -> tuple[list, list]:
+    def get_what(self) -> tuple[list[tuple[str, table]], list[str]]:
         "gets the top level what lists"
         return self.what_list, self.choices
 
@@ -83,26 +85,15 @@ class WhatPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
         if len(sel) == 1:
             self._parent.set_page(self.what_list[sel[0]])
             self._parent.set_result([])
-            self._parent.result_ungrid_set()
+            self._parent.set_item(("", []))
 
     def set_state(self):
         "set state handler called when _parent changes state"
 
-        self.ungrid_set()
-        self.grid_set(self._parent.widget)
-
-    def ungrid_set(self):
-        "removes widgets from the grid"
-        self.button_frame.grid_remove()
-
-    def grid_set(self, widget: Widgets):
-        "adds widgets to the grid"
-
-        self.button_frame.grid()
-        match widget:
-            case Widgets.ROLL:
+        match self._parent.state:
+            case State.ROLL:
                 self.add_button.grid_remove()
-            case Widgets.EDIT:
+            case State.EDIT:
                 self.add_button.grid()
 
     def add_cat(self):
