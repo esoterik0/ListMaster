@@ -51,16 +51,16 @@ class MainPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
         "get the current file name"
         return self._fname
 
-    def clipboard(self, out):
+    def clipboard(self, out: str):
         "copy the results to the clipboard"
         self.root.clipboard_clear()  # clear the clipboard because we are setting its contents
         self.root.clipboard_append(out)
 
-    def set_page(self, page):
+    def set_page(self, page: list[table]):
         "set page contents"
         self._page.set_page(page)
 
-    def set_item(self, form):
+    def set_item(self, form: tuple[str, dat.Formula] | tuple[str, table]):
         "set the formula to use"
         self._result.set_item(form)
         self._result.do_reroll()
@@ -69,23 +69,43 @@ class MainPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
         "set results contents"
         self._result.set_result(result)
 
-    def set_data(self, fname):
+    def set_data(self, fname: str):
         "sets the data filename"
         self._fname = fname if fname else FNAME
 
-    def avail(self, name) -> bool:
+    def avail(self, name: str) -> bool:
         "returns true if a "
         what, _ = self._what.get_what()
         tables = what[0]
         return len([x for x in tables if x[0] == name]) == 0
 
-    def index(self, name) -> tuple[int, str, table] | None:
+    def name_index(self, name: str) -> tuple[int, table] | None:
         "returns the index of a table"
         what, _ = self._what.get_what()
         tables = what[0]
 
         if len(res := [x for x in tables if x[0] == name]) == 1:
-            return tables.index(res[0]), res[0][0], res[0][1]
+            return tables.index(res[0]), res[0][1]
+
+        return None
+
+    def get_index(self, idx: int) -> tuple[str, table] | None:
+        "returns the index of a table"
+        what, _ = self._what.get_what()
+        tables = what[0]
+
+        if idx >= len(tables):
+            return None
+
+        return tables[idx]
+
+    def item_index(self, tab: table) -> tuple[int, str] | None:
+        "returns the index of a table"
+        what, _ = self._what.get_what()
+        tables = what[0]
+
+        if len(res := [x for x in tables if x[1] == tab]) == 1:
+            return tables.index(res[0]), res[0][0]
 
         return None
 

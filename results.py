@@ -7,6 +7,8 @@ from tkinter import E, N, S, W, filedialog, ttk
 import gendata as dat
 from enums import HEIGHT, SINGLE, WIDTH, State
 
+table = list[str, list, tuple]
+
 
 class Widgets(Enum):
     "enums to define which widgets to grid and ungrid at various points"
@@ -76,34 +78,28 @@ class ResultsPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
         self.button_frame.columnconfigure(1, weight=1)
         self.button_frame.columnconfigure(2, weight=1)
 
-    def set_item(self, form):
+    def set_item(self, form: tuple[str, dat.Formula] | tuple[str, table]):
         "dispatches based on mode"
+        self.item_name, self.item = form
         match self._parent.state:
             case State.ROLL:
-                self.set_item_roll(form)
+                self.set_item_roll()
             case State.EDIT:
-                self.set_item_edit(form)
+                self.set_item_edit()
 
-    def set_item_edit(self, form):
+    def set_item_edit(self):
         "sets the item in edit mode"
-        self.item_name, self.item = form
 
         match self.item:
             case dat.Formula():
                 self.set_result(self.item.labels)
             case list():
-                self.grid_set(Widgets.ROLL)
+                self.grid_set()
 
-    def set_item_roll(self, form):
+    def set_item_roll(self):
         "sets the formula or table to roll on"
-        self.item_name, self.item = form
         self.ungrid_set()
-
-        match self.item:
-            case dat.Formula():
-                self.grid_set(Widgets.FORM)
-            case list():
-                self.grid_set(Widgets.ROLL)
+        self.grid_set()
 
     def do_reroll(self):
         "handles the re-roll button, generates and populates the results column"
@@ -169,32 +165,26 @@ class ResultsPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
         self.get_path.grid_remove()
         self.num_pages_label.configure(text="")
 
-    def grid_set(self, widget: Widgets):
-        "dispatch bassed on mode"
+    def grid_set(self):
+        "adds widgets bassed on mode"
 
         match self._parent.state:
             case State.ROLL:
-                self.roll_grid_set(widget)
+                self.edit_button_frame.grid()
             case State.EDIT:
-                self.edit_grid_set(widget)
-
-    def edit_grid_set(self, widget: Widgets):
-        "in edit mode adds widgets to the grid"
-
-    def roll_grid_set(self, widget: Widgets):
-        "in roll mode adds widgets to the grid"
-
-        match widget:
-            case Widgets.ROLL:
-                self.button_frame.grid()
-                self.reroll.grid()
-                self.num_pages_label.configure(text="No. to Roll")
-            case Widgets.FORM:
-                self.button_frame.grid()
-                self.reroll.grid()
-                self.gen_xls.grid()
-                self.get_path.grid()
-                self.num_pages_label.configure(text="No. Pages")
+                match self.item:
+                    case dat.Formula():
+                        self.button_frame.grid()
+                        self.reroll.grid()
+                        self.gen_xls.grid()
+                        self.get_path.grid()
+                        self.num_pages_label.configure(text="No. Pages")
+                    case list():
+                        self.button_frame.grid()
+                        self.reroll.grid()
+                        self.num_pages_label.configure(text="No. to Roll")
+                    case _:
+                        pass  # don't do anything if None or unexpected.
 
     def set_state(self):
         "set state handler called when _parent changes state"
