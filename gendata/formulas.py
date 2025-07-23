@@ -12,5 +12,5 @@ class Formula:  # pylint: disable=too-few-public-methods
 
 class MetaFormula(Formula):  # pylint: disable=too-few-public-methods
     "indicates this is a list of formulas"
-    def __init__(self, forms: list[list], labels: list[str], name: str, split: int = 6):
+    def __init__(self, forms: list[Formula], labels: list[str], name: str, split: int = 6):
         super().__init__([Formula(form, labels, name, split) for form in forms], labels, name, split)
