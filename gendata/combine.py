@@ -1,25 +1,21 @@
 from .formulas import Formula
-from .mazedat import (after_party, animals, appear, arial, asset, book_sub, build_rooms,
-                      character_background, character_items, city_acts, city_events, city_themes,
-                      civilized_job, clothing, district_themes, divine_domains, dun_acts, dun_enter,
-                      dun_forms, dun_hazards, dun_layout, dun_rewards, dun_room_details, dun_rooms,
-                      dun_ruins, dun_tricks, edible_plants, eth_efc, eth_ele, eth_form,
-                      faction_goals, faction_traits, factions, hobbies, inn_adj, inn_nouns,
-                      inn_quirks, insanities, job_type, land, liability, life_goal, lootType,
-                      low_class_build, magic_formula, magic_ingredients, magic_words, mannerism,
-                      materials, methods, misc_items, misfortune, mission_targets, missions,
-                      mob_ability, mob_feat, mob_person, mob_tactics, mob_trait, mob_type, mob_weak,
-                      mr_pages, mutations, name_big, name_female_big, name_female_full,
-                      name_female_mr, name_full, name_male_big, name_male_full, name_male_mr, omens,
-                      ordinary_materials, personality, phy_efc, phy_ele, phy_form, phys,
-                      poisonous_plants, potions, relationships, reputation, sea, secret,
-                      surname_all, surname_lower_mr, surname_other, surname_upper_mr,
-                      tactical_building, tactical_street, tool_items, trap_effects, trap_triggers,
-                      treasure_items, treasure_traits, underworld_job, up_class_build,
-                      valuable_materials, weapon_items, wild_acts, wild_discoveries, wild_hazards,
-                      wild_landmarks, wild_region_traits, wild_regions, wild_structures,
-                      wilderness_job, worn_items)
-from .potion_colors import basic_colors, double_colors, potion_color, potion_colors, special_colors
+from .mazedat import (after_party, animals, appear, arial, asset, book_sub, build_rooms, character_background,
+                      character_items, city_acts, city_events, city_themes, civilized_job, clothing, district_themes,
+                      divine_domains, dun_acts, dun_enter, dun_forms, dun_hazards, dun_layout, dun_rewards,
+                      dun_room_details, dun_rooms, dun_ruins, dun_tricks, edible_plants, eth_efc, eth_ele, eth_form,
+                      faction_goals, faction_traits, factions, hobbies, inn_adj, inn_nouns, inn_quirks, insanities,
+                      job_type, land, liability, life_goal, lootType, low_class_build, magic_formula, magic_ingredients,
+                      magic_words, mannerism, materials, methods, misc_items, misfortune, mission_targets, missions,
+                      mob_ability, mob_feat, mob_person, mob_tactics, mob_trait, mob_type, mob_weak, mr_pages,
+                      mutations, name_big, name_female_big, name_female_full, name_female_mr, name_full, name_male_big,
+                      name_male_full, name_male_mr, name_mr, omens, ordinary_materials, personality, phy_efc, phy_ele,
+                      phy_form, phys, poisonous_plants, potions, relationships, reputation, sea, secret, surname_all,
+                      surname_lower_mr, surname_other, surname_upper_mr, tactical_building, tactical_street, tool_items,
+                      trap_effects, trap_triggers, treasure_items, treasure_traits, underworld_job, up_class_build,
+                      valuable_materials, weapon_items, wild_acts, wild_discoveries, wild_hazards, wild_landmarks,
+                      wild_region_traits, wild_regions, wild_structures, wilderness_job, worn_items)
+from .potion_colors import (basic_colors, double_colors, double_secondary_colors, potion_color, potion_colors,
+                            secondary_colors, special_colors)
 
 tables = {
     "after_party": after_party,
@@ -94,6 +90,7 @@ tables = {
     "name_male_big": name_male_big,
     "name_male_full": name_male_full,
     "name_male_mr": name_male_mr,
+    "name_mr": name_mr,
     "omens": omens,
     "ordinary_materials": ordinary_materials,
     "personality": personality,
@@ -107,6 +104,7 @@ tables = {
     "relationships": relationships,
     "reputation": reputation,
     "sea": sea,
+    "secondary_colors": secondary_colors,
     "secret": secret,
     "special_colors": special_colors,
     "surname_all": surname_all,
@@ -201,11 +199,12 @@ printTables = {
     "name_big": "Big list of names",
     "name_female_big": "Big list of female names",
     "name_female_full": "Full list of female names (includes archaic & gothic)",
-    "name_female_mr": "Female Names",
+    "name_female_mr": "Maze Rats Female Names",
     "name_full": "Full list of names (includes archaic & gothic)",
     "name_male_big": "Big list of male names",
     "name_male_full": "Full list of males names (includes archaic & gothic)",
-    "name_male_mr": "Male Names",
+    "name_male_mr": "Maze Rats Male Names",
+    "name_mr": "Maze Rats names",
     "omens": "Omens",
     "ordinary_materials": "Ordinary Materials",
     "personality": "Personality",
@@ -219,6 +218,7 @@ printTables = {
     "relationships": "Relationships",
     "reputation": "Reputations",
     "sea": "Sea Creatures",
+    "secondary_colors": "Secondary colors for potions",
     "secret": "NPC Secret",
     "special_colors": "Modified colors for potions",
     "surname_all": "Full list of Surnames",
@@ -249,8 +249,6 @@ printTables = {
 
 # create the maze rats pages formulas from mr_pages
 Maze_Rats_pages = [(n, Formula([tables[t] for t in p], [printTables[t] for t in p], n)) for n, p in mr_pages]
-
-All_tables = sorted([(n, tables[t]) for t, n in printTables.items()], key=lambda x: x[0])
 
 npc_formula_part = [
     appear,
@@ -342,13 +340,13 @@ tri_names_full = Formula(
     ["Male Name", "Female Name", "Surname"],
     "Archaic Names M,F,S"
 )
-names = Formula([name_female_big + name_male_big, surname_all], ["Name", "Surname"], "Names M|F,S")
-names_mr = Formula([name_female_mr + name_male_mr, surname_all], ["Name", "Surname"], "Maze Rats Names M|F,S")
-names_full = Formula([name_female_full + name_male_full, surname_all], ["Name", "Surname"], "Archaic Names M|F,S")
+names_big = Formula([name_big, surname_all], ["Name", "Surname"], "Names M|F,S")
+names_mr = Formula([name_mr, surname_all], ["Name", "Surname"], "Maze Rats Names M|F,S")
+names_full = Formula([name_full, surname_all], ["Name", "Surname"], "Archaic Names M|F,S")
 
 npc_formula = Formula(
-    names.formula + npc_formula_part,
-    names.labels + npc_labels_part,
+    names_big.formula + npc_formula_part,
+    names_big.labels + npc_labels_part,
     "NPC: Many names",
 )
 npc_formula_mr = Formula(
@@ -501,7 +499,7 @@ formulas = [
     (mob_Triple_Formula.name, mob_Triple_Formula),
     (names_full.name, names_full),
     (names_mr.name, names_mr),
-    (names.name, names),
+    (names_big.name, names_big),
     (npc_formula_full.name, npc_formula_full),
     (npc_formula_mr.name, npc_formula_mr),
     (npc_formula.name, npc_formula),
@@ -511,4 +509,7 @@ formulas = [
     (tri_names_mr.name, tri_names_mr),
     (tri_names.name, tri_names),
     (wild_formula.name, wild_formula),
+    (double_secondary_colors.name, double_secondary_colors),
 ]
+
+All_tables = sorted([(n, tables[t]) for t, n in printTables.items()] + formulas, key=lambda x: x[0])
