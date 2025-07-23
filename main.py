@@ -77,37 +77,40 @@ class MainPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
         "returns true if a "
         what, _ = self._what.get_what()
         tables = what[0]
-        return len([x for x in tables if x[0] == name]) == 0
+        return not any(x[0] == name for x in tables)
 
-    def name_index(self, name: str) -> tuple[int, table] | None:
+    def name_index(self, name: str) -> tuple[int, table] | tuple[None,  None]:
         "returns the index of a table"
         what, _ = self._what.get_what()
         tables = what[0]
 
-        if len(res := [x for x in tables if x[0] == name]) == 1:
-            return tables.index(res[0]), res[0][1]
+        if any((res := x)[0] == name for x in tables):
+            return tables.index(res), res[1]
 
-        return None
+        return None, None
 
-    def get_index(self, idx: int) -> tuple[str, table] | None:
+    def get_index(self, idx: int) -> tuple[str, table] | tuple[None,  None]:
         "returns the index of a table"
         what, _ = self._what.get_what()
         tables = what[0]
 
-        if idx >= len(tables):
-            return None
+        if idx >= len(tables) or idx < 0:
+            return None, None
 
         return tables[idx]
 
-    def item_index(self, tab: table) -> tuple[int, str] | None:
+    def item_index(self, tab: table) -> tuple[int | None, str]:
         "returns the index of a table"
         what, _ = self._what.get_what()
         tables = what[0]
 
-        if len(res := [x for x in tables if x[1] == tab]) == 1:
-            return tables.index(res[0]), res[0][0]
+        # any will stop enumeration when the first comparison is true, and
+        # our walrus capture will work as expected.
+        if any((res := x)[1] == tab for x in tables):
+            return tables.index(res), res[0]
 
-        return None
+        # return something so we can see in the app what is missing instead of blanks
+        return None, "<MISSING>"
 
     def save(self):
         "saves the data to disk"
@@ -122,6 +125,11 @@ class MainPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
         except FileNotFoundError:
             pass
 
+    def _clear_panels(self):
+        "clear other panels"
+        self._page.set_page([])
+        self._result.set_result([])
+
     def do_try_load(self):
         "try to load data from the disk"
         try:
@@ -132,8 +140,12 @@ class MainPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
             self.do_reset()
             return
 
-        self._page.set_page([])
-        self._result.set_result([])
+        self._clear_panels()
+
+    def _add(self, lst, tup):
+        "adds a tuple to a list, if it doesn't already exist"
+        if not any(x[1] == tup[1] for x in lst):
+            lst.append(tup)
 
     def do_reset(self):
         "perform a reset of the data to the hardcoded values"
@@ -142,10 +154,9 @@ class MainPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
             ["All tables", "Maze Rats pages", "Formulas"],
         )
 
-        self._page.set_page([])
-        self._result.set_result([])
+        self._clear_panels()
 
-    def do_import(self, file):
+    def do_import(self, file: str):
         "Import and merge lists"
         wlist, wchoices = self._what.get_what()
 
@@ -184,5 +195,5 @@ class MainPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
             ["All tables"],
         )
 
-        self._page.set_page([])
-        self._result.set_result([])
+        self._clear_panels()
+
