@@ -60,7 +60,7 @@ class WhatPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
         self.button_frame.columnconfigure(0, weight=1)
         self.button_frame.columnconfigure(1, weight=2)
 
-    def set_what(self, lst, choice):
+    def set_what(self, lst: list[tuple[str, table]], choice: list[str]):
         "sets the values for the what panel, the list needs to have data in it, choice should have the labels."
         self.what_list = lst
         self.choices = choice
@@ -68,11 +68,7 @@ class WhatPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
 
     def set_mode(self):
         "Tells the parent to set the mode"
-        match self.mode_var.get():
-            case State.ROLL.value:
-                self._parent.set_state(State.ROLL)
-            case State.EDIT.value:
-                self._parent.set_state(State.EDIT)
+        self._parent.set_state(State(self.mode_var.get()))
 
     def get_what(self) -> tuple[list[tuple[str, table]], list[str]]:
         "gets the top level what lists"
@@ -95,6 +91,8 @@ class WhatPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
                 self.add_button.grid_remove()
             case State.EDIT:
                 self.add_button.grid()
+            case _:
+                pass
 
     def add_cat(self):
         "add a new category to the what panel"
