@@ -1,3 +1,4 @@
+"combines formulas, mazedats, potion_colors, and any others that get added."
 from .formulas import Formula
 from .mazedat import (after_party, animals, appear, arial, asset, book_sub, build_rooms, character_background,
                       character_items, city_acts, city_events, city_themes, civilized_job, clothing, district_themes,
