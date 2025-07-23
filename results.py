@@ -9,6 +9,8 @@ from enums import HEIGHT, SINGLE, WIDTH, State
 
 table = list[str, list, tuple]
 
+LOG = "rolls.log"
+
 
 class Widgets(Enum):
     "enums to define which widgets to grid and ungrid at various points"
@@ -26,75 +28,123 @@ def int_nun(s: str) -> int | None:
 
 class ResultsPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-instance-attributes
     "generates the page frame, for choosing, inspecting, or editing formula or table"
-    def __init__(self, parent, **kwargs):
+
+    def __init__(self, parent, **kwargs):  # pylint: disable=too-many-statements
         self._parent = parent
         # state variables, to store between function calls
         self.num = SINGLE
         self.path = ""
         self.item = None
         self.item_name = ""
+        self.last_selection = None
+        self.logfile = LOG
 
         super().__init__(parent, borderwidth=5, relief="ridge", **kwargs)
         self.grid(column=2, row=0, sticky=(N, S, E, W))
 
         self.results = tk.StringVar()
         self.result_list = []
-
         self.result = tk.Listbox(self, listvariable=self.results, width=int(4*WIDTH/5), height=HEIGHT)
         self.result.grid(column=0, row=0, sticky=(N, S, E, W))
+        self.result.bind("<<ListboxSelect>>", self.do_select)
+        self.result.bind("<Double-1>", self.do_double_select)
 
         self.button_frame = ttk.Frame(self)
         self.button_frame.grid(column=0, row=1, sticky=(E, W))
+        self.button_frame.grid_remove()
+
+        self.roll_buttons = {}
+        self.roll_buttons["reroll"] = ttk.Button(self.button_frame, text="Re-Roll", command=self.do_reroll)
+        self.roll_buttons["reroll"].grid(column=0, row=0, sticky=(N, S, E, W))
+        self.roll_buttons["num_pages_label"] = ttk.Label(self.button_frame, text="No. Pages")
+        self.roll_buttons["num_pages_label"].grid(column=0, row=1, sticky=(N, S, E, W))
+        self.num_pages_var = tk.StringVar()
+        self.num_pages_var.set(f"{SINGLE}")
+        self.roll_buttons["num_pages"] = tk.Entry(self.button_frame, textvariable=self.num_pages_var)
+        self.roll_buttons["num_pages"].grid(column=1, row=1, sticky=(N, S, E, W))
+        self.roll_buttons["clip_copy"] = ttk.Button(
+            self.button_frame,
+            text="Copy to clipboard",
+            command=self._copy_clip
+        )
+        self.roll_buttons["clip_copy"].grid(column=1, row=0, sticky=(N, S, E, W))
+        self.roll_buttons["gen_xls"] = ttk.Button(self.button_frame, text="Generate .xls file", command=self.do_xls)
+        self.roll_buttons["gen_xls"].grid(column=2, row=1, sticky=(N, S, E, W))
+        self.roll_buttons["get_path"] = ttk.Button(self.button_frame, text="Choose path", command=self.do_path)
+        self.roll_buttons["get_path"].grid(column=2, row=0, sticky=(N, S, E, W))
+        self.roll_buttons["set_log"] = ttk.Button(self.button_frame, text="Set log file", command=self.do_set_log)
+        self.roll_buttons["set_log"].grid(column=0, row=2, sticky=(N, S, E, W))
+        self.roll_buttons["log_roll"] = ttk.Button(self.button_frame, text="Reroll & log", command=self.do_logroll)
+        self.roll_buttons["log_roll"].grid(column=1, row=2, sticky=(N, S, E, W))
+        self.roll_buttons["log"] = ttk.Button(self.button_frame, text="Log the roll", command=self.do_log)
+        self.roll_buttons["log"].grid(column=2, row=2, sticky=(N, S, E, W))
+
         self.edit_button_frame = ttk.Frame(self)
         self.edit_button_frame.grid(column=0, row=1, sticky=(E, W))
         self.edit_button_frame.grid_remove()
 
-        self.reroll = ttk.Button(self.button_frame, text="Re-Roll", command=self.do_reroll)
-        self.reroll.grid(column=0, row=0)
-
-        self.num_pages_label = ttk.Label(self.button_frame, text="No. Pages")
-        self.num_pages_label.grid(column=0, row=1)
-
-        self.num_pages_var = tk.StringVar()
-        self.num_pages_var.set(f"{SINGLE}")
-
-        self.num_pages = tk.Entry(self.button_frame, textvariable=self.num_pages_var)
-        self.num_pages.grid(column=1, row=1)
-
-        self.clip_copy = ttk.Button(self.button_frame, text="Copy to clip board", command=self._copy_clip)
-        self.clip_copy.grid(column=1, row=0)
-
-        self.gen_xls = ttk.Button(self.button_frame, text="Generate .xls file", command=self.do_xls)
-        self.gen_xls.grid(column=2, row=1)
-
-        self.get_path = ttk.Button(self.button_frame, text="Choose path", command=self.do_path)
-        self.get_path.grid(column=2, row=0)
+        self.edit_buttons = {}
+        self.edit_buttons["add_item"] = ttk.Button(self.edit_button_frame, text="Add Item", command=self.do_add)
+        self.edit_buttons["add_item"].grid(column=0, row=0, sticky=(N, S, E, W))
+        self.edit_buttons["edit_item"] = ttk.Button(self.edit_button_frame, text="Edit Item", command=self.do_edit)
+        self.edit_buttons["edit_item"].grid(column=0, row=1, sticky=(N, S, E, W))
+        self.edit_buttons["done"] = ttk.Button(self.edit_button_frame, text="Done Editing", command=self.do_done)
+        self.edit_buttons["done"].grid(column=1, row=1, sticky=(N, S, E, W))
 
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
-        self.button_frame.rowconfigure(0, weight=1)
-        self.button_frame.rowconfigure(1, weight=1)
-        self.button_frame.columnconfigure(0, weight=1)
-        self.button_frame.columnconfigure(1, weight=1)
-        self.button_frame.columnconfigure(2, weight=1)
+        for i in range(3):
+            self.button_frame.rowconfigure(i, weight=1)
+            self.button_frame.columnconfigure(i, weight=1)
+        for i in range(2):
+            self.edit_button_frame.columnconfigure(i, weight=1)
+            self.edit_button_frame.rowconfigure(i, weight=1)
 
     def set_item(self, form: tuple[str, dat.Formula] | tuple[str, table]):
         "dispatches based on mode"
-        self.item_name, self.item = form
-        match self._parent.state:
-            case State.ROLL:
-                self.set_item_roll()
-            case State.EDIT:
-                self.set_item_edit()
+        name, item = form
+        if name:
+            self.item_name, self.item = name, item
+
+            match self._parent.state:
+                case State.ROLL:
+                    self.set_item_roll()
+                case State.EDIT:
+                    self.set_item_edit()
+                case _:
+                    pass
+
+            self.grid_set()
+        else:
+            if self._parent.state == State.ROLL:
+                self.item_name, self.item = "", []
+                self.ungrid_set()
+
+    def _get_name(self, item) -> str:
+        match item:
+            case dat.MetaFormula() | dat.Formula() | list():
+                _, name = self._parent.item_index(item)
+                return f"{{{name}}}"
+            case tuple():
+                return "".join(self._get_name(itm) for itm in item)
+            case str():
+                return item
 
     def set_item_edit(self):
         "sets the item in edit mode"
-
-        match self.item:
-            case dat.Formula():
-                self.set_result(self.item.labels)
-            case list():
-                self.grid_set()
+        if self.item:
+            self.result_list = []
+            match self.item:
+                case dat.MetaFormula():
+                    self.result_list = [",".join(
+                        self._get_name(itm) for itm in item.formula
+                        ) for item in self.item.formula
+                    ] + ["label: " + b for b in self.item.labels]
+                case dat.Formula():
+                    self.result_list = [self._get_name(item) for item in self.item.formula]
+                case list():
+                    self.result_list = [self._get_name(item) for item in self.item]
+            self.set_result()
 
     def set_item_roll(self):
         "sets the formula or table to roll on"
@@ -103,32 +153,38 @@ class ResultsPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
 
     def do_reroll(self):
         "handles the re-roll button, generates and populates the results column"
-        if self.item:
-            match(self.item):
-                case list():
-                    self._update_num()
-                    self.result_list = [self.item_name] + [dat.gen_list(self.item) for _ in range(self.num)]
-                case dat.Formula():
-                    self.result_list = [
-                        b + ": " + o
-                        for b, o in zip(
-                            self.item.labels,
-                            dat.gen_form(self.item)
-                        )
-                    ]
-        else:
-            self.result_list = []
-        self.set_result(self.result_list)
+        if self._parent.state == State.ROLL:
+            if self.item:
+                match(self.item):
+                    case list():
+                        self._update_num()
+                        self.result_list = [self.item_name] + [dat.gen_list(self.item) for _ in range(self.num)]
+                    case dat.MetaFormula() | dat.Formula():
+                        self.result_list = [
+                            b + ": " + o  # label: object format for formulas
+                            for b, o in zip(
+                                self.item.labels,
+                                dat.gen_form(self.item)
+                            )
+                        ]
+                    case _:
+                        pass
+            else:
+                self.result_list = []  # clear the list
+            self.set_result()
 
-    def set_result(self, lst: list):
-        "sets the results string, used for clearing the list"
-        self.results.set(lst)
+    def set_result(self, lst: list | None = None):
+        "sets the results list, used for setting and clearing the list"
+        # use results_list as is if called without a parameter
+        if lst is not None:
+            self.result_list = lst
+        self.results.set(self.result_list)
 
     def do_path(self):
         "gets the path"
         self.path = filedialog.askdirectory()
         if self.path:
-            self.path += "/"
+            self.path += "/"  # so we can just append later
 
     def _update_num(self):
         "updates self.num"
@@ -145,49 +201,43 @@ class ResultsPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
         self._parent.clipboard("\n".join(self.result_list))
 
     def ungrid_set(self):
-        "dispatch bassed on mode"
-
+        "removes widgets from the grid bassed on mode"
         match self._parent.state:
             case State.ROLL:
-                self.roll_ungrid_set()
+                self.button_frame.grid_remove()
+                # we only un/grid the buttons that change
+                self.roll_buttons["gen_xls"].grid_remove()
+                self.roll_buttons["get_path"].grid_remove()
             case State.EDIT:
-                self.edit_ungrid_set()
-
-    def edit_ungrid_set(self):
-        "edit state removes wigets from the grid"
-        self.edit_button_frame.grid_remove()
-
-    def roll_ungrid_set(self):
-        "roll state removes widgets from the grid"
-        self.button_frame.grid_remove()
-        self.reroll.grid_remove()
-        self.gen_xls.grid_remove()
-        self.get_path.grid_remove()
-        self.num_pages_label.configure(text="")
+                self.edit_button_frame.grid_remove()
+                self.button_frame.grid_remove()
+            case _:
+                pass
 
     def grid_set(self):
         "adds widgets bassed on mode"
-
         match self._parent.state:
-            case State.ROLL:
-                self.edit_button_frame.grid()
             case State.EDIT:
+                self.edit_button_frame.grid()
+            case State.ROLL:
+                self.button_frame.grid()
+                # we only un/grid the buttons that change
                 match self.item:
-                    case dat.Formula():
-                        self.button_frame.grid()
-                        self.reroll.grid()
-                        self.gen_xls.grid()
-                        self.get_path.grid()
-                        self.num_pages_label.configure(text="No. Pages")
+                    case dat.MetaFormula() | dat.Formula():
+                        self.roll_buttons["gen_xls"].grid()
+                        self.roll_buttons["get_path"].grid()
+                        self.roll_buttons["num_pages_label"].configure(text="No. Pages")
                     case list():
-                        self.button_frame.grid()
-                        self.reroll.grid()
-                        self.num_pages_label.configure(text="No. to Roll")
+                        self.roll_buttons["num_pages_label"].configure(text="No. to Roll")
                     case _:
                         pass  # don't do anything if None or unexpected.
 
     def set_state(self):
         "set state handler called when _parent changes state"
+        # clear panel
+        self.item_name, self.item = "", None
+        self.set_result([])
+
         match self._parent.state:
             case State.ROLL:
                 self.edit_button_frame.grid_remove()
@@ -195,5 +245,56 @@ class ResultsPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
             case State.EDIT:
                 self.button_frame.grid_remove()
                 self.edit_button_frame.grid()
+            case _:
+                pass
 
         self.ungrid_set()
+
+    def do_done(self):
+        "handle the done editing button"
+        # clear the panel
+        self.item, self.item_name = None, ""
+        self.set_result([])
+        self.ungrid_set()
+
+    def do_add(self):
+        "add item to item button"
+        self.item.append("")
+        self.set_item_edit()
+
+    def _sel(self):
+        "current->last selection logic"
+        sel = self.result.curselection()
+
+        if len(sel) == 1:
+            self.last_selection = sel[0]
+
+    def do_select(self, *args):  # pylint: disable=unused-argument
+        "selection clicking"
+        self._sel()
+
+    def do_double_select(self, *args):  # pylint: disable=unused-argument
+        "selection double clicking"
+        self._sel()
+
+        if self._parent.state == State.EDIT:
+            self.do_edit()
+
+    def do_edit(self):
+        "popup an edit window button"
+        # popup edit window based on self.last_selection
+
+    def do_set_log(self):
+        "set log file button"
+        if log := filedialog.asksaveasfilename():
+            self.logfile = log
+
+    def do_logroll(self):
+        "reroll and log the results button"
+        self.do_reroll()
+        self.do_log()
+
+    def do_log(self):
+        "log the results button"
+        with open(self.logfile, "a", encoding="utf-8") as f:
+            print(f"rolling {self.item_name}", *self.result_list, sep='\n', end='\n\n', file=f)
