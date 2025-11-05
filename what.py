@@ -6,7 +6,8 @@ from tkinter.simpledialog import askstring
 
 from enums import HEIGHT, WIDTH,  State
 
-table = list[str, list, tuple]
+# type alias
+table = list[str | list | tuple]  # pylint: disable=invalid-name
 
 
 class WhatPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-instance-attributes
