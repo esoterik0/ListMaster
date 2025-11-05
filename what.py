@@ -29,6 +29,7 @@ class WhatPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
         self.button_frame = ttk.Frame(self)
         self.button_frame.grid(column=0, row=1, sticky=(E, W))
 
+        # radio button set
         self.mode_var = tk.StringVar()
 
         self.roll_mode_button = ttk.Radiobutton(
