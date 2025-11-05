@@ -7,7 +7,8 @@ from tkinter import E, N, S, W, filedialog, ttk
 import gendata as dat
 from enums import HEIGHT, SINGLE, WIDTH, State
 
-table = list[str, list, tuple]
+#type alias
+table = list[str | list | tuple]  # pylint: disable=invalid-name
 
 LOG = "rolls.log"
 
@@ -18,8 +19,9 @@ class Widgets(Enum):
     FORM = "FORM"
 
 
+# utility candidate
 def int_nun(s: str) -> int | None:
-    "returns the int represented by the string or None if it cannot be converted"
+    "returns the string representation of the int or None if it cannot be converted"
     try:
         return int(s)
     except ValueError:
@@ -27,7 +29,17 @@ def int_nun(s: str) -> int | None:
 
 
 class ResultsPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-instance-attributes
-    "generates the page frame, for choosing, inspecting, or editing formula or table"
+    """
+    generates the result panel frame
+    displays results
+    buttons:
+        log results
+        reroll results
+        generate xls
+        copy to clip board
+    editing
+        todo
+    """
 
     def __init__(self, parent, **kwargs):  # pylint: disable=too-many-statements
         self._parent = parent
@@ -120,16 +132,6 @@ class ResultsPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
                 self.item_name, self.item = "", []
                 self.ungrid_set()
 
-    def _get_name(self, item) -> str:
-        match item:
-            case dat.MetaFormula() | dat.Formula() | list():
-                _, name = self._parent.item_index(item)
-                return f"{{{name}}}"
-            case tuple():
-                return "".join(self._get_name(itm) for itm in item)
-            case str():
-                return item
-
     def set_item_edit(self):
         "sets the item in edit mode"
         if self.item:
@@ -139,7 +141,8 @@ class ResultsPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
                     self.result_list = [",".join(
                         self._get_name(itm) for itm in item.formula
                         ) for item in self.item.formula
-                    ] + ["label: " + b for b in self.item.labels]
+                    ]  # + ["label: " + b for b in self.item.labels]
+                    # todo labels for MetaFormula
                 case dat.Formula():
                     self.result_list = [self._get_name(item) for item in self.item.formula]
                 case list():
@@ -147,31 +150,28 @@ class ResultsPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
             self.set_result()
 
     def set_item_roll(self):
-        "sets the formula or table to roll on"
+        "sets the formula or table to roll on and rolls it."
         self.ungrid_set()
         self.grid_set()
+        self.do_reroll()
 
-    def do_reroll(self):
-        "handles the re-roll button, generates and populates the results column"
-        if self._parent.state == State.ROLL:
-            if self.item:
-                match(self.item):
-                    case list():
-                        self._update_num()
-                        self.result_list = [self.item_name] + [dat.gen_list(self.item) for _ in range(self.num)]
-                    case dat.MetaFormula() | dat.Formula():
-                        self.result_list = [
-                            b + ": " + o  # label: object format for formulas
-                            for b, o in zip(
-                                self.item.labels,
-                                dat.gen_form(self.item)
-                            )
-                        ]
-                    case _:
-                        pass
-            else:
-                self.result_list = []  # clear the list
-            self.set_result()
+    def set_state(self):
+        "set state handler called when _parent changes state"
+        # clear panel
+        self.item_name, self.item = "", None
+        self.set_result([])
+
+        match self._parent.state:
+            case State.ROLL:
+                self.edit_button_frame.grid_remove()
+                self.button_frame.grid()
+            case State.EDIT:
+                self.button_frame.grid_remove()
+                self.edit_button_frame.grid()
+            case _:
+                pass
+
+        self.ungrid_set()
 
     def set_result(self, lst: list | None = None):
         "sets the results list, used for setting and clearing the list"
@@ -179,26 +179,6 @@ class ResultsPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
         if lst is not None:
             self.result_list = lst
         self.results.set(self.result_list)
-
-    def do_path(self):
-        "gets the path"
-        self.path = filedialog.askdirectory()
-        if self.path:
-            self.path += "/"  # so we can just append later
-
-    def _update_num(self):
-        "updates self.num"
-        num = int_nun(self.num_pages_var.get())  # try to get the number
-        self.num = num if num else SINGLE  # if we don't have a number num is None
-
-    def do_xls(self):
-        "Handles the Generate .xls button, currently makes double sided three hole punched 8 1/2 x 11 pages."
-        self._update_num()
-        dat.manufacture(self.item, self.path, self.item_name, self.num)
-
-    def _copy_clip(self):
-        "copy the results to the clipboard"
-        self._parent.clipboard("\n".join(self.result_list))
 
     def ungrid_set(self):
         "removes widgets from the grid bassed on mode"
@@ -232,23 +212,38 @@ class ResultsPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
                     case _:
                         pass  # don't do anything if None or unexpected.
 
-    def set_state(self):
-        "set state handler called when _parent changes state"
-        # clear panel
-        self.item_name, self.item = "", None
-        self.set_result([])
+    def do_reroll(self):
+        "handles the re-roll button, generates and populates the results column"
+        if self._parent.state == State.ROLL:
+            if self.item:
+                match(self.item):
+                    case list():
+                        self._update_num()
+                        self.result_list = [self.item_name] + [dat.gen_list(self.item) for _ in range(self.num)]
+                    case dat.MetaFormula() | dat.Formula():
+                        self.result_list = [f"{type(self.item).__name__}: {self.item_name}"] + [
+                            b + ": " + o  # label: object format for formulas
+                            for b, o in zip(
+                                self.item.labels,
+                                dat.gen_form(self.item)
+                            )
+                        ]
+                    case _:
+                        pass
+            else:
+                self.result_list = []  # clear the list
+            self.set_result()
 
-        match self._parent.state:
-            case State.ROLL:
-                self.edit_button_frame.grid_remove()
-                self.button_frame.grid()
-            case State.EDIT:
-                self.button_frame.grid_remove()
-                self.edit_button_frame.grid()
-            case _:
-                pass
+    def do_path(self):
+        "gets the path"
+        self.path = filedialog.askdirectory()
+        if self.path:
+            self.path += "/"  # so we can just append later
 
-        self.ungrid_set()
+    def do_xls(self):
+        "Handles the Generate .xls button, currently makes double sided three hole punched 8 1/2 x 11 pages."
+        self._update_num()
+        dat.manufacture(self.item, self.path, self.item_name, self.num)
 
     def do_done(self):
         "handle the done editing button"
@@ -259,15 +254,6 @@ class ResultsPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
 
     def do_add(self):
         "add item to item button"
-        self.item.append("")
-        self.set_item_edit()
-
-    def _sel(self):
-        "current->last selection logic"
-        sel = self.result.curselection()
-
-        if len(sel) == 1:
-            self.last_selection = sel[0]
 
     def do_select(self, *args):  # pylint: disable=unused-argument
         "selection clicking"
@@ -298,3 +284,42 @@ class ResultsPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
         "log the results button"
         with open(self.logfile, "a", encoding="utf-8") as f:
             print(f"rolling {self.item_name}", *self.result_list, sep='\n', end='\n\n', file=f)
+
+    def _copy_clip(self):
+        "copy the results to the clipboard"
+        self._parent.clipboard("\n".join(self.result_list))
+
+    def _update_num(self):
+        "updates self.num"
+        num = int_nun(self.num_pages_var.get())  # try to get the number
+        self.num = num if num else SINGLE  # if we don't have a number num is None
+
+    def _get_name(self, item: dat.MetaFormula | dat.Formula | list | tuple | str) -> str:
+        """
+        get a translated name from an item
+
+        for dat.MetaFormula, dat.Formula, list
+            the name is looked up via parent
+            and returned in braces {}
+
+        for tuples
+            the name of each item in in the tuple is looked up by calling this function recursively
+            in the form of (name1|name2|...|namen)
+
+        strings are passed unchanged
+        """
+        match item:
+            case dat.MetaFormula() | dat.Formula() | list():
+                _, name = self._parent.item_index(item)
+                return f"{{{name}}}"
+            case tuple():
+                return f"({"|".join(self._get_name(itm) for itm in item)})"
+            case str():
+                return item
+
+    def _sel(self):
+        "current->last selection logic helper function"
+        sel = self.result.curselection()
+
+        if len(sel) == 1:
+            self.last_selection = sel[0]

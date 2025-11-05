@@ -3,7 +3,9 @@
 import tkinter as tk
 from tkinter import E, N, S, W, ttk
 
-from enums import HEIGHT, WIDTH, State
+from gendata import Formula, MetaFormula
+
+from enums import HEIGHT, WIDTH, State, ItemColor, ItemType
 
 
 class PagePanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-instance-attributes
@@ -14,6 +16,7 @@ class PagePanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
         self.grid(column=1, row=0, sticky=(N, S, E, W))
         self._parent = parent
         self.last_selection = None
+        self.filter_type = None
 
         self.page_choices = tk.StringVar()
 
@@ -22,45 +25,119 @@ class PagePanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
         self._page.bind("<<ListboxSelect>>", self.do_page)
         self._page.bind("<Double-1>", self.do_double_page)
 
-        self.button_frame = ttk.Frame(self)
-        self.button_frame.grid(column=0, row=1, sticky=(E, W))
-        self.button_frame.grid_remove()
+        self.filter_var = tk.StringVar()
+        self.button_frame_main = ttk.Frame(self)
+        self.button_frame_main.grid(column=0, row=1, sticky=(E, W))
 
-        self.new_form = ttk.Button(self.button_frame, text="New Form", command=self.do_new_form, default='disabled')
+        self.list_filter = ttk.Radiobutton(
+            self.button_frame_main,
+            text="List",
+            variable=self.filter_var,
+            value=ItemType.LIST.value,
+            command=self.set_filter
+        )
+        self.list_filter.grid(column=0, row=0, sticky=(E, W))
+        self.form_filter = ttk.Radiobutton(
+            self.button_frame_main,
+            text="Formula",
+            variable=self.filter_var,
+            value=ItemType.FORM.value,
+            command=self.set_filter
+        )
+        self.form_filter.grid(column=0, row=1, sticky=(E, W))
+        self.meta_filter = ttk.Radiobutton(
+            self.button_frame_main,
+            text="MetaFormula",
+            variable=self.filter_var,
+            value=ItemType.META.value,
+            command=self.set_filter
+        )
+        self.meta_filter.grid(column=1, row=0, sticky=(E, W))
+        self.no_filter = ttk.Radiobutton(
+            self.button_frame_main,
+            text="None",
+            variable=self.filter_var,
+            value=ItemType.NONE.value,
+            command=self.set_filter
+        )
+        self.no_filter.grid(column=1, row=1, sticky=(E, W))
+
+        self.button_frame_edit = ttk.Frame(self)
+        self.button_frame_edit.grid(column=0, row=2, sticky=(E, W))
+        self.button_frame_edit.grid_remove()
+
+        self.new_form = ttk.Button(self.button_frame_edit, text="New Form", command=self.do_new_form, default='disabled')
         self.new_form.grid(column=0, row=1, sticky=(N, S, E, W))
-        self.new_list = ttk.Button(self.button_frame, text="New List", command=self.do_new_list)
+        self.new_list = ttk.Button(self.button_frame_edit, text="New List", command=self.do_new_list)
         self.new_list.grid(column=0, row=0, sticky=(N, S, E, W))
-        self.add_item = ttk.Button(self.button_frame, text="Add Item", command=self.do_add_item)
+        self.add_item = ttk.Button(self.button_frame_edit, text="Add Item", command=self.do_add_item)
         self.add_item.grid(column=1, row=0, sticky=(N, S, E, W))
-        self.edit_item = ttk.Button(self.button_frame, text="Edit Item", command=self.do_edit_item)
+        self.edit_item = ttk.Button(self.button_frame_edit, text="Edit Item", command=self.do_edit_item)
         self.edit_item.grid(column=1, row=0, sticky=(N, S, E, W))
 
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
+        self.rowconfigure(1, weight=1)
+        self.rowconfigure(2, weight=1)
 
-        self.button_frame.rowconfigure(0, weight=1)
-        self.button_frame.rowconfigure(1, weight=1)
-        self.button_frame.columnconfigure(0, weight=1)
-        self.button_frame.columnconfigure(1, weight=1)
+        self.button_frame_edit.rowconfigure(0, weight=1)
+        self.button_frame_edit.rowconfigure(1, weight=1)
+        self.button_frame_edit.columnconfigure(0, weight=1)
+        self.button_frame_edit.columnconfigure(1, weight=1)
 
-        self.rowconfigure(0, weight=1)
-        self.columnconfigure(0, weight=1)
+        self.button_frame_main.columnconfigure(0, weight=1)
+        self.button_frame_main.columnconfigure(1, weight=1)
+        self.button_frame_main.rowconfigure(0, weight=1)
+        self.button_frame_main.rowconfigure(1, weight=1)
 
         self._cur_page = None
+        self._filter_page = None
+
+    def set_filter(self):
+        "handles the filter radio button"
+        match(self.filter_var.get()):
+            case ItemType.META.value:
+                self.filter_type = MetaFormula
+            case ItemType.FORM.value:
+                self.filter_type = Formula
+            case ItemType.LIST.value:
+                self.filter_type = list
+            case _:
+                self.filter_type = None
+
+        self.set_page(self._cur_page)
 
     def set_page(self, lst: list | None):
         "sets the contents of the page panel"
         self._cur_page = lst
-        self.page_choices.set([n for n, _ in self._cur_page])
+        self._filter_page = self._filter()
+        self.page_choices.set([n for n, _ in self._filter_page])
+        for i, pg in enumerate(self._filter_page):
+            _, entry = pg
+            match(entry):
+                case(MetaFormula()):
+                    self._page.itemconfig(index=i, background=ItemColor.META.value)
+                case(Formula()):
+                    self._page.itemconfig(index=i, background=ItemColor.FORM.value)
+                case(list()):
+                    self._page.itemconfig(index=i, background=ItemColor.LIST.value)
         self.grid_set()
 
-    def _sel(self) -> bool:
-        "handle selections"
-        sel = self._page.curselection()
-        if len(sel) == 1:
-            self.last_selection = sel[0]
-            return True
-        return False
+    def set_state(self):
+        "set state handler called when _parent changes state"
+        self.ungrid_set()
+        self._cur_page = None
+        self.page_choices.set([])
+        self.grid_set()
+
+    def ungrid_set(self):
+        "removes widgets"
+        self.button_frame_edit.grid_remove()
+
+    def grid_set(self):
+        "adds widgets"
+        if self._parent.state == State.EDIT:
+            self.button_frame_edit.grid()
 
     def do_page(self, *args):  # pylint: disable=unused-argument
         "handles the 'page' column to choose which table, page, or formula to generate from; triggers re-roll"
@@ -89,22 +166,6 @@ class PagePanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
             if self._parent.state == State.EDIT:
                 self._parent.set_item(self._cur_page[self.last_selection])
 
-    def ungrid_set(self):
-        "removes widgets"
-        self.button_frame.grid_remove()
-
-    def grid_set(self):
-        "adds widgets"
-        if self._parent.state == State.EDIT:
-            self.button_frame.grid()
-
-    def set_state(self):
-        "set state handler called when _parent changes state"
-        self.ungrid_set()
-        self._cur_page = None
-        self.page_choices.set([])
-        self.grid_set()
-
     def do_new_form(self):
         "handle new Form button"
 
@@ -113,3 +174,18 @@ class PagePanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
 
     def do_add_item(self):
         "handle add item button"
+
+    def _filter(self):
+        "filter the data"
+        if self.filter_type is None:
+            return self._cur_page
+
+        return [n for n in self._cur_page if isinstance(n[1], self.filter_type)]
+
+    def _sel(self) -> bool:
+        "handle selections"
+        sel = self._page.curselection()
+        if len(sel) == 1:
+            self.last_selection = sel[0]
+            return True
+        return False

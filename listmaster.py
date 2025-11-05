@@ -1,4 +1,17 @@
-"listmaster.py: roll on random tables; create and edit random tables;"
+"""listmaster.py: manage random tables (lists)
+    roll on random tables, formulas and metaformulas.
+    save set of table
+    load set of tables
+    import set of tables
+    +create random tables.
+    +create random formulas; a set of tables to roll at once.
+    +create random metaformulas; a table of similar formulas to choose from.
+    +edit random tables.
+    +import tables from pdf.
+    +import tables from txt.
+    +export table to txt.
+    +export all tables to txt. single/multiple file
+"""
 
 import os
 import tkinter as tk
@@ -9,11 +22,14 @@ from main import MainPanel
 
 class ListMaster:  # pylint: disable=too-many-instance-attributes
     """
-    Tkinter UI for generating random choices, and creating tables and formulas.
+    Tkinter UI for ListMaster.
+
+    Contains menu, and application level controls.
+    Contains A single main panel (main.py) that controls the application logic
     """
     def __init__(self, root):
-        "Initializes the the UI; utilizes many helper functions"
-        self.root = root
+        "Initializes the the UI (tk)"
+        self.root = root  # inject our root so that main (start.py) can control the flow
         self.root.option_add('*tearOff', False)  # disable obsolete default ui setting
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)  # handle close messages
         self.root.title("List Master")  # set's main (root) menu title
@@ -22,9 +38,10 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
         # -| menu bar (root)
         #  |- File
         #   |- Commands
+        #  |- Import
+        #   |- Commands
         self.menu = tk.Menu(self.root)
         self.file_menu = tk.Menu(self.menu)
-        # self.import_menu = tk.Menu(self.menu)
         # add commands
         self.file_menu.add_command(label="New / Clear data", command=self.on_new)
         self.file_menu.add_command(label="Reset to defaults", command=self.on_reset)
@@ -38,6 +55,7 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
         self.file_menu.add_command(label="Save & Quit", command=self.on_close)
         self.file_menu.add_command(label="Just Quit (No prompt)", command=self.on_quit)
         self.menu.add_cascade(menu=self.file_menu, label="File")  # put file menu in root
+        # self.import_menu = tk.Menu(self.menu)
         # self.import_menu.add_command(label="Import list (pdf)", command=self.on_import_pdf)
         # self.import_menu.add_command(label="Import list (txt)", command=self.on_import_txt)
         # self.menu.add_cascade(menu=self.import_menu, label="Import")  # put import menu in root
@@ -54,7 +72,7 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
     def get_path_file(self):
         "gets the path and filename of the current file to save"
         path = os.getcwd()
-        file = self._main.get_data()
+        file = self._main.get_filename()
 
         if x := max(file.rfind('/'), file.rfind('\\')) >= 0:
             path = file[0:x]
@@ -64,19 +82,19 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
 
     def on_save(self):
         "Saves data to the last used filename"
-        self._main.save()
+        self._main.do_save()
 
     def on_save_as(self):
         "Saves data to a file, asks for name"
         path, file = self.get_path_file()
-        self._main.set_data(
+        self._main.set_filename(
             filedialog.asksaveasfilename(
                 initialdir=path,
                 initialfile=file,
                 defaultextension=".dat"
             )
         )
-        self._main.save()
+        self._main.do_save()
 
     def on_quit(self):
         "Quit without saving or prompting"
@@ -96,7 +114,7 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
             return  # don't quit
 
         if code:  # Yes
-            self._main.save()  # Save & Quit
+            self._main.do_save()  # Save & Quit
 
         self.root.destroy()  # No / Just Quit
 
@@ -111,7 +129,7 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
     def on_load(self):
         "loads data from a file"
         path, file = self.get_path_file()
-        self._main.set_data(
+        self._main.set_filename(
             filedialog.askopenfilename(
                 initialdir=path,
                 initialfile=file,
@@ -132,5 +150,10 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
             )
         )
 
-    # def on_import_pdf(self):
-    # def on_import_txt(self):
+    def on_import_pdf(self):
+        "import from pdf"
+        self._main.do_import_pdf(filedialog.askopenfilename(defaultextension=".pdf"))
+
+    def on_import_txt(self):
+        "import from txt"
+        self._main.do_import_txt(filedialog.askopenfilename())

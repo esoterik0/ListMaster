@@ -11,11 +11,24 @@ from results import ResultsPanel
 from what import WhatPanel
 
 FNAME = "tables.dat"
-table = list[str, list, tuple]
+
+# type alias
+table = list[str | list | tuple]  # pylint: disable=invalid-name
 
 
 class MainPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
-    "Main frame for the UI"
+    """
+    Main frame for the UI
+
+    creates the 3 panels of the application
+        what
+        page
+        result
+
+    handles the glue between the panels, they all call _parent.set_*() to send messages
+    to the other panels. The main panel then routes the message to the correct panel.
+
+    """
     def __init__(self, parent, **kwargs):
         super().__init__(parent, padding=5, width=WIDTH, height=HEIGHT, **kwargs)
         self.grid(column=0, row=0, sticky=(N, S, E, W))
@@ -47,15 +60,6 @@ class MainPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
         for panel in [self._what, self._page, self._result]:
             panel.set_state()
 
-    def get_data(self):
-        "get the current file name"
-        return self._fname
-
-    def clipboard(self, out: str):
-        "copy the results to the clipboard"
-        self.root.clipboard_clear()  # clear the clipboard because we are setting its contents
-        self.root.clipboard_append(out)
-
     def set_page(self, page: list[table]):
         "set page contents"
         self._page.set_page(page)
@@ -63,23 +67,20 @@ class MainPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
     def set_item(self, form: tuple[str, dat.Formula] | tuple[str, table]):
         "set the formula to use"
         self._result.set_item(form)
-        self._result.do_reroll()
 
     def set_result(self, result: list):
         "set results contents"
         self._result.set_result(result)
 
-    def set_data(self, fname: str):
+    def set_filename(self, fname: str):
         "sets the data filename"
         self._fname = fname if fname else FNAME
 
-    def avail(self, name: str) -> bool:
-        "returns true if a "
-        what, _ = self._what.get_what()
-        tables = what[0]
-        return not any(x[0] == name for x in tables)
+    def get_filename(self):
+        "get the current file name"
+        return self._fname
 
-    def name_index(self, name: str) -> tuple[int, table] | tuple[None,  None]:
+    def get_name_index(self, name: str) -> tuple[int, table] | tuple[None,  None]:
         "returns the index of a table"
         what, _ = self._what.get_what()
         tables = what[0]
@@ -89,17 +90,17 @@ class MainPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
 
         return None, None
 
-    def get_index(self, idx: int) -> tuple[str, table] | tuple[None,  None]:
-        "returns the index of a table"
+    def get_table(self, idx: int) -> tuple[str, table] | None:
+        "returns a table by index"
         what, _ = self._what.get_what()
         tables = what[0]
 
         if idx >= len(tables) or idx < 0:
-            return None, None
+            return None
 
         return tables[idx]
 
-    def item_index(self, tab: table) -> tuple[int | None, str]:
+    def get_table_index(self, tab: table) -> tuple[int | None, str]:
         "returns the index of a table"
         what, _ = self._what.get_what()
         tables = what[0]
@@ -112,7 +113,12 @@ class MainPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
         # return something so we can see in the app what is missing instead of blanks
         return None, "<MISSING>"
 
-    def save(self):
+    def do_clipboard(self, out: str):
+        "copy the results to the clipboard"
+        self.root.clipboard_clear()  # clear the clipboard because we are setting its contents
+        self.root.clipboard_append(out)
+
+    def do_save(self):
         "saves the data to disk"
         try:
             with open(self._fname, "wb") as f:
@@ -125,31 +131,21 @@ class MainPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
         except FileNotFoundError:
             pass
 
-    def _clear_panels(self):
-        "clear other panels"
-        self._page.set_page([])
-        self._result.set_result([])
-
     def do_try_load(self):
         "try to load data from the disk"
         try:
             with open(self._fname, "rb", ) as f:
                 data = pickle.load(f)
-                self._what.set_what(data["what_list"], data["what_choices"])
+                self._what.set_what_data(data["what_list"], data["what_choices"])
         except FileNotFoundError:
             self.do_reset()
             return
 
         self._clear_panels()
 
-    def _add(self, lst, tup):
-        "adds a tuple to a list, if it doesn't already exist"
-        if not any(x[1] == tup[1] for x in lst):
-            lst.append(tup)
-
     def do_reset(self):
         "perform a reset of the data to the hardcoded values"
-        self._what.set_what(
+        self._what.set_what_data(
             [dat.All_tables, dat.Maze_Rats_pages, dat.formulas],
             ["All tables", "Maze Rats pages", "Formulas"],
         )
@@ -184,16 +180,32 @@ class MainPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
             wchoices.append(choice)
 
         # set the choices.
-        self._what.set_what(wlist, wchoices)
+        self._what.set_what_data(wlist, wchoices)
 
     def do_clear(self):
         "Clear all data"
 
         # we always need an all tables entry.
-        self._what.set_what(
+        self._what.set_what_data(
             [[]],
             ["All tables"],
         )
 
         self._clear_panels()
 
+    def do_import_pdf(self, file: str):
+        "import from pdf"
+
+    def do_import_txt(self, file: str):
+        "import from txt"
+
+    def name_available(self, name: str) -> bool:
+        "returns true if a name is available"
+        what, _ = self._what.get_what()
+        tables = what[0]
+        return not any(x[0] == name for x in tables)
+
+    def _clear_panels(self):
+        "clear other panels"
+        self._page.set_page([])
+        self._result.set_result([])
