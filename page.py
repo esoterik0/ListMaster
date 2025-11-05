@@ -25,12 +25,14 @@ class PagePanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
         self._page.bind("<<ListboxSelect>>", self.do_page)
         self._page.bind("<Double-1>", self.do_double_page)
 
-        self.filter_var = tk.StringVar()
-        self.button_frame_main = ttk.Frame(self)
-        self.button_frame_main.grid(column=0, row=1, sticky=(E, W))
+        # buttons for ROLL mode
+        self.button_frame_roll = ttk.Frame(self)
+        self.button_frame_roll.grid(column=0, row=1, sticky=(E, W))
 
+        # radio button set
+        self.filter_var = tk.StringVar()
         self.list_filter = ttk.Radiobutton(
-            self.button_frame_main,
+            self.button_frame_roll,
             text="List",
             variable=self.filter_var,
             value=ItemType.LIST.value,
@@ -38,7 +40,7 @@ class PagePanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
         )
         self.list_filter.grid(column=0, row=0, sticky=(E, W))
         self.form_filter = ttk.Radiobutton(
-            self.button_frame_main,
+            self.button_frame_roll,
             text="Formula",
             variable=self.filter_var,
             value=ItemType.FORM.value,
@@ -46,7 +48,7 @@ class PagePanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
         )
         self.form_filter.grid(column=0, row=1, sticky=(E, W))
         self.meta_filter = ttk.Radiobutton(
-            self.button_frame_main,
+            self.button_frame_roll,
             text="MetaFormula",
             variable=self.filter_var,
             value=ItemType.META.value,
@@ -54,7 +56,7 @@ class PagePanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
         )
         self.meta_filter.grid(column=1, row=0, sticky=(E, W))
         self.no_filter = ttk.Radiobutton(
-            self.button_frame_main,
+            self.button_frame_roll,
             text="None",
             variable=self.filter_var,
             value=ItemType.NONE.value,
@@ -62,6 +64,7 @@ class PagePanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
         )
         self.no_filter.grid(column=1, row=1, sticky=(E, W))
 
+        # buttons for EDIT mode
         self.button_frame_edit = ttk.Frame(self)
         self.button_frame_edit.grid(column=0, row=2, sticky=(E, W))
         self.button_frame_edit.grid_remove()
@@ -85,18 +88,18 @@ class PagePanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
         self.button_frame_edit.columnconfigure(0, weight=1)
         self.button_frame_edit.columnconfigure(1, weight=1)
 
-        self.button_frame_main.columnconfigure(0, weight=1)
-        self.button_frame_main.columnconfigure(1, weight=1)
-        self.button_frame_main.rowconfigure(0, weight=1)
-        self.button_frame_main.rowconfigure(1, weight=1)
+        self.button_frame_roll.columnconfigure(0, weight=1)
+        self.button_frame_roll.columnconfigure(1, weight=1)
+        self.button_frame_roll.rowconfigure(0, weight=1)
+        self.button_frame_roll.rowconfigure(1, weight=1)
 
         self._cur_page = None
         self._filter_page = None
 
     def set_filter(self):
         "handles the filter radio button"
-        match(self.filter_var.get()):
-            case ItemType.META.value:
+        match(self.filter_var.get()):  # _var has a string ...
+            case ItemType.META.value:  # ... so we use .value to match against
                 self.filter_type = MetaFormula
             case ItemType.FORM.value:
                 self.filter_type = Formula
@@ -162,8 +165,8 @@ class PagePanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
         if not self._cur_page:
             return
 
-        if self.last_selection is not None:
-            if self._parent.state == State.EDIT:
+        if self._parent.state == State.EDIT:
+            if self.last_selection is not None:  # use of "is not none" lets 0 pass as a valid value
                 self._parent.set_item(self._cur_page[self.last_selection])
 
     def do_new_form(self):
@@ -183,9 +186,11 @@ class PagePanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
         return [n for n in self._cur_page if isinstance(n[1], self.filter_type)]
 
     def _sel(self) -> bool:
-        "handle selections"
-        sel = self._page.curselection()
-        if len(sel) == 1:
-            self.last_selection = sel[0]
+        "handle selections helper function"
+        sel = self._page.curselection()  # get the selection
+
+        if len(sel) == 1:  # if we have a single value
+            self.last_selection = sel[0]  # we can set our last selection
             return True
+
         return False
