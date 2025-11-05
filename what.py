@@ -39,6 +39,8 @@ class WhatPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
             value=State.ROLL.value,
             command=self.set_mode
         )
+        self.roll_mode_button.grid(column=0, row=0, sticky=(N, S, E, W))
+
         self.edit_mode_button = ttk.Radiobutton(
             self.button_frame,
             text="Add/Edit tables",
@@ -46,6 +48,9 @@ class WhatPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
             value=State.EDIT.value,
             command=self.set_mode
         )
+        self.edit_mode_button.grid(column=0, row=1, sticky=(N, S, E, W))
+
+        self.mode_var.set(State.ROLL.value)
 
         self.add_button = ttk.Button(self.button_frame, text="New Category", command=self.add_cat)
         self.add_button.grid(column=1, row=0, sticky=(N, S, E, W))
@@ -54,11 +59,6 @@ class WhatPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
         self.edit_button = ttk.Button(self.button_frame, text="Edit Category", command=self.edit_cat)
         self.edit_button.grid(column=1, row=1, sticky=(N, S, E, W))
         self.edit_button.grid_remove()
-
-        self.mode_var.set(State.ROLL.value)
-
-        self.roll_mode_button.grid(column=0, row=0, sticky=(N, S, E, W))
-        self.edit_mode_button.grid(column=0, row=1, sticky=(N, S, E, W))
 
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
@@ -121,5 +121,9 @@ class WhatPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
     def edit_cat(self):
         "edit the name of a category on the what panel"
         if self.last_selection:  # we don't want to to edit the special all tables entry at 0,
-            self.choices[self.last_selection] = askstring("Edit Category", "New Category Name?", initialvalue=self.choices[self.last_selection])
+            self.choices[self.last_selection] = askstring(
+                "Edit Category",
+                "New Category Name?",
+                initialvalue=self.choices[self.last_selection]
+            )
             self.update_what()
