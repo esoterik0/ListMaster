@@ -176,7 +176,7 @@ class ResultsPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
     def set_result(self, lst: list | None = None):
         "sets the results list, used for setting and clearing the list"
         # use results_list as is if called without a parameter
-        if lst is not None:
+        if lst is not None:  # empty lists are allowed
             self.result_list = lst
         self.results.set(self.result_list)
 
@@ -238,7 +238,7 @@ class ResultsPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
         "gets the path"
         self.path = filedialog.askdirectory()
         if self.path:
-            self.path += "/"  # so we can just append later
+            self.path += "/"  # prepare for appending to later
 
     def do_xls(self):
         "Handles the Generate .xls button, currently makes double sided three hole punched 8 1/2 x 11 pages."
@@ -304,7 +304,12 @@ class ResultsPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
 
         for tuples
             the name of each item in in the tuple is looked up by calling this function recursively
-            in the form of (name1|name2|...|namen)
+            in the form of (name1name2...namen)
+            strings can be concatenated together, so each tuple can not have more than one string in
+            a row, a table must be between any strings in the tuple, one can have multiple tables, but
+            they should probably be separated by a space " ".
+
+            ex. "pre {table1} {table2} mid{table3} post"
 
         strings are passed unchanged
         """
@@ -313,7 +318,7 @@ class ResultsPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
                 _, name = self._parent.item_index(item)
                 return f"{{{name}}}"
             case tuple():
-                return f"({"|".join(self._get_name(itm) for itm in item)})"
+                return f"({"".join(self._get_name(itm) for itm in item)})"
             case str():
                 return item
 
