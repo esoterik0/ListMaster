@@ -9,6 +9,8 @@ from openpyxl.styles.fills import PatternFill
 from .formulas import Formula
 from .generators import general_generator
 
+table = list[str | list | tuple] #type alias
+
 # excel seems to need 94 (i didn't check 95) to stay on one page, LibreOffice calc can use 96 for one page.
 PAGE_WIDTH = 94.0
 
@@ -52,6 +54,9 @@ def generate(  # pylint: disable=too-many-arguments,too-many-locals
     wb: pyxl.Workbook = pyxl.Workbook()
     ws = wb.active
     left, right = calc_margin(left_margin)
+
+    if ws is None:
+        return
 
     ws.page_margins.left = left
     ws.page_margins.right = right

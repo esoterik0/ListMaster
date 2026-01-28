@@ -43,7 +43,7 @@ class ResultsPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
 
     def __init__(self, parent, **kwargs):  # pylint: disable=too-many-statements
         self._parent = parent
-        # state variables, to store between function calls
+        # state variables
         self.num = SINGLE
         self.path = ""
         self.item = None
@@ -51,63 +51,74 @@ class ResultsPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
         self.last_selection = None
         self.logfile = LOG
 
-        super().__init__(parent, borderwidth=5, relief="ridge", **kwargs)
-        self.grid(column=2, row=0, sticky=(N, S, E, W))
+        # initialize ...
+        super().__init__(parent, borderwidth=5, relief="ridge", **kwargs)  #  .. our super class
+        self.grid(column=2, row=0, sticky=(N, S, E, W))  # ... oursevles   # type: ignore # this is the way tk works
 
-        self.results = tk.StringVar()
-        self.result_list = []
+        # Create and grid our child members; some members will also be grid_removed()ed
+
+        # Results
+        self.result_list = []  # our list; self.results.set(self.result_list)
+        self.results = tk.StringVar()  # tk list
         self.result = tk.Listbox(self, listvariable=self.results, width=int(4*WIDTH/5), height=HEIGHT)
-        self.result.grid(column=0, row=0, sticky=(N, S, E, W))
+        self.result.grid(column=0, row=0, sticky=(N, S, E, W)) # type: ignore # this is the way tk works
         self.result.bind("<<ListboxSelect>>", self.do_select)
         self.result.bind("<Double-1>", self.do_double_select)
 
-        self.button_frame = ttk.Frame(self)
-        self.button_frame.grid(column=0, row=1, sticky=(E, W))
-        self.button_frame.grid_remove()
+        # holds the roll buttons, it can be swaped with a different frame
+        self.roll_button_frame = ttk.Frame(self)
+        self.roll_button_frame.grid(column=0, row=1, sticky=(E, W)) # type: ignore # this is the way tk works
+        self.roll_button_frame.grid_remove()
 
+        # buttons for roll mode
         self.roll_buttons = {}
-        self.roll_buttons["reroll"] = ttk.Button(self.button_frame, text="Re-Roll", command=self.do_reroll)
-        self.roll_buttons["reroll"].grid(column=0, row=0, sticky=(N, S, E, W))
-        self.roll_buttons["num_pages_label"] = ttk.Label(self.button_frame, text="No. Pages")
-        self.roll_buttons["num_pages_label"].grid(column=0, row=1, sticky=(N, S, E, W))
+        self.roll_buttons["reroll"] = ttk.Button(self.roll_button_frame, text="Re-Roll", command=self.do_reroll)
+        self.roll_buttons["reroll"].grid(column=0, row=0, sticky=(N, S, E, W)) # type: ignore # this is the way tk works
+        self.roll_buttons["num_pages_label"] = ttk.Label(self.roll_button_frame, text="No. Pages")
+        self.roll_buttons["num_pages_label"].grid(column=0, row=1, sticky=(N, S, E, W)) # type: ignore # this is the way tk works
         self.num_pages_var = tk.StringVar()
         self.num_pages_var.set(f"{SINGLE}")
-        self.roll_buttons["num_pages"] = tk.Entry(self.button_frame, textvariable=self.num_pages_var)
-        self.roll_buttons["num_pages"].grid(column=1, row=1, sticky=(N, S, E, W))
+        self.roll_buttons["num_pages"] = tk.Entry(self.roll_button_frame, textvariable=self.num_pages_var)
+        self.roll_buttons["num_pages"].grid(column=1, row=1, sticky=(N, S, E, W)) # type: ignore # this is the way tk works
         self.roll_buttons["clip_copy"] = ttk.Button(
-            self.button_frame,
+            self.roll_button_frame,
             text="Copy to clipboard",
             command=self._copy_clip
         )
-        self.roll_buttons["clip_copy"].grid(column=1, row=0, sticky=(N, S, E, W))
-        self.roll_buttons["gen_xls"] = ttk.Button(self.button_frame, text="Generate .xls file", command=self.do_xls)
-        self.roll_buttons["gen_xls"].grid(column=2, row=1, sticky=(N, S, E, W))
-        self.roll_buttons["get_path"] = ttk.Button(self.button_frame, text="Choose path", command=self.do_path)
-        self.roll_buttons["get_path"].grid(column=2, row=0, sticky=(N, S, E, W))
-        self.roll_buttons["set_log"] = ttk.Button(self.button_frame, text="Set log file", command=self.do_set_log)
-        self.roll_buttons["set_log"].grid(column=0, row=2, sticky=(N, S, E, W))
-        self.roll_buttons["log_roll"] = ttk.Button(self.button_frame, text="Reroll & log", command=self.do_logroll)
-        self.roll_buttons["log_roll"].grid(column=1, row=2, sticky=(N, S, E, W))
-        self.roll_buttons["log"] = ttk.Button(self.button_frame, text="Log the roll", command=self.do_log)
-        self.roll_buttons["log"].grid(column=2, row=2, sticky=(N, S, E, W))
+        self.roll_buttons["clip_copy"].grid(column=1, row=0, sticky=(N, S, E, W)) # type: ignore # this is the way tk works
+        self.roll_buttons["gen_xls"] = ttk.Button(self.roll_button_frame, text="Generate .xls file", command=self.do_xls)
+        self.roll_buttons["gen_xls"].grid(column=2, row=1, sticky=(N, S, E, W)) # type: ignore # this is the way tk works
+        self.roll_buttons["get_path"] = ttk.Button(self.roll_button_frame, text="Choose path", command=self.do_path)
+        self.roll_buttons["get_path"].grid(column=2, row=0, sticky=(N, S, E, W)) # type: ignore # this is the way tk works
+        self.roll_buttons["set_log"] = ttk.Button(self.roll_button_frame, text="Set log file", command=self.do_set_log)
+        self.roll_buttons["set_log"].grid(column=0, row=2, sticky=(N, S, E, W)) # type: ignore # this is the way tk works
+        self.roll_buttons["log_roll"] = ttk.Button(self.roll_button_frame, text="Reroll & log", command=self.do_logroll)
+        self.roll_buttons["log_roll"].grid(column=1, row=2, sticky=(N, S, E, W)) # type: ignore # this is the way tk works
+        self.roll_buttons["log"] = ttk.Button(self.roll_button_frame, text="Log the roll", command=self.do_log)
+        self.roll_buttons["log"].grid(column=2, row=2, sticky=(N, S, E, W)) # type: ignore # this is the way tk works
 
+        # holds the edit buttons; swapped in during edit mode.
         self.edit_button_frame = ttk.Frame(self)
-        self.edit_button_frame.grid(column=0, row=1, sticky=(E, W))
+        self.edit_button_frame.grid(column=0, row=1, sticky=(E, W)) # type: ignore # this is the way tk works
         self.edit_button_frame.grid_remove()
 
+        # buttons for edit mode
         self.edit_buttons = {}
         self.edit_buttons["add_item"] = ttk.Button(self.edit_button_frame, text="Add Item", command=self.do_add)
-        self.edit_buttons["add_item"].grid(column=0, row=0, sticky=(N, S, E, W))
+        self.edit_buttons["add_item"].grid(column=0, row=0, sticky=(N, S, E, W)) # type: ignore # this is the way tk works
         self.edit_buttons["edit_item"] = ttk.Button(self.edit_button_frame, text="Edit Item", command=self.do_edit)
-        self.edit_buttons["edit_item"].grid(column=0, row=1, sticky=(N, S, E, W))
+        self.edit_buttons["edit_item"].grid(column=0, row=1, sticky=(N, S, E, W)) # type: ignore # this is the way tk works
         self.edit_buttons["done"] = ttk.Button(self.edit_button_frame, text="Done Editing", command=self.do_done)
-        self.edit_buttons["done"].grid(column=1, row=1, sticky=(N, S, E, W))
+        self.edit_buttons["done"].grid(column=1, row=1, sticky=(N, S, E, W)) # type: ignore # this is the way tk works
 
+        # configure the grids
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
+        # 3x3 grid
         for i in range(3):
-            self.button_frame.rowconfigure(i, weight=1)
-            self.button_frame.columnconfigure(i, weight=1)
+            self.roll_button_frame.rowconfigure(i, weight=1)
+            self.roll_button_frame.columnconfigure(i, weight=1)
+        # 2x2 grid
         for i in range(2):
             self.edit_button_frame.columnconfigure(i, weight=1)
             self.edit_button_frame.rowconfigure(i, weight=1)
@@ -133,7 +144,7 @@ class ResultsPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
                 self.ungrid_set()
 
     def set_item_edit(self):
-        "sets the item in edit mode"
+        "sets the item to edit"
         if self.item:
             self.result_list = []
             match self.item:
@@ -142,7 +153,7 @@ class ResultsPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
                         self._get_name(itm) for itm in item.formula
                         ) for item in self.item.formula
                     ]  # + ["label: " + b for b in self.item.labels]
-                    # todo labels for MetaFormula
+                    # todo figure out labels for MetaFormula; and how to make/edit them
                 case dat.Formula():
                     self.result_list = [self._get_name(item) for item in self.item.formula]
                 case list():
@@ -164,9 +175,9 @@ class ResultsPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
         match self._parent.state:
             case State.ROLL:
                 self.edit_button_frame.grid_remove()
-                self.button_frame.grid()
+                self.roll_button_frame.grid()
             case State.EDIT:
-                self.button_frame.grid_remove()
+                self.roll_button_frame.grid_remove()
                 self.edit_button_frame.grid()
             case _:
                 pass
@@ -178,19 +189,19 @@ class ResultsPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
         # use results_list as is if called without a parameter
         if lst is not None:  # empty lists are allowed
             self.result_list = lst
-        self.results.set(self.result_list)
+        self.results.set(self.result_list)  # type: ignore # this is the way tk works
 
     def ungrid_set(self):
         "removes widgets from the grid bassed on mode"
         match self._parent.state:
             case State.ROLL:
-                self.button_frame.grid_remove()
+                self.roll_button_frame.grid_remove()
                 # we only un/grid the buttons that change
                 self.roll_buttons["gen_xls"].grid_remove()
                 self.roll_buttons["get_path"].grid_remove()
             case State.EDIT:
                 self.edit_button_frame.grid_remove()
-                self.button_frame.grid_remove()
+                self.roll_button_frame.grid_remove()
             case _:
                 pass
 
@@ -200,7 +211,7 @@ class ResultsPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
             case State.EDIT:
                 self.edit_button_frame.grid()
             case State.ROLL:
-                self.button_frame.grid()
+                self.roll_button_frame.grid()
                 # we only un/grid the buttons that change
                 match self.item:
                     case dat.MetaFormula() | dat.Formula():
