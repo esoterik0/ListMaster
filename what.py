@@ -62,6 +62,7 @@ class WhatPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
 
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
+        self.rowconfigure(1, weight=1)
 
         self.button_frame.rowconfigure(0, weight=1)
         self.button_frame.rowconfigure(1, weight=1)

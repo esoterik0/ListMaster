@@ -5,6 +5,7 @@ from enum import Enum
 from tkinter import E, N, S, W, filedialog, ttk
 
 import gendata as dat
+from edinsitu import start_edit
 from enums import HEIGHT, SINGLE, WIDTH, State
 
 #type alias
@@ -275,11 +276,18 @@ class ResultsPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
         self._sel()
 
         if self._parent.state == State.EDIT:
-            self.do_edit()
+            return self.do_edit()
+
+        return None
 
     def do_edit(self):
-        "popup an edit window button"
-        # popup edit window based on self.last_selection
+        "popup an edit window in place"
+        return start_edit(
+            self.result,
+            self.last_selection,
+            self._check_accept_edit,
+            self.result_list[self.last_selection]
+        )
 
     def do_set_log(self):
         "set log file button"
@@ -339,3 +347,6 @@ class ResultsPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
 
         if len(sel) == 1:
             self.last_selection = sel[0]
+
+    def _check_accept_edit(self, val: str):
+        "check and accept an edit"
