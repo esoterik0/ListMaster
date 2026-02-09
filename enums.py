@@ -4,6 +4,7 @@ from enum import Enum
 #type alias
 table = list[str | list | tuple]  # pylint: disable=invalid-name
 
+# valuse for tkinter
 WIDTH = 75
 HEIGHT = 25
 SINGLE = 1
