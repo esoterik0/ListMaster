@@ -3,27 +3,20 @@
 import tkinter as tk
 from tkinter import E, N, S, W, ttk
 
+from enums import ItemColor, ItemType, State
 from gendata import Formula, MetaFormula
+from ListPanel import ListPanel
 
-from enums import HEIGHT, WIDTH, State, ItemColor, ItemType
 
-
-class PagePanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-instance-attributes
+class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-instance-attributes
     "generates the page frame, for choosing, inspecting, or editing which 'page', formula or table"
 
-    def __init__(self, parent, **kwargs):
-        super().__init__(parent, borderwidth=5, relief="ridge", **kwargs)
-        self.grid(column=1, row=0, sticky=(N, S, E, W))
-        self._parent = parent
-        self.last_selection = None
+    def __init__(self, parent: "MainPanel", **kwargs):
+        super().__init__(parent, 1, **kwargs)
+        self._parent: "MainPanel" = parent
         self.filter_type = None
 
-        self.page_choices = tk.StringVar()
-
-        self._page = tk.Listbox(self, listvariable=self.page_choices, width=int(3*WIDTH/5), height=HEIGHT)
-        self._page.grid(column=0, row=0, sticky=(N, S, E, W))
-        self._page.bind("<<ListboxSelect>>", self.do_page)
-        self._page.bind("<Double-1>", self.do_double_page)
+        self.lbox.bind("<Double-1>", self.do_double_page)
 
         # buttons for ROLL mode
         self.button_frame_roll = ttk.Frame(self)
@@ -73,13 +66,11 @@ class PagePanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
         self.new_form.grid(column=0, row=1, sticky=(N, S, E, W))
         self.new_list = ttk.Button(self.button_frame_edit, text="New List", command=self.do_new_list)
         self.new_list.grid(column=0, row=0, sticky=(N, S, E, W))
-        self.add_item = ttk.Button(self.button_frame_edit, text="Add Item", command=self.do_add_item)
+        self.add_item = ttk.Button(self.button_frame_edit, text="Copy Item", command=self.do_copy_item)
         self.add_item.grid(column=1, row=0, sticky=(N, S, E, W))
         self.edit_item = ttk.Button(self.button_frame_edit, text="Edit Item", command=self.do_edit_item)
         self.edit_item.grid(column=1, row=0, sticky=(N, S, E, W))
 
-        self.rowconfigure(0, weight=1)
-        self.columnconfigure(0, weight=1)
         self.rowconfigure(1, weight=1)
         self.rowconfigure(2, weight=1)
 
@@ -110,27 +101,39 @@ class PagePanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
 
         self.set_page(self._cur_page)
 
+    def accept_edit(self, newtext: str) -> bool:
+        "Must be overridden to edit"
+        if self._is_safe(newtext) and self._parent.name_available(newtext):
+            name = self.choices[self.last_selection]
+            for i, x in enumerate(self._cur_page):
+                if x[0] == name:
+                    if self._parent.rename(name, newtext):
+                        self._cur_page[i] = (newtext, x[1])
+                    break
+
     def set_page(self, lst: list | None):
         "sets the contents of the page panel"
         self._cur_page = lst
         self._filter_page = self._filter()
-        self.page_choices.set([n for n, _ in self._filter_page])
+        self.choices = [n for n, _ in self._filter_page]
+        self._update_lbox()
         for i, pg in enumerate(self._filter_page):
             _, entry = pg
             match(entry):
                 case(MetaFormula()):
-                    self._page.itemconfig(index=i, background=ItemColor.META.value)
+                    self.lbox.itemconfig(index=i, background=ItemColor.META.value)
                 case(Formula()):
-                    self._page.itemconfig(index=i, background=ItemColor.FORM.value)
+                    self.lbox.itemconfig(index=i, background=ItemColor.FORM.value)
                 case(list()):
-                    self._page.itemconfig(index=i, background=ItemColor.LIST.value)
+                    self.lbox.itemconfig(index=i, background=ItemColor.LIST.value)
         self.grid_set()
 
     def set_state(self):
         "set state handler called when _parent changes state"
         self.ungrid_set()
         self._cur_page = None
-        self.page_choices.set([])
+        self.choices = []
+        self._update_lbox()
         self.grid_set()
 
     def ungrid_set(self):
@@ -142,12 +145,12 @@ class PagePanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
         if self._parent.state == State.EDIT:
             self.button_frame_edit.grid()
 
-    def do_page(self, *args):  # pylint: disable=unused-argument
+    def do_lbox_sel(self, *args):  # pylint: disable=unused-argument
         "handles the 'page' column to choose which table, page, or formula to generate from; triggers re-roll"
         if not self._cur_page:
             return
 
-        if self._sel():
+        if self._sel() is not None:  # allow 0 to pass inspection
             if self._parent.state == State.ROLL:
                 self._parent.set_item(self._cur_page[self.last_selection])
 
@@ -156,27 +159,60 @@ class PagePanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
         if not self._cur_page:
             return
 
-        if self._sel():
+        if self._sel() is not None:
             if self._parent.state == State.EDIT:
-                self.do_edit_item()
+                self._parent.set_item(self._cur_page[self.last_selection])
 
     def do_edit_item(self):
         "handle edit item button, and double click"
         if not self._cur_page:
-            return
+            return "return"
 
-        if self._parent.state == State.EDIT:
-            if self.last_selection is not None:  # use of "is not none" lets 0 pass as a valid value
-                self._parent.set_item(self._cur_page[self.last_selection])
+        if self._sel() is not None:
+            return self._start_edit(self.choices[self.last_selection])
+
+        return "return"
 
     def do_new_form(self):
         "handle new Form button"
+        if not self._cur_page:
+            return "return"
+
+        if self.filter_type and self.filter_type != Formula:
+            return "return"
+
+        name = "New Formula"
+
+        if self._parent.name_available(name):
+            form = Formula([], [], name)
+            self._parent.add_to_all((name, form))
+            self._cur_page.append((name, form))
+            self.set_page(self._cur_page)
 
     def do_new_list(self):
         "handle new list button"
+        if not self._cur_page:
+            return "return"
 
-    def do_add_item(self):
+        if self.filter_type and self.filter_type != list:
+            return "return"
+
+        name = "New List"
+
+        if self._parent.name_available(name):
+            form = Formula([], [], name)
+            self._parent.add_to_all((name, form))
+            self._cur_page.append((name, form))
+            self.set_page(self._cur_page)
+
+    # TODO:: add meta formual
+
+    def do_copy_item(self):
         "handle add item button"
+        if self._sel() is None:
+            return
+
+        self._parent.do_clipboard(self._parent.get_name(self.choices[self.last_selection]))
 
     def _filter(self):
         "filter the data"
@@ -184,13 +220,3 @@ class PagePanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
             return self._cur_page
 
         return [n for n in self._cur_page if isinstance(n[1], self.filter_type)]
-
-    def _sel(self) -> bool:
-        "handle selections helper function"
-        sel = self._page.curselection()  # get the selection
-
-        if len(sel) == 1:  # if we have a single value
-            self.last_selection = sel[0]  # we can set our last selection
-            return True
-
-        return False
