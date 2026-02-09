@@ -206,9 +206,11 @@ class MainPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
 
     def do_import_pdf(self, file: str):
         "import from pdf"
+        # TODO::
 
     def do_import_txt(self, file: str):
         "import from txt"
+        # TODO::
 
     def name_available(self, name: str) -> bool:
         "returns true if a name is available"
@@ -230,4 +232,5 @@ class MainPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
         return False
 
     def get_name(self, item: dat.MetaFormula | dat.Formula | list | tuple | str) -> str:
+        "get name of object"
         return self._result.get_name(item)
