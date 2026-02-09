@@ -1,6 +1,8 @@
 "enums.py contains enums and constants for the ListMaster program"
 from enum import Enum
-from gendata.formulas import MetaFormula, Formula
+
+#type alias
+table = list[str | list | tuple]  # pylint: disable=invalid-name
 
 WIDTH = 75
 HEIGHT = 25
