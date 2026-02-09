@@ -1,8 +1,8 @@
 # generator functions that return a function that returns a generartor.
 
-from operator import add
 from functools import reduce
 from math import ceil
+from operator import add
 from random import choice, sample, shuffle
 from typing import Any, Callable, Generator
 

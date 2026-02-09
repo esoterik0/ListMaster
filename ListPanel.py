@@ -1,9 +1,10 @@
 "listPanel, base class for lists"
 
+import re
 import tkinter as tk
 from tkinter import E, N, S, W, ttk
 from typing import Literal
-import re
+
 from enums import HEIGHT, WIDTH
 
 
