@@ -5,15 +5,12 @@ from tkinter import E, N, S, W, ttk
 import dill as pickle
 
 import gendata as dat
-from enums import HEIGHT, WIDTH, State
+from enums import HEIGHT, WIDTH, State, table
 from page import PagePanel
 from results import ResultsPanel
 from what import WhatPanel
 
 FNAME = "tables.dat"
-
-# type alias
-table = list[str | list | tuple]  # pylint: disable=invalid-name
 
 
 class MainPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
@@ -90,6 +87,16 @@ class MainPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
 
         return None, None
 
+    def has_name(self, name) -> bool:
+        "returns true if the name exists"
+        what, _ = self._what.get_what()
+        tables = what[0]
+
+        if any(x[0] == name for x in tables):
+            return True
+
+        return False
+
     def get_table(self, idx: int) -> tuple[str, table] | None:
         "returns a table by index"
         what, _ = self._what.get_what()
@@ -112,6 +119,10 @@ class MainPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
 
         # return something so we can see in the app what is missing instead of blanks
         return None, "<MISSING>"
+
+    def rename(self, name: str, newname: str):
+        "renames a table"
+        self._what.rename(name, newname)
 
     def do_clipboard(self, out: str):
         "copy the results to the clipboard"
@@ -209,3 +220,14 @@ class MainPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
         "clear other panels"
         self._page.set_page([])
         self._result.set_result([])
+
+    def add_to_all(self, tab: tuple[str, table]) -> bool:
+        "adds to the all category"
+        if not self.has_name(tab[0]):
+            self._what.add_to_all(tab)
+            return True
+
+        return False
+
+    def get_name(self, item: dat.MetaFormula | dat.Formula | list | tuple | str) -> str:
+        return self._result.get_name(item)
