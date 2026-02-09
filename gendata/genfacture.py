@@ -31,7 +31,7 @@ def calc_margin(left=None):
 
 # these are used by generate to the excel column names
 letters = [chr(ord('A')+i) for i in range(26)]
-double = ['{}{}'.format(b, a) for b in letters for a in letters]
+double = [f'{a}{b}' for b in letters for a in letters]
 cols = letters + double  # excel cols
 
 
@@ -39,7 +39,7 @@ def generate(  # pylint: disable=too-many-arguments,too-many-locals
     foo: Callable[[], Generator[list[str], Any, None]],  # generator function pylint: disable=disallowed-name
     out_name: str | None = None,  # filename
     split: int = 6,  # split
-    left_margin: bool | None = None,  # margins: left:True, right:False, center:None
+    left_margin: bool | None = None,  # margins: left:True, right:False, center: None
     width: float = PAGE_WIDTH,  # page witdth to use depending on program and size of paper.
     thick: Side = Side(border_style="thick", color="FF000000"),  # cel border
     font: Font = Font("Crimson Text SemiBold"),  # font to use, must be in current directory, or path to file

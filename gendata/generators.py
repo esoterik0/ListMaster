@@ -124,7 +124,7 @@ def jump(n, total=60, sp=6):  # jumpstart
                 draw = nums[:sp*2]
                 nums = nums[sp*2:]
                 yield [
-                    "({0} + {1})".format(draw[x], draw[x+1])
+                    f"({draw[x]} + {draw[x+1]})"
                     for x in range(0, len(draw), 2)
                 ]
 
@@ -132,6 +132,7 @@ def jump(n, total=60, sp=6):  # jumpstart
 
 
 def genjump(n, t=60, sp=6):  # jumpstart
+    "helper for jumpstart"
     return lambda: jump(n, t, sp)
 
 
@@ -144,12 +145,13 @@ def start(n, t=60, sp=8):
             out = []
             for _ in range(sp//2):
                 draw = sample(nums, 4)
-                out.append("({0} + {1})".format(draw[0], draw[1]))
-                out.append("({0} + {1})".format(draw[2], draw[3]))
+                out.append(f"({draw[0]} + {draw[1]})")
+                out.append(f"({draw[2]} + {draw[3]})")
             yield out
 
     return food
 
 
 def genstart(n, t=60, sp=8):
+    "generator start"
     return lambda: start(n, t, sp)
