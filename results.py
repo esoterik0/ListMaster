@@ -329,7 +329,7 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
     def do_log(self):
         "log the results button"
         with open(self.logfile, "a", encoding="utf-8") as f:
-            # print(f"rolling {self.item_name}", *self.choices, sep='\n', end='\n\n', file=f)
+            print(f"rolling {self.item_name}", *self.choices, sep='\n', end='\n\n', file=f)
 
     def _copy_clip(self):
         "copy the results to the clipboard"
