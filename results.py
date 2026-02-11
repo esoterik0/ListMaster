@@ -37,7 +37,7 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
         generate xls
         copy to clip board
     editing
-        todo
+        test
     """
 
     def __init__(self, parent: "MainPanel", **kwargs):  # pylint: disable=too-many-statements
