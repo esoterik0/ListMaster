@@ -26,6 +26,6 @@ class ItemType(Enum):
 
 class ItemColor(Enum):
     "Enum to define a color for a type"
-    META = "#FFAAAA",
-    FORM = "#FFAAFF",
-    LIST = "#AAAAFF",
+    META = "#FFAAAA"
+    FORM = "#FFAAFF"
+    LIST = "#AAAAFF"
