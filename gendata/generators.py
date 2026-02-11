@@ -19,6 +19,8 @@ def gen3(form: Formula | MetaFormula | list | str | tuple) -> list[str] | str | 
         formala->list[str]
         list->list|tuple|str
         tuple->str
+
+        no random choice for string to string
         str->str
 
     Returns the list of choices from a formula or meta formula. Formulas inside formulas are expanded
