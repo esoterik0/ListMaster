@@ -105,7 +105,7 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
         self.edit_buttons["done"].grid(column=1, row=1, sticky=(N, S, E, W))
 
         # configure the grids
-        self.rowconfigure(1, weight=1)
+        # self.rowconfigure(1, weight=1)
         # 3x3 grid
         for i in range(3):
             self.roll_button_frame.rowconfigure(i, weight=1)
@@ -184,7 +184,7 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
                 case dat.Formula():
                     self.choices = [
                         f"{label};{self.get_name(item)}"
-                        for item, label in zip(self.item.formula, self.item.formula.label)
+                        for item, label in zip(self.item.formula, self.item.labels)
                     ]
                 case list():
                     self.choices = [self.get_name(item) for item in self.item]
@@ -298,10 +298,12 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
 
     def do_lbox_sel(self, *args):  # pylint: disable=unused-argument
         "selection clicking"
+        # print("result select", end=" ")
         self._sel()
 
     def do_double_select(self, *args):  # pylint: disable=unused-argument
         "selection double clicking"
+        # print("result double", end=" ")
         self._sel()
 
         if self._parent.state == State.EDIT:
@@ -327,7 +329,7 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
     def do_log(self):
         "log the results button"
         with open(self.logfile, "a", encoding="utf-8") as f:
-            print(f"rolling {self.item_name}", *self.choices, sep='\n', end='\n\n', file=f)
+            # print(f"rolling {self.item_name}", *self.choices, sep='\n', end='\n\n', file=f)
 
     def _copy_clip(self):
         "copy the results to the clipboard"
@@ -359,9 +361,9 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
         """
         match item:
             case dat.MetaFormula() | dat.Formula() | list():
-                _, name = self._parent.item_index(item)
+                _, name = self._parent.get_table_index(item)
                 return f"{{{name}}}"
             case tuple():
-                return f"({"".join(self.get_name(itm) for itm in item)})"
+                return f"{"".join(self.get_name(itm) for itm in item)}"
             case str():
                 return item
