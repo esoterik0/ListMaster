@@ -52,8 +52,8 @@ class ListPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
 
     def _do_lbox_sel(self, *args):
         # HACK to stop stomping on last_selection, making it None here; iirc returning 'break' on edit_start() is
-        # supposed to fix this type of problem, when editing it seems that we get called again, for some reason,
-        # possibly the UI capture, we last_selection to None.
+        # supposed to fix this type of problem. When editing it seems that we get called again, for some reason,
+        # possibly the UI capture, that sets last_selection to None.
         if self.edit:  # if we are editing ...
             return  # ... just exit.
 
@@ -69,14 +69,15 @@ class ListPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
 
     def cancel_edit(self):
         "override to add behavior on cancel"
-        pass
 
     def _is_safe(self, newtext: str) -> bool:
         "returns true if the text is 'safe'"
         return bool(self.safepat.match(newtext).group())
 
-    def _start_edit(self, text: str | None = None) -> Literal["break"]: # optional string instead of looking up by index
+    # optional string instead of looking up by index
+    def _start_edit(self, text: str | None = None) -> Literal["break"]:
         "start an in place edit for an item in our list box"
+        #assert(self.last_selection is not None)
         if text is None:
             text = self.lbox.get(self.last_selection)
 
