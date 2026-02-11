@@ -71,9 +71,6 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
         self.edit_item = ttk.Button(self.button_frame_edit, text="Edit Item", command=self.do_edit_item)
         self.edit_item.grid(column=1, row=0, sticky=(N, S, E, W))
 
-        self.rowconfigure(1, weight=1)
-        self.rowconfigure(2, weight=1)
-
         self.button_frame_edit.rowconfigure(0, weight=1)
         self.button_frame_edit.rowconfigure(1, weight=1)
         self.button_frame_edit.columnconfigure(0, weight=1)
@@ -115,7 +112,7 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
         "sets the contents of the page panel"
         self._cur_page = lst
         self._filter_page = self._filter()
-        self.choices = [n for n, _ in self._filter_page]
+        self.choices = [n[0] for n in self._filter_page]
         self._update_lbox()
         for i, pg in enumerate(self._filter_page):
             _, entry = pg
@@ -150,6 +147,7 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
         if not self._cur_page:
             return
 
+        # print("page_lbox select", end=" ")
         if self._sel() is not None:  # allow 0 to pass inspection
             if self._parent.state == State.ROLL:
                 self._parent.set_item(self._cur_page[self.last_selection])
@@ -159,6 +157,7 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
         if not self._cur_page:
             return
 
+        # print("page_double select", end=" ")
         if self._sel() is not None:
             if self._parent.state == State.EDIT:
                 self._parent.set_item(self._cur_page[self.last_selection])
@@ -167,6 +166,8 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
         "handle edit item button, and double click"
         if not self._cur_page:
             return "return"
+
+        # print("page edit", end=" ")
 
         if self._sel() is not None:
             return self._start_edit(self.choices[self.last_selection])
