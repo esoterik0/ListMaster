@@ -14,6 +14,7 @@ def gen3(form: Formula | MetaFormula | list | str | tuple) -> list[str] | str | 
     Recursive work function.
 
     Generates the formulas;
+        -> == random choice; becomes type
         meta->formula
         formala->list[str]
         list->list|tuple|str
