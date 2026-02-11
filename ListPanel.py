@@ -25,7 +25,7 @@ class ListPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
         # listbox
         self.lbox = tk.Listbox(self, listvariable=self.choice_var, width=int(WIDTH/5), height=HEIGHT)
         self.lbox.grid(column=0, row=0, sticky=(N, S, E, W))
-        self.lbox.bind("<<ListboxSelect>>", self.do_lbox_sel)
+        self.lbox.bind("<<ListboxSelect>>", self._do_lbox_sel)
 
         # scroll bar fol listbox # no easy way to hide when not needed (subclass overide disable?)
         self.scroll = ttk.Scrollbar(self, command=self.lbox.yview)
@@ -47,7 +47,17 @@ class ListPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
         "current->last selection logic; helper function"
         sel = self.lbox.curselection()
         self.last_selection = sel[0] if len(sel) == 1 else None
+        # print(f"_sel(): {sel}")
         return self.last_selection
+
+    def _do_lbox_sel(self, *args):
+        # HACK to stop stomping on last_selection, making it None here; iirc returning 'break' on edit_start() is
+        # supposed to fix this type of problem, when editing it seems that we get called again, for some reason,
+        # possibly the UI capture, we last_selection to None.
+        if self.edit:  # if we are editing ...
+            return  # ... just exit.
+
+        self.do_lbox_sel(*args)
 
     def do_lbox_sel(self, *args):
         "Must be overridden by subclass; subclasses have different behavior."
@@ -56,6 +66,10 @@ class ListPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
     def accept_edit(self, newtext: str) -> bool:
         "Must be overridden to edit; subclasses have different behavior."
         raise NotImplementedError
+
+    def cancel_edit(self):
+        "override to add behavior on cancel"
+        pass
 
     def _is_safe(self, newtext: str) -> bool:
         "returns true if the text is 'safe'"
@@ -86,7 +100,10 @@ class ListPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
         self.accept_edit(event.widget.get())  # subclass accept
         event.widget.destroy()  # close edit
         self._update_lbox()  # update the listbox
+        self.edit = None
 
     def _cancel_edit(self, event):
         "cancel an in place edit"
+        self.cancel_edit()
         event.widget.destroy()  # close edit
+        self.edit = None
