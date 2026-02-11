@@ -18,6 +18,8 @@ class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
         self.button_frame = ttk.Frame(self)
         self.button_frame.grid(column=0, row=1, sticky=(E, W))
 
+        self.lbox.bind("<Double-1>", self.edit_cat)
+
         # radio button set
         self.mode_var = tk.StringVar()
 
@@ -42,14 +44,8 @@ class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
         self.mode_var.set(State.ROLL.value)
 
         self.add_button = ttk.Button(self.button_frame, text="New Category", command=self.add_cat)
-        self.add_button.grid(column=1, row=0, sticky=(N, S, E, W))
+        self.add_button.grid(column=0, row=2, sticky=(N, S, E, W))
         self.add_button.grid_remove()
-
-        self.edit_button = ttk.Button(self.button_frame, text="Edit Category", command=self.edit_cat)
-        self.edit_button.grid(column=1, row=1, sticky=(N, S, E, W))
-        self.edit_button.grid_remove()
-
-        self.rowconfigure(1, weight=1)
 
         self.button_frame.rowconfigure(0, weight=1)
         self.button_frame.rowconfigure(1, weight=1)
@@ -57,24 +53,41 @@ class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
         self.button_frame.columnconfigure(1, weight=2)
 
     def accept_edit(self, newtext: str) -> bool:
-        "Must be overridden to edit"
+        "verify accept and execute edit"
+
+        # print(f"what accept {self.last_selection}")
+        if self.last_selection is None:
+            return
 
         if newtext == "":
             del self.choices[self.last_selection]
             del self.what_list[self.last_selection]
         elif self._is_safe(newtext):
             self.choices[self.last_selection] = newtext
-            _, tab = self.what_list[self.last_selection]
-            self.what_list[self.last_selection] = (newtext, tab)
+
+    def cancel_edit(self):
+        "override to add behavior on cancel"
+        # this should only trigger when canceling a new category; we should never have an empty string
+        # in the list unless a new category was canceled
+        if self.last_selection is None:
+            return
+
+        if self.choices[self.last_selection] == "":
+            del self.choices[self.last_selection]
+            del self.what_list[self.last_selection]
 
     def set_what_data(self, lst: list[tuple[str, table]], choice: list[str]):
-        "sets the values for the what panel, the list needs to have data in it, choice should have the labels."
+        """
+        sets the values for the what panel,
+        the list needs to have data in it, (all tables at 0 minimum)
+        choice should have the labels.
+        """
         self.what_list = lst
         self.choices = choice
         self._update_lbox()
 
     def set_mode(self):
-        "Tells the parent to set the mode"
+        "Tells the parent to set the mode, and update siblings"
         self._parent.set_state(State(self.mode_var.get()))
 
     def set_state(self):
@@ -83,10 +96,8 @@ class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
         match self._parent.state:
             case State.ROLL:
                 self.add_button.grid_remove()
-                self.edit_button.grid_remove()
             case State.EDIT:
                 self.add_button.grid()
-                self.edit_button.grid()
             case _:
                 pass
 
@@ -96,34 +107,41 @@ class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
 
     def do_lbox_sel(self, *args):  # pylint: disable=unused-argument
         "handles the 'what' column, which is the top level category, and fills out the page choices"
+
+        # print("what select", end=" ")
         if (sel := self._sel()) is not None:
             self._parent.set_page(self.what_list[sel])
-            self._parent.set_result([])
-            self._parent.set_item(("", []))
+
+            # clear results if we are in the roll state
+            if self._parent.state == State.ROLL:
+                self._parent.set_result([])
+                self._parent.set_item(("", []))
 
     def add_cat(self):
         "add a new category to the what panel"
         self.choices.append("")
-        self.what_list.append(("",[]))
+        self.what_list.append([])
         self._update_lbox()
         self.last_selection = len(self.choices)-1
         self.lbox.activate(self.last_selection)
         return self._start_edit("")
 
-    def edit_cat(self):
+    def edit_cat(self, evt):
         "edit the name of a category on the what panel"
-        if self.last_selection:  # we don't want to to edit the special all tables entry at 0,
+
+        # print("what edit", end=" ")
+        if self._sel():  # we don't want to to edit the special all tables entry at 0,
             self.lbox.activate(self.last_selection)
             return self._start_edit(self.choices[self.last_selection])
-        return "return"
+        return "break"
 
     def add_to_all(self, tab: tuple[str, table]):
         "add a new table to the all list"
-        # if not self._parent.has_name(tab[0]): # would be a double check our caller checks fairst
-        self.what_list[0][1].append(tab)
+        if not self._parent.has_name(tab[0]): # n.b. double check when our caller checks first
+            self.what_list[0][1].append(tab)
 
     def rename(self, name: str, newname: str) -> bool:
-        "renames a table"
+        "renames a table in the all list"
         if self._parent.has_name(newname):
             return False
 
@@ -137,3 +155,4 @@ class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
                 self.what_list[0][i] = (newname, x[1])
                 return True
 
+        return False # we shouldn't get here.
