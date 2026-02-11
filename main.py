@@ -120,9 +120,9 @@ class MainPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
         # return something so we can see in the app what is missing instead of blanks
         return None, "<MISSING>"
 
-    def rename(self, name: str, newname: str):
+    def rename(self, name: str, newname: str) -> bool:
         "renames a table"
-        self._what.rename(name, newname)
+        return self._what.rename(name, newname)
 
     def do_clipboard(self, out: str):
         "copy the results to the clipboard"
@@ -204,6 +204,7 @@ class MainPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
 
         self._clear_panels()
 
+    # numcut_pat = r"[\d\.\,\;\:]+"
     def do_import_pdf(self, file: str):
         "import from pdf"
         # TODO::
