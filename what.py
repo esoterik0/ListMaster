@@ -169,7 +169,7 @@ class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
     def rename(self, name: str, newname: str):
         "renames a table in the all list"
         if self._parent.has_name(newname):
-            return False
+            return
 
         for j, lst in enumerate(self.what_list):
             for i, x in enumerate(lst):
