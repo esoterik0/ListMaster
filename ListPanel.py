@@ -10,13 +10,14 @@ from enums import HEIGHT, WIDTH
 
 class ListPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-instance-attributes
     "Abstract base class, ListPanel has a list box, and inplace edditing available"
-    def __init__(self, parent, column, **kwargs):
+    def __init__(self, parent, column, drag=False, **kwargs):
         # initialize parent frame and grid ouselv
         super().__init__(parent, borderwidth=5, relief="ridge", **kwargs)
         self.grid(column=column, row=0, sticky=(N, S, E, W))
         self.last_selection = None
         self.edit = None  # to allow out of band exit.
-        self.safepat = re.compile(r"[\w ]*")  # safe text pattern
+        self.safepat = re.compile(r"[\w,|&:+()\[\] ]+")  # safe text pattern we want to preserve ';{}'
+        self.drag_start = None
 
         # listbox choices
         self.choices: list[str] = []
@@ -27,10 +28,19 @@ class ListPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
         self.lbox.grid(column=0, row=0, sticky=(N, S, E, W))
         self.lbox.bind("<<ListboxSelect>>", self._do_lbox_sel)
 
-        # scroll bar fol listbox # no easy way to hide when not needed (subclass overide disable?)
-        self.scroll = ttk.Scrollbar(self, command=self.lbox.yview)
-        self.lbox.configure(yscrollcommand=self.scroll.set)
-        self.scroll.grid(row=0, column=1, sticky=(N, S))
+        if drag:
+            self.lbox.bind("<ButtonPress-1>", self._drag_begin)
+            self.lbox.bind("<ButtonRelease-1>", self._drag_end)
+
+        # scroll bars for listbox # no easy way to hide when not needed (subclass overide disable?)
+        # it might be possible to hook when the scrollbars change, and see if they need to be degridded?
+        self.scrolly = ttk.Scrollbar(self, command=self.lbox.yview)
+        self.lbox.configure(yscrollcommand=self.scrolly.set)
+        self.scrolly.grid(row=0, column=1, sticky=(N, S))
+
+        self.scrollx = ttk.Scrollbar(self, orient="horizontal", command=self.lbox.xview)
+        self.lbox.configure(xscrollcommand=self.scrollx.set)
+        self.scrollx.grid(row=1, column=0, sticky=(E, W))
 
         #configure ourselves
         self.rowconfigure(0, weight=1)
@@ -58,6 +68,32 @@ class ListPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
             return  # ... just exit.
 
         self.do_lbox_sel(*args)
+
+    def _drag_begin(self, e):
+        "begin a drag"
+        # x, y = e.x, e.y
+        self.drag_start = self.lbox.index(f"@{e.x},{e.y}")
+        print(self.drag_start)
+
+    def _drag_end(self, e):
+        "end drag"
+        # x, y = e.x, e.y
+        end = self.lbox.index(f"@{e.x},{e.y}")
+        print(end)
+
+        if self.drag_start is not None and end is not None:
+            self.drag(self.drag_start, end)
+
+    def drag(self, start, end):
+        "does completes the drag, may be overridden"
+        l = len(self.choices)
+        if start > l or end > l:
+            return
+
+        # swap them
+        self.choices[start], self.choices[end] = self.choices[end], self.choices[start]
+        self._update_lbox()
+
 
     def do_lbox_sel(self, *args):
         "Must be overridden by subclass; subclasses have different behavior."

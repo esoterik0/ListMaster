@@ -13,10 +13,13 @@
     +export all tables to txt. single/multiple file
 """
 
+# TODO:: add delete buttons to panels and func.
+
 import os
 import tkinter as tk
-from tkinter import filedialog, messagebox
+from tkinter import filedialog, font, messagebox
 
+from enums import MENUSIZE, TEXTSIZE
 from main import MainPanel
 
 
@@ -27,9 +30,9 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
     Contains menu, and application level controls.
     Contains A single main panel (main.py) that controls the application logic
     """
-    def __init__(self, root):
+    def __init__(self, root: tk.Tk):
         "Initializes the the UI (tk)"
-        self.root = root  # inject our root so that main (start.py) can control the flow
+        self.root: tk.Tk = root  # inject our root so that main (start.py) can control the flow
         self.root.option_add('*tearOff', False)  # disable obsolete default ui setting
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)  # handle close messages
         self.root.title("List Master")  # set's main (root) menu title
@@ -61,11 +64,20 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
         # self.menu.add_cascade(menu=self.import_menu, label="Import")  # put import menu in root
         self.root["menu"] = self.menu  # set root menu
 
+        font.nametofont("TkDefaultFont").configure(size=TEXTSIZE)
+        font.nametofont("TkTextFont").configure(size=TEXTSIZE)
+        font.nametofont("TkFixedFont").configure(size=TEXTSIZE)
+        font.nametofont("TkMenuFont").configure(size=MENUSIZE)
+        font.nametofont("TkHeadingFont").configure(size=MENUSIZE)
+        font.nametofont("TkCaptionFont").configure(size=MENUSIZE)
+        font.nametofont("TkSmallCaptionFont").configure(size=MENUSIZE)
+        font.nametofont("TkIconFont").configure(size=MENUSIZE)
+        font.nametofont("TkTooltipFont").configure(size=MENUSIZE)
+
         # we configure root to only have one grid square our applincation will add
         # a single panel that contains all the application UI.
         self.root.rowconfigure(0, weight=1)
         self.root.columnconfigure(0, weight=1)
-
         # Main Panel is our single panel application.
         self._main = MainPanel(self.root)
 

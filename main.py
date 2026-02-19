@@ -29,8 +29,8 @@ class MainPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
     def __init__(self, parent, **kwargs):
         super().__init__(parent, padding=5, width=WIDTH, height=HEIGHT, **kwargs)
         self.grid(column=0, row=0, sticky=(N, S, E, W))
-
         self.root = parent
+
         # all the panels of our application
         self._what = WhatPanel(self)  # A book, set, list, etc. A collection of rollables
         self._page = PagePanel(self)  # A page is a list of rollables, in a collection
@@ -38,9 +38,9 @@ class MainPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
 
         # our panel are arranged horizontally, in a single row.
         self.rowconfigure(0, weight=1)
-        self.columnconfigure(0, weight=4)
-        self.columnconfigure(1, weight=4)
-        self.columnconfigure(2, weight=7)
+        self.columnconfigure(0, weight=6) # weights describe relative movement so bigger
+        self.columnconfigure(1, weight=3) # movement is shrinking and growing faster
+        self.columnconfigure(2, weight=3) # smaller numbers stay larger at smaller sizes
 
         # we start without a selection set.
         self._result.ungrid_set()

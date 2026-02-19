@@ -4,20 +4,24 @@ from enum import Enum
 #type alias
 table = list[str | list | tuple]  # pylint: disable=invalid-name
 
-# valuse for tkinter
-WIDTH = 75
-HEIGHT = 25
+# valuse for tkinter; I don't know what these are supposed to be the doc and setup says they should
+# be in pixels, or what ever we set, but it seems to ignore the setting (or we set it wrong, or the
+# documentation is wrong.) ... These appear to be font points, even though the docs say that pixels
+# are the default, seems that they arent.
+WIDTH = 200
+HEIGHT = 20
 SINGLE = 1
-
+TEXTSIZE = 16
+MENUSIZE = 16
 
 class State(Enum):
-    "Enums to define what state the program is in"
+    "defines for what state the program is in"
     ROLL = "ROLL"
     EDIT = "EDIT"
 
 
 class ItemType(Enum):
-    "enum for item type"
+    "Defines for item types"
     META = "Meta"
     FORM = "Form"
     LIST = "List"
@@ -25,7 +29,7 @@ class ItemType(Enum):
 
 
 class ItemColor(Enum):
-    "Enum to define a color for a type"
+    "Defines a color for a type"
     META = "#FFAAAA"
     FORM = "#FFAAFF"
     LIST = "#AAAAFF"

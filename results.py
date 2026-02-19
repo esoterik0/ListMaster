@@ -42,7 +42,7 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
 
     def __init__(self, parent: "MainPanel", **kwargs):  # pylint: disable=too-many-statements
         # initialize ...
-        super().__init__(parent, 2, **kwargs)  #  .. our super class
+        super().__init__(parent, 2, True, **kwargs)  #  .. our super class
         self._parent: "MainPanel" = parent
 
         # state variables
@@ -60,7 +60,7 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
 
         # holds the roll buttons, it can be swaped with a different frame
         self.roll_button_frame = ttk.Frame(self)
-        self.roll_button_frame.grid(column=0, row=1, sticky=(E, W))
+        self.roll_button_frame.grid(column=0, row=2, sticky=(E, W))
         self.roll_button_frame.grid_remove()
 
         # buttons for roll mode
@@ -145,10 +145,19 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
                 self.item[self.last_selection] = tuple(put)
 
         self.set_result()
-        #check for
-        # normal text
-        # {table}
-        # ; for Formulas
+
+    def drag(self, start, end):
+        "override do not move all"
+        # swap them
+
+        if (self._parent.state != State.EDIT):
+            return
+
+        if isinstance(self.item, dat.Formula | dat.MetaFormula):
+            if (start == 0 or end == 0):
+                return
+
+        super().drag(start, end)
 
     def set_item(self, form: tuple[str, dat.Formula] | tuple[str, table]):
         "dispatches based on mode"

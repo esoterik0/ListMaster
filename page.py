@@ -20,7 +20,7 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
 
         # buttons for ROLL mode
         self.button_frame_roll = ttk.Frame(self)
-        self.button_frame_roll.grid(column=0, row=1, sticky=(E, W))
+        self.button_frame_roll.grid(column=0, row=2, sticky=(E, W))
 
         # radio button set
         self.filter_var = tk.StringVar()
@@ -59,7 +59,7 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
 
         # buttons for EDIT mode
         self.button_frame_edit = ttk.Frame(self)
-        self.button_frame_edit.grid(column=0, row=2, sticky=(E, W))
+        self.button_frame_edit.grid(column=0, row=3, sticky=(E, W))
         self.button_frame_edit.grid_remove()
 
         self.new_form = ttk.Button(self.button_frame_edit, text="New Form", command=self.do_new_form, default='disabled')
@@ -100,28 +100,32 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
 
     def accept_edit(self, newtext: str) -> bool:
         "Must be overridden to edit"
+        if newtext == "":
+            return
+
         if self._is_safe(newtext) and self._parent.name_available(newtext):
             name = self.choices[self.last_selection]
             for i, x in enumerate(self._cur_page):
                 if x[0] == name:
-                    if self._parent.rename(name, newtext):
-                        self._cur_page[i] = (newtext, x[1])
+                    self._parent.rename(name, newtext) # change all
                     break
+            self.set_page(self._cur_page)
 
     def set_page(self, lst: list | None):
         "sets the contents of the page panel"
+        lst.sort(key = lambda x: x[0])
         self._cur_page = lst
         self._filter_page = self._filter()
         self.choices = [n[0] for n in self._filter_page]
         self._update_lbox()
         for i, pg in enumerate(self._filter_page):
             _, entry = pg
-            match(entry):
-                case(MetaFormula()):
+            match (entry):
+                case (MetaFormula()):
                     self.lbox.itemconfig(index=i, background=ItemColor.META.value)
-                case(Formula()):
+                case (Formula()):
                     self.lbox.itemconfig(index=i, background=ItemColor.FORM.value)
-                case(list()):
+                case (list()):
                     self.lbox.itemconfig(index=i, background=ItemColor.LIST.value)
         self.grid_set()
 
@@ -189,6 +193,12 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
             self._parent.add_to_all((name, form))
             self._cur_page.append((name, form))
             self.set_page(self._cur_page)
+            self.last_selection = len(self._filter_page)-1
+            self.lbox.activate(self.last_selection)
+            return self._start_edit(name)
+
+        return "return"
+
 
     def do_new_list(self):
         "handle new list button"
@@ -201,12 +211,17 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
         name = "New List"
 
         if self._parent.name_available(name):
-            form = Formula([], [], name)
+            form = []
             self._parent.add_to_all((name, form))
             self._cur_page.append((name, form))
             self.set_page(self._cur_page)
+            self.last_selection = len(self._filter_page)-1
+            self.lbox.activate(self.last_selection)
+            return self._start_edit(name)
 
-    # TODO:: add meta formual
+        return "return"
+
+    # TODO:: add meta formula
 
     def do_copy_item(self):
         "handle add item button"

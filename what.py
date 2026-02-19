@@ -11,12 +11,12 @@ from ListPanel import ListPanel
 class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-instance-attributes
     "generates the What panel, for choosing what top level category to use"
     def __init__(self, parent: "MainPanel", **kwargs):
-        super().__init__(parent, 0, **kwargs)
+        super().__init__(parent, 0, True **kwargs)
         self._parent: "MainPanel" = parent
 
         self.what_list: list[tuple[str, table]] = []
         self.button_frame = ttk.Frame(self)
-        self.button_frame.grid(column=0, row=1, sticky=(E, W))
+        self.button_frame.grid(column=0, row=2, sticky=(E, W))
 
         self.lbox.bind("<Double-1>", self.edit_cat)
 
@@ -39,7 +39,7 @@ class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
             value=State.EDIT.value,
             command=self.set_mode
         )
-        self.edit_mode_button.grid(column=0, row=1, sticky=(N, S, E, W))
+        self.edit_mode_button.grid(column=1, row=0, sticky=(N, S, E, W))
 
         self.mode_var.set(State.ROLL.value)
 
@@ -50,7 +50,7 @@ class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
         self.button_frame.rowconfigure(0, weight=1)
         self.button_frame.rowconfigure(1, weight=1)
         self.button_frame.columnconfigure(0, weight=1)
-        self.button_frame.columnconfigure(1, weight=2)
+        self.button_frame.columnconfigure(1, weight=1)
 
     def accept_edit(self, newtext: str) -> bool:
         "verify accept and execute edit"
@@ -60,9 +60,9 @@ class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
             return
 
         if newtext == "":
-            del self.choices[self.last_selection]
-            del self.what_list[self.last_selection]
-        elif self._is_safe(newtext):
+            return
+
+        if self._is_safe(newtext):
             self.choices[self.last_selection] = newtext
 
     def cancel_edit(self):
@@ -75,6 +75,7 @@ class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
         if self.choices[self.last_selection] == "":
             del self.choices[self.last_selection]
             del self.what_list[self.last_selection]
+            self.last_selection = None
 
     def set_what_data(self, lst: list[tuple[str, table]], choice: list[str]):
         """
@@ -100,6 +101,19 @@ class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
                 self.add_button.grid()
             case _:
                 pass
+
+    def drag(self, start, end):
+        "override do not move all tables entry"
+        # swap them
+
+        if (self._parent.state != State.EDIT):
+            return
+
+        if start == 0 or end == 0:
+            return
+
+        super().drag(start, end)
+
 
     def get_what(self) -> tuple[list[tuple[str, table]], list[str]]:
         "gets the top level what lists"
@@ -138,21 +152,31 @@ class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
     def add_to_all(self, tab: tuple[str, table]):
         "add a new table to the all list"
         if not self._parent.has_name(tab[0]): # n.b. double check when our caller checks first
-            self.what_list[0][1].append(tab)
+            self.what_list[0].append(tab)
 
-    def rename(self, name: str, newname: str) -> bool:
+
+    # TODO:: do we want a remove from all? what about references?
+    # we will have to remove references from every 'table'
+    # then remove the 'table' from the tables
+    # guard with button press and confirm.
+    # def remove_from_all(self, tab: str):
+    #     "removes a table"
+    #     for i, x in enumerate(self.what_list[0]):
+    #         if x[0] == tab:
+    #             del self.what_list[0][i]
+    #             return True
+
+    def rename(self, name: str, newname: str):
         "renames a table in the all list"
         if self._parent.has_name(newname):
             return False
 
-        for i, x in self.what_list[0]:
-            if x[0] == name:
-                match(x[1]):
-                    case MetaFormula() | Formula():
-                        x[1].name = newname
-                    case _:
-                        pass
-                self.what_list[0][i] = (newname, x[1])
-                return True
+        for j, lst in enumerate(self.what_list):
+            for i, x in enumerate(lst):
+                if x[0] == name:
+                    match(x[1]):
+                        case MetaFormula() | Formula():
+                            x[1].name = newname
+                    self.what_list[j][i] = (newname, x[1])
+                    break
 
-        return False # we shouldn't get here.

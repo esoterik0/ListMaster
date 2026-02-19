@@ -513,4 +513,4 @@ formulas = [
     (double_secondary_colors.name, double_secondary_colors),
 ]
 
-All_tables = sorted([(n, tables[t]) for t, n in printTables.items()] + formulas, key=lambda x: x[0])
+All_tables = sorted([(n, tables[t]) for t, n in printTables.items()] + formulas + Maze_Rats_pages, key=lambda x: x[0])
