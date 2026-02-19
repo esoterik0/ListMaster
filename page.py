@@ -105,7 +105,7 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
 
         if self._is_safe(newtext) and self._parent.name_available(newtext):
             name = self.choices[self.last_selection]
-            for i, x in enumerate(self._cur_page):
+            for x in self._cur_page:
                 if x[0] == name:
                     self._parent.rename(name, newtext) # change all
                     break
