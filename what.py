@@ -106,7 +106,7 @@ class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
         "override do not move all tables entry"
         # swap them
 
-        if (self._parent.state != State.EDIT):
+        if self._parent.state != State.EDIT:
             return
 
         if start == 0 or end == 0:
