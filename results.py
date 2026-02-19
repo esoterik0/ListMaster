@@ -189,7 +189,7 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
                         self.get_name(itm) for itm in item.formula
                         ) for item in self.item.formula
                     ]  # + ["label: " + b for b in self.item.labels]
-                    # todo figure out lables for MetaFormula; and how to make/edit them
+                    # todo figure out lables for MetaFormula; and how to make/edit them # top line lables?
                 case dat.Formula():
                     self.choices = [
                         f"{label};{self.get_name(item)}"
