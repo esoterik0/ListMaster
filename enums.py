@@ -6,8 +6,8 @@ table = list[str | list | tuple]  # pylint: disable=invalid-name
 
 # valuse for tkinter; I don't know what these are supposed to be the doc and setup says they should
 # be in pixels, or what ever we set, but it seems to ignore the setting (or we set it wrong, or the
-# documentation is wrong.) ... These appear to be font points, even though the docs say that pixels
-# are the default, seems that they arent.
+# documentation is wrong.) ... These appear to be based on the current font size, even though the
+# docs say that pixels are the default, seems that they arent.
 WIDTH = 200
 HEIGHT = 20
 SINGLE = 1
