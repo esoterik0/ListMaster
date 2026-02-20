@@ -73,11 +73,7 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
         self.num_pages_var.set(f"{SINGLE}")
         self.roll_buttons["num_pages"] = tk.Entry(self.roll_button_frame, textvariable=self.num_pages_var)
         self.roll_buttons["num_pages"].grid(column=1, row=1, sticky=(N, S, E, W))
-        self.roll_buttons["clip_copy"] = ttk.Button(
-            self.roll_button_frame,
-            text="Copy to clipboard",
-            command=self._copy_clip
-        )
+        self.roll_buttons["clip_copy"] = ttk.Button(self.roll_button_frame, text="Copy to clipboard", command=self._copy_clip)
         self.roll_buttons["clip_copy"].grid(column=1, row=0, sticky=(N, S, E, W))
         self.roll_buttons["gen_xls"] = ttk.Button(self.roll_button_frame, text="Generate .xls file", command=self.do_xls)
         self.roll_buttons["gen_xls"].grid(column=2, row=1, sticky=(N, S, E, W))
