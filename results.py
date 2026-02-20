@@ -153,7 +153,7 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
         if (self._parent.state != State.EDIT):
             return
 
-        if isinstance(self.item, dat.Formula | dat.MetaFormula):
+        if isinstance(self.item, dat.MetaFormula):
             if (start == 0 or end == 0):
                 return
 

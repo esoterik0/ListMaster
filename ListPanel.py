@@ -87,7 +87,7 @@ class ListPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
     def drag(self, start, end):
         "does completes the drag, may be overridden"
         l = len(self.choices)
-        if start > l or end > l:
+        if start >= l or end >= l:
             return
 
         # swap them

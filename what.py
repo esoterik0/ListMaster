@@ -112,7 +112,16 @@ class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
         if start == 0 or end == 0:
             return
 
-        super().drag(start, end)
+        l = len(self.choices)
+        if start >= l or end >= l:
+            return
+
+        # swap them
+        self.choices[start], self.choices[end] = self.choices[end], self.choices[start]
+        self.what_list[start], self.what_list[end] = self.what_list[end], self.what_list[start]
+        self._update_lbox()
+
+        # super().drag(start, end)
 
 
     def get_what(self) -> tuple[list[tuple[str, table]], list[str]]:
