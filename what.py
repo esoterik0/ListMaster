@@ -11,7 +11,7 @@ from ListPanel import ListPanel
 class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-instance-attributes
     "generates the What panel, for choosing what top level category to use"
     def __init__(self, parent: "MainPanel", **kwargs):
-        super().__init__(parent, 0, True **kwargs)
+        super().__init__(parent, 0, True, **kwargs)
         self._parent: "MainPanel" = parent
 
         self.what_list: list[tuple[str, table]] = []
