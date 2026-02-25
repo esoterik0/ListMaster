@@ -13,7 +13,7 @@
     +export all tables to txt. single/multiple file
 """
 
-# TODO:: add delete buttons to panels and func.
+# TODO:: implement delete from all
 
 import os
 import tkinter as tk

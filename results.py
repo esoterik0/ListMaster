@@ -135,7 +135,7 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
             if self._is_safe(text):
                 return text
             # the above if will take care of strings that don't have {} in them
-            elif text.count("{") == text.count("}"): # check that we have pairs of {}
+            if text.count("{") == text.count("}"): # check that we have pairs of {}
                 out = [x for x in self.sep_pat.split(text) if x] # filter empty strings
                 #assert len(out) > 0
                 if len(out) == 1:
@@ -152,7 +152,6 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
                             put.append(item)
 
                     return tuple(put)
-
             return ""
 
         newtext = convert(newtext)

@@ -73,13 +73,11 @@ class ListPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
         "begin a drag"
         # x, y = e.x, e.y
         self.drag_start = self.lbox.index(f"@{e.x},{e.y}")
-        print(self.drag_start)
 
     def _drag_end(self, e):
         "end drag"
         # x, y = e.x, e.y
         end = self.lbox.index(f"@{e.x},{e.y}")
-        print(end)
 
         if self.drag_start is not None and end is not None:
             self.drag(self.drag_start, end)
