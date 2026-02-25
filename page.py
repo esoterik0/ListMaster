@@ -75,7 +75,7 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
         self.edit_item = ttk.Button(self.button_frame_edit, text="Edit Item", command=self.do_edit_item)
         self.edit_item.grid(column=1, row=0, sticky=(N, S, E, W))
         self.insert_item = ttk.Button(self.button_frame_edit, text="Insert Item", command=self.do_insert_item)
-        self.insert_item.grid(column=1, row=2, sticky=(N, S, E, W))
+        self.insert_item.grid(column=1, row=1, sticky=(N, S, E, W))
 
         self.button_frame_edit.rowconfigure(0, weight=1)
         self.button_frame_edit.rowconfigure(1, weight=1)

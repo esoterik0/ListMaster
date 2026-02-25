@@ -129,6 +129,7 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
             self._main.do_save()  # Save & Quit
 
         self.root.destroy()  # No / Just Quit
+    
     def _u_sure(self):
         """ Check if the User is sure. "are you sure" """
         return bool(
