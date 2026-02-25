@@ -1,18 +1,19 @@
 "the what panel: chooses what top level category to use."
 
 import tkinter as tk
-from tkinter import E, N, S, W, ttk
+from tkinter import E, N, S, W, messagebox, ttk
 
 from enums import State, table
 from gendata import Formula, MetaFormula
 from ListPanel import ListPanel
+from PanelCom import PanelCom
 
 
 class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-instance-attributes
     "generates the What panel, for choosing what top level category to use"
-    def __init__(self, parent: "MainPanel", **kwargs):
+    def __init__(self, parent: PanelCom, **kwargs):
         super().__init__(parent, 0, True, **kwargs)
-        self._parent: "MainPanel" = parent
+        self._parent: PanelCom = parent
 
         self.what_list: list[tuple[str, table]] = []
         self.button_frame = ttk.Frame(self)
@@ -55,12 +56,19 @@ class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
     def accept_edit(self, newtext: str) -> bool:
         "verify accept and execute edit"
 
-        # print(f"what accept {self.last_selection}")
         if self.last_selection is None:
             return
 
         if newtext == "":
-            return
+            if bool( # bool may not be needed could use == True, which is basically the same
+                messagebox.askyesnocancel(
+                    message="Are you sure you want to DELETE",
+                    title="Are you sure?"
+                )
+            ):
+                del self.choices[self.last_selection]
+                del self.what_list[self.last_selection]
+                return
 
         if self._is_safe(newtext):
             self.choices[self.last_selection] = newtext
@@ -85,6 +93,7 @@ class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
         """
         self.what_list = lst
         self.choices = choice
+        self.last_selection = None
         self._update_lbox()
 
     def set_mode(self):
@@ -101,6 +110,8 @@ class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
                 self.add_button.grid()
             case _:
                 pass
+
+        self.last_selection = None
 
     def drag(self, start, end):
         "override do not move all tables entry"
@@ -123,7 +134,6 @@ class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
 
         # super().drag(start, end)
 
-
     def get_what(self) -> tuple[list[tuple[str, table]], list[str]]:
         "gets the top level what lists"
         return self.what_list, self.choices
@@ -131,14 +141,12 @@ class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
     def do_lbox_sel(self, *args):  # pylint: disable=unused-argument
         "handles the 'what' column, which is the top level category, and fills out the page choices"
 
-        # print("what select", end=" ")
         if (sel := self._sel()) is not None:
             self._parent.set_page(self.what_list[sel])
 
             # clear results if we are in the roll state
             if self._parent.state == State.ROLL:
-                self._parent.set_result([])
-                self._parent.set_item(("", []))
+                self._parent.set_result_item()
 
     def add_cat(self):
         "add a new category to the what panel"
@@ -149,10 +157,9 @@ class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
         self.lbox.activate(self.last_selection)
         return self._start_edit("")
 
-    def edit_cat(self, evt):
+    def edit_cat(self, evt): # pylint: disable=W0613
         "edit the name of a category on the what panel"
 
-        # print("what edit", end=" ")
         if self._sel():  # we don't want to to edit the special all tables entry at 0,
             self.lbox.activate(self.last_selection)
             return self._start_edit(self.choices[self.last_selection])
@@ -163,6 +170,13 @@ class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
         if not self._parent.has_name(tab[0]): # n.b. double check when our caller checks first
             self.what_list[0].append(tab)
 
+    def delete_from_all(self, name):
+        "checks if we are in 'all tabels' and call delete from all"
+        if self.last_selection == 0:
+            self._delete_from_all(name)
+            return True
+
+        return False
 
     # TODO:: do we want a remove from all? what about references?
     # we will have to remove references from every 'table'
@@ -189,3 +203,5 @@ class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
                     self.what_list[j][i] = (newname, x[1])
                     break
 
+    def _delete_from_all(self, name):
+        "actually deletes from all tables, 'all tables' included"

@@ -1,8 +1,9 @@
 "the main panel: holds all the panels; main frame in root window"
 
-from tkinter import E, N, S, W, ttk
+from tkinter import E, N, S, W, messagebox, ttk
 
 import dill as pickle
+from PanelCom import PanelCom
 
 import gendata as dat
 from enums import HEIGHT, WIDTH, State, table
@@ -13,7 +14,7 @@ from what import WhatPanel
 FNAME = "tables.dat"
 
 
-class MainPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
+class MainPanel(ttk.Frame, PanelCom):  # pylint: disable=too-many-ancestors
     """
     Main frame for the UI
 
@@ -50,6 +51,9 @@ class MainPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
         self._fname = FNAME
         self.do_try_load()
 
+    ###########################################################################
+    # main panel state sub panle interop
+
     def set_state(self, state: State):
         "sets the internal state value to a state"
         self.state = state
@@ -58,16 +62,12 @@ class MainPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
             panel.set_state()
 
     def set_page(self, page: list[table]):
-        "set page contents"
+        "set page panel contents"
         self._page.set_page(page)
 
-    def set_item(self, form: tuple[str, dat.Formula] | tuple[str, table]):
-        "set the formula to use"
+    def set_result_item(self, form: tuple[str, dat.Formula] | tuple[str, table] = ("", [])):
+        "set the table for the result page to use"
         self._result.set_item(form)
-
-    def set_result(self, result: list):
-        "set results contents"
-        self._result.set_result(result)
 
     def set_filename(self, fname: str):
         "sets the data filename"
@@ -76,6 +76,9 @@ class MainPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
     def get_filename(self):
         "get the current file name"
         return self._fname
+
+    ###########################################################################
+    # "all tables"  table searches
 
     def get_name_index(self, name: str) -> tuple[int, table] | tuple[None,  None]:
         "returns the index of a table"
@@ -92,10 +95,11 @@ class MainPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
         what, _ = self._what.get_what()
         tables = what[0]
 
-        if any(x[0] == name for x in tables):
-            return True
+        return any(x[0] == name for x in tables)
 
-        return False
+    def name_available(self, name: str) -> bool:
+        "returns true if a name is available"
+        return not self.has_name(name)
 
     def get_table(self, idx: int) -> tuple[str, table] | None:
         "returns a table by index"
@@ -120,6 +124,20 @@ class MainPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
         # return something so we can see in the app what is missing instead of blanks
         return None, "<MISSING>"
 
+    def add_to_all(self, tab: tuple[str, table]) -> bool:
+        "adds to the all category"
+        if not self.has_name(tab[0]):
+            self._what.add_to_all(tab)
+            return True
+        return False
+
+    def get_name(self, item: dat.MetaFormula | dat.Formula | list | tuple | str) -> str:
+        "get name of object, tabels encoded as {tableName}"
+        return self._result.get_name(item)  # n.b. this could possibly be moved somewhere else, it was done there first.
+
+    ###########################################################################
+    # functions that effect all tables (including "all tables")
+
     def rename(self, name: str, newname: str) -> bool:
         "renames a table"
         return self._what.rename(name, newname)
@@ -128,6 +146,25 @@ class MainPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
         "copy the results to the clipboard"
         self.root.clipboard_clear()  # clear the clipboard because we are setting its contents
         self.root.clipboard_append(out)
+
+    def check_delete_from_all(self, name):
+        "returns trues if deleted from all"
+        return self.delete_from_all(name)
+
+    def delete_from_all(self, name):
+        "delete a table from the 'all tables' table as well as every other tables"
+        if bool( # bool may not be needed could use == True, which is basically the same
+            messagebox.askyesnocancel(
+                message="Are you sure you want to DELETE from all?",
+                title="Are you sure?"
+            )
+        ):
+            return self._what.delete_from_all(name)
+
+        return False
+
+    ###########################################################################
+    # menu and internal operations
 
     def do_save(self):
         "saves the data to disk"
@@ -213,25 +250,10 @@ class MainPanel(ttk.Frame):  # pylint: disable=too-many-ancestors
         "import from txt"
         # TODO::
 
-    def name_available(self, name: str) -> bool:
-        "returns true if a name is available"
-        what, _ = self._what.get_what()
-        tables = what[0]
-        return not any(x[0] == name for x in tables)
+    ###########################################################################
+    # helpers
 
     def _clear_panels(self):
         "clear other panels"
         self._page.set_page([])
-        self._result.set_result([])
-
-    def add_to_all(self, tab: tuple[str, table]) -> bool:
-        "adds to the all category"
-        if not self.has_name(tab[0]):
-            self._what.add_to_all(tab)
-            return True
-
-        return False
-
-    def get_name(self, item: dat.MetaFormula | dat.Formula | list | tuple | str) -> str:
-        "get name of object"
-        return self._result.get_name(item)
+        self.set_result_item()

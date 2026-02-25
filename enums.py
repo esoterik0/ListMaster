@@ -1,8 +1,8 @@
 "enums.py contains enums and constants for the ListMaster program"
 from enum import Enum
+import gendata
 
-#type alias
-table = list[str | list | tuple]  # pylint: disable=invalid-name
+table = gendata.table # type alias pylint: disable=C0103
 
 # valuse for tkinter; I don't know what these are supposed to be the doc and setup says they should
 # be in pixels, or what ever we set, but it seems to ignore the setting (or we set it wrong, or the

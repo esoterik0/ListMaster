@@ -8,6 +8,7 @@ from tkinter import E, N, S, W, filedialog, ttk
 import gendata as dat
 from enums import SINGLE, State, table
 from ListPanel import ListPanel
+from PanelCom import PanelCom
 
 LOG = "rolls.log"
 
@@ -40,10 +41,10 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
         test
     """
 
-    def __init__(self, parent: "MainPanel", **kwargs):  # pylint: disable=too-many-statements
+    def __init__(self, parent: PanelCom, **kwargs):  # pylint: disable=too-many-statements
         # initialize ...
         super().__init__(parent, 2, True, **kwargs)  #  .. our super class
-        self._parent: "MainPanel" = parent
+        self._parent: PanelCom = parent
 
         # state variables
         self.num = SINGLE
@@ -51,7 +52,9 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
         self.item = None
         self.item_name = ""
         self.logfile = LOG
-        self.sep_pat = re.compile(r"({[\w ]*)}")
+        self.sep_pat = re.compile(r"({[\w,|&:+()\[\] ]+)}")
+        self.label_pat = re.compile(r"(?P<label>[\w,|&:+()\[\] ]+);{(?P<table>[\w,|&:+()\[\] ]+)}")
+        self.semi = re.compile(r";")
 
         # add double click.
         self.lbox.bind("<Double-1>", self.do_double_select)
@@ -111,34 +114,71 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
             self.edit_button_frame.columnconfigure(i, weight=1)
             self.edit_button_frame.rowconfigure(i, weight=1)
 
-    def accept_edit(self, newtext: str) -> bool:
-        "Must be overridden to edit"
+    def accept_edit(self, newtext: str):
+        "validate last selection, delete"
         if self.last_selection is None:
             return
 
-        if len(newtext) == 0:
+        if self.last_selection >= len(self.item):
             return
 
-        if self._is_safe(newtext):
-            self.item[self.last_selection] = newtext
-        # the above if will take care of strings that don't have {} in them
-        elif newtext.count("{") == newtext.count("}"): # check that we have pairs of {}
-            out = [x for x in self.sep_pat.split(newtext) if x] # filter empty strings
-            #assert len(out) > 0
-            if len(out) == 1:
-                #assert out[0][0] == "{"
-                if self._is_safe(tab := out[0][1:]):
-                    self.item[self.last_selection] = self._parent.get_name_index(tab)[1]
-            else:
-                put = []
-                for item in out:
-                    if item[0]=="{":
-                        if self._is_safe(tab := item[1:]):
-                            put.append(self._parent.get_name_index(tab)[1])
-                    elif self._is_safe(item):
-                        put.append(item)
-                #assert len(put) > 0:
-                self.item[self.last_selection] = tuple(put)
+        if len(newtext) == 0:
+            match(self.item):
+                case dat.Formula() | dat.MetaFormula():
+                    del self.item.formula[self.last_selection]
+                    del self.item.labels[self.last_selection]
+                case list():
+                    del self.item[self.last_selection]
+
+        # if we need to reuse this move it at that point.
+        def convert(text: str):
+            if self._is_safe(text):
+                return text
+            # the above if will take care of strings that don't have {} in them
+            elif text.count("{") == text.count("}"): # check that we have pairs of {}
+                out = [x for x in self.sep_pat.split(text) if x] # filter empty strings
+                #assert len(out) > 0
+                if len(out) == 1:
+                    #assert out[0][0] == "{"
+                    if self._is_safe(tab := out[0][1:]):
+                        return self._parent.get_name_index(tab)[1]
+                else:
+                    put = []
+                    for item in out:
+                        if item[0]=="{":
+                            if self._is_safe(tab := item[1:]):
+                                put.append(self._parent.get_name_index(tab)[1])
+                        elif self._is_safe(item):
+                            put.append(item)
+
+                    return tuple(put)
+
+            return ""
+
+        newtext = convert(newtext)
+
+        if not newtext:
+            return
+
+        match (self.item):
+            case dat.Formula():
+                if newtext.count(';') != 1:
+                    return
+                label, txt = self.semi.split(newtext)
+                if self._is_safe(label):
+                    self.item.label[self.last_selection] = label
+                if txt := convert(txt):
+                    self.item.formula[self.last_selection] = txt
+            case dat.MetaFormula():
+                pass
+                # if self.last_selection == 0:
+                #     self.item.labels = list(s.strip() for s in self.semi.split(newtext))
+                # else
+                #     if txt := convert(newtext):
+                #         self.item.formula[self.last_selection-1] = txt
+            case list():
+                if txt := convert(newtext):
+                   self.item[self.last_selection] = txt
 
         self.set_result()
 
@@ -173,6 +213,7 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
         else:
             if self._parent.state == State.ROLL:
                 self.item_name, self.item = "", []
+                self.set_result([])
                 self.ungrid_set()
 
     def set_item_edit(self):
@@ -303,14 +344,11 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
 
     def do_lbox_sel(self, *args):  # pylint: disable=unused-argument
         "selection clicking"
-        # print("result select", end=" ")
         self._sel()
 
     def do_double_select(self, *args):  # pylint: disable=unused-argument
         "selection double clicking"
-        # print("result double", end=" ")
         self._sel()
-
         if self._parent.state == State.EDIT:
             return self.do_edit()
 
@@ -372,3 +410,4 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
                 return f"{"".join(self.get_name(itm) for itm in item)}"
             case str():
                 return item
+

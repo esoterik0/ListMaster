@@ -129,13 +129,23 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
             self._main.do_save()  # Save & Quit
 
         self.root.destroy()  # No / Just Quit
+    def _u_sure(self):
+        """ Check if the User is sure. "are you sure" """
+        return bool(
+            messagebox.askyesnocancel(
+                message="Are you sure?",
+                title="Are you sure?"
+            )
+        )
 
     def on_reset(self):
         "resets to hardcoded values"
+        self._u_sure()
         self._main.do_reset()
 
     def on_new(self):
         "clears all data creating a new clean setup"
+        self._u_sure()
         self._main.do_clear()
 
     def on_load(self):

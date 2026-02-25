@@ -2,18 +2,20 @@
 
 import tkinter as tk
 from tkinter import E, N, S, W, ttk
+from tkinter.simpledialog import askstring
 
 from enums import ItemColor, ItemType, State
 from gendata import Formula, MetaFormula
 from ListPanel import ListPanel
+from PanelCom import PanelCom
 
 
 class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-instance-attributes
     "generates the page frame, for choosing, inspecting, or editing which 'page', formula or table"
 
-    def __init__(self, parent: "MainPanel", **kwargs):
+    def __init__(self, parent: PanelCom, **kwargs):
         super().__init__(parent, 1, **kwargs)
-        self._parent: "MainPanel" = parent
+        self._parent: PanelCom = parent
         self.filter_type = None
 
         self.lbox.bind("<Double-1>", self.do_double_page)
@@ -62,7 +64,9 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
         self.button_frame_edit.grid(column=0, row=3, sticky=(E, W))
         self.button_frame_edit.grid_remove()
 
-        self.new_form = ttk.Button(self.button_frame_edit, text="New Form", command=self.do_new_form, default='disabled')
+        self.new_meta = ttk.Button(self.button_frame_edit, text="New Meta Formula", command=self.do_new_meta, default='disabled')
+        self.new_meta.grid(column=0, row=2, sticky=(N, S, E, W))
+        self.new_form = ttk.Button(self.button_frame_edit, text="New Formula", command=self.do_new_form, default='disabled')
         self.new_form.grid(column=0, row=1, sticky=(N, S, E, W))
         self.new_list = ttk.Button(self.button_frame_edit, text="New List", command=self.do_new_list)
         self.new_list.grid(column=0, row=0, sticky=(N, S, E, W))
@@ -70,6 +74,8 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
         self.add_item.grid(column=1, row=0, sticky=(N, S, E, W))
         self.edit_item = ttk.Button(self.button_frame_edit, text="Edit Item", command=self.do_edit_item)
         self.edit_item.grid(column=1, row=0, sticky=(N, S, E, W))
+        self.insert_item = ttk.Button(self.button_frame_edit, text="Insert Item", command=self.do_insert_item)
+        self.insert_item.grid(column=1, row=2, sticky=(N, S, E, W))
 
         self.button_frame_edit.rowconfigure(0, weight=1)
         self.button_frame_edit.rowconfigure(1, weight=1)
@@ -80,6 +86,7 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
         self.button_frame_roll.columnconfigure(1, weight=1)
         self.button_frame_roll.rowconfigure(0, weight=1)
         self.button_frame_roll.rowconfigure(1, weight=1)
+        self.button_frame_roll.rowconfigure(2, weight=1)
 
         self._cur_page = None
         self._filter_page = None
@@ -100,11 +107,18 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
 
     def accept_edit(self, newtext: str) -> bool:
         "Must be overridden to edit"
-        if newtext == "":
+        if self.last_selection is None:
+            return # igrone broken edits
+
+        if self.last_selection >= len(self.choices):
             return
 
-        if self._is_safe(newtext) and self._parent.name_available(newtext):
-            name = self.choices[self.last_selection]
+        name = self.choices[self.last_selection]
+
+        if newtext == "":  # we can delete locally if we want to.
+            if not self._parent.check_delete_from_all(name):
+                del self.choices[self.last_selection]
+        elif self._is_safe(newtext) and self._parent.name_available(newtext):
             for x in self._cur_page:
                 if x[0] == name:
                     self._parent.rename(name, newtext) # change all
@@ -113,6 +127,7 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
 
     def set_page(self, lst: list | None):
         "sets the contents of the page panel"
+        self.last_selection = None
         lst.sort(key = lambda x: x[0])
         self._cur_page = lst
         self._filter_page = self._filter()
@@ -151,27 +166,23 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
         if not self._cur_page:
             return
 
-        # print("page_lbox select", end=" ")
         if self._sel() is not None:  # allow 0 to pass inspection
             if self._parent.state == State.ROLL:
-                self._parent.set_item(self._cur_page[self.last_selection])
+                self._parent.set_result_item(self._cur_page[self.last_selection])
 
     def do_double_page(self, e):  # pylint: disable=unused-argument
         "handles double click on the 'page' column to choose what to edit"
         if not self._cur_page:
             return
 
-        # print("page_double select", end=" ")
         if self._sel() is not None:
             if self._parent.state == State.EDIT:
-                self._parent.set_item(self._cur_page[self.last_selection])
+                self._parent.set_result_item(self._cur_page[self.last_selection])
 
     def do_edit_item(self):
         "handle edit item button, and double click"
         if not self._cur_page:
             return "return"
-
-        # print("page edit", end=" ")
 
         if self._sel() is not None:
             return self._start_edit(self.choices[self.last_selection])
@@ -221,11 +232,12 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
 
         return "return"
 
-    # TODO:: add meta formula
+    def do_new_meta(self):
+        "TODO:: add meta formula"
 
     def do_copy_item(self):
         "handle add item button"
-        if self._sel() is None:
+        if self.last_selection is None:
             return
 
         self._parent.do_clipboard(self._parent.get_name(self.choices[self.last_selection]))
@@ -236,3 +248,25 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
             return self._cur_page
 
         return [n for n in self._cur_page if isinstance(n[1], self.filter_type)]
+
+    def do_insert_item(self):
+        "insert an item into our list"
+        newitem = askstring("Insert Item", "Name of the item; {} are optional, no duplicates").strip()
+
+        # strip {}
+        if newitem[0] == "{":
+            newitem = newitem[1:]
+        if newitem[-1] == "}":
+            newitem = newitem[:-1]
+
+        if not self._is_safe(newitem):
+            return # name must be safe
+
+        if self._parent.name_available(newitem):
+            return # name must exist
+
+        if any(x[0] == newitem for x in self._cur_page):
+            return # cannot have duplicates in the same page!
+
+        self._cur_page.append(self._parent.get_table(self._parent.get_name_index()[0]))
+        self.set_page(self._cur_page)

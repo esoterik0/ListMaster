@@ -56,8 +56,8 @@ class ListPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
     def _sel(self):
         "current->last selection logic; helper function"
         sel = self.lbox.curselection()
-        self.last_selection = sel[0] if len(sel) == 1 else None
-        # print(f"_sel(): {sel}")
+        if len(sel) == 1:
+            self.last_selection = sel[0]
         return self.last_selection
 
     def _do_lbox_sel(self, *args):
@@ -108,7 +108,8 @@ class ListPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
 
     def _is_safe(self, newtext: str) -> bool:
         "returns true if the text is 'safe'"
-        return bool(self.safepat.match(newtext).group())
+        mat = self.safepat.fullmatch(newtext)
+        return mat is not None
 
     # optional string instead of looking up by index
     def _start_edit(self, text: str | None = None) -> Literal["break"]:
