@@ -1,5 +1,5 @@
 "classes that define formulas for dicing tables"
-from enums import table
+from .enums import table
 
 class Formula:  # pylint: disable=too-few-public-methods
     "Indicates that the list of lists is a formula and not a recursive list"
