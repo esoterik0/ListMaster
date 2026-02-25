@@ -252,8 +252,8 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
     def set_state(self):
         "set state handler called when _parent changes state"
         # clear panel
-        self.item_name, self.item = "", None
-        self.set_result([])
+        # self.item_name, self.item = "", None
+        # self.set_result([])
 
         match self._parent.state:
             case State.ROLL:
@@ -266,6 +266,9 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
                 pass
 
         self.ungrid_set()
+        self.grid_set()
+
+        self.set_item((self.item_name, self.item))
 
     def set_result(self, lst: list | None = None):
         "sets the results list, used for setting and clearing the list"

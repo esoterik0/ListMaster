@@ -71,11 +71,11 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
         self.new_list = ttk.Button(self.button_frame_edit, text="New List", command=self.do_new_list)
         self.new_list.grid(column=0, row=0, sticky=(N, S, E, W))
         self.add_item = ttk.Button(self.button_frame_edit, text="Copy Item", command=self.do_copy_item)
-        self.add_item.grid(column=1, row=0, sticky=(N, S, E, W))
+        self.add_item.grid(column=1, row=1, sticky=(N, S, E, W))
         self.edit_item = ttk.Button(self.button_frame_edit, text="Edit Item", command=self.do_edit_item)
         self.edit_item.grid(column=1, row=0, sticky=(N, S, E, W))
         self.insert_item = ttk.Button(self.button_frame_edit, text="Insert Item", command=self.do_insert_item)
-        self.insert_item.grid(column=1, row=1, sticky=(N, S, E, W))
+        self.insert_item.grid(column=1, row=2, sticky=(N, S, E, W))
 
         self.button_frame_edit.rowconfigure(0, weight=1)
         self.button_frame_edit.rowconfigure(1, weight=1)
@@ -125,10 +125,11 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
                     break
             self.set_page(self._cur_page)
 
-    def set_page(self, lst: list | None):
+    def set_page(self, lst: list | None, sort = True):
         "sets the contents of the page panel"
         self.last_selection = None
-        lst.sort(key = lambda x: x[0])
+        if sort:
+            lst.sort(key = lambda x: x[0])
         self._cur_page = lst
         self._filter_page = self._filter()
         self.choices = [n[0] for n in self._filter_page]
@@ -147,9 +148,6 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
     def set_state(self):
         "set state handler called when _parent changes state"
         self.ungrid_set()
-        self._cur_page = None
-        self.choices = []
-        self._update_lbox()
         self.grid_set()
 
     def ungrid_set(self):
@@ -203,7 +201,7 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
             form = Formula([], [], name)
             self._parent.add_to_all((name, form))
             self._cur_page.append((name, form))
-            self.set_page(self._cur_page)
+            self.set_page(self._cur_page, False)
             self.last_selection = len(self._filter_page)-1
             self.lbox.activate(self.last_selection)
             return self._start_edit(name)
@@ -225,7 +223,7 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
             form = []
             self._parent.add_to_all((name, form))
             self._cur_page.append((name, form))
-            self.set_page(self._cur_page)
+            self.set_page(self._cur_page, False)
             self.last_selection = len(self._filter_page)-1
             self.lbox.activate(self.last_selection)
             return self._start_edit(name)

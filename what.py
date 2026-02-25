@@ -111,8 +111,6 @@ class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
             case _:
                 pass
 
-        self.last_selection = None
-
     def drag(self, start, end):
         "override do not move all tables entry"
         # swap them

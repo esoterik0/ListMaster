@@ -39,8 +39,8 @@ class MainPanel(ttk.Frame, PanelCom):  # pylint: disable=too-many-ancestors
 
         # our panel are arranged horizontally, in a single row.
         self.rowconfigure(0, weight=1)
-        self.columnconfigure(0, weight=6) # weights describe relative movement so bigger
-        self.columnconfigure(1, weight=3) # movement is shrinking and growing faster
+        self.columnconfigure(0, weight=4) # weights describe relative movement so bigger
+        self.columnconfigure(1, weight=6) # movement is shrinking and growing faster
         self.columnconfigure(2, weight=3) # smaller numbers stay larger at smaller sizes
 
         # we start without a selection set.
