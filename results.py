@@ -115,12 +115,20 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
             self.edit_button_frame.columnconfigure(i, weight=1)
             self.edit_button_frame.rowconfigure(i, weight=1)
 
+    def get_effective_len(self, item):
+        "metaformulas are actually one space bigger."
+        match(item):
+            case list() | dat.Formula():
+                return len(item)
+            case dat.MetaFormula():
+                return len(item)+1
+
     def accept_edit(self, newtext: str):
         "validate last selection, delete"
         if self.last_selection is None:
             return
 
-        if self.last_selection >= len(self.item):
+        if self.last_selection >= self.get_effective_len(self.item):
             return
 
         if len(newtext) == 0:
