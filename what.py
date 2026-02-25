@@ -178,17 +178,6 @@ class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
 
         return False
 
-    # TODO:: do we want a remove from all? what about references?
-    # we will have to remove references from every 'table'
-    # then remove the 'table' from the tables
-    # guard with button press and confirm.
-    # def remove_from_all(self, tab: str):
-    #     "removes a table"
-    #     for i, x in enumerate(self.what_list[0]):
-    #         if x[0] == tab:
-    #             del self.what_list[0][i]
-    #             return True
-
     def rename(self, name: str, newname: str):
         "renames a table in the all list"
         if self._parent.has_name(newname):
@@ -205,3 +194,4 @@ class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
 
     def _delete_from_all(self, name):
         "actually deletes from all tables, 'all tables' included"
+        # TODO:: implement delete from all

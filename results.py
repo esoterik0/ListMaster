@@ -55,6 +55,7 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
         self.sep_pat = re.compile(r"({[\w,|&:+()\[\] ]+)}")
         self.label_pat = re.compile(r"(?P<label>[\w,|&:+()\[\] ]+);{(?P<table>[\w,|&:+()\[\] ]+)}")
         self.semi = re.compile(r";")
+        self.backtick = re.compile(r"`")
 
         # add double click.
         self.lbox.bind("<Double-1>", self.do_double_select)
@@ -131,12 +132,12 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
                     del self.item[self.last_selection]
 
         # if we need to reuse this move it at that point.
-        def convert(text: str):
+        def _convert(text: str):
             if self._is_safe(text):
                 return text
             # the above if will take care of strings that don't have {} in them
             if text.count("{") == text.count("}"): # check that we have pairs of {}
-                out = [x for x in self.sep_pat.split(text) if x] # filter empty strings
+                out = [x for x in self.sep_pat.split(text) if x] # filter empty strings; sep_pat filters out '}'
                 #assert len(out) > 0
                 if len(out) == 1:
                     #assert out[0][0] == "{"
@@ -154,6 +155,15 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
                     return tuple(put)
             return ""
 
+        # if we need to reuse this move it at that point.
+        def convert(text: str):
+            if text.count('`') > 0:
+                out = []
+                for txt in self.backtick.split(text):
+                    out.append(_convert(txt))
+                return out
+            return _convert(text)
+
         newtext = convert(newtext)
 
         if not newtext:
@@ -163,35 +173,34 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
             case dat.Formula():
                 if newtext.count(';') != 1:
                     return
-                label, txt = self.semi.split(newtext)
+                label, text = self.semi.split(newtext)
                 if self._is_safe(label):
-                    self.item.label[self.last_selection] = label
-                if txt := convert(txt):
-                    self.item.formula[self.last_selection] = txt
+                    if txt := convert(text):
+                        self.item.formula[self.last_selection] = txt
+                        self.item.label[self.last_selection] = label
             case dat.MetaFormula():
-                pass
-                # if self.last_selection == 0:
-                #     self.item.labels = list(s.strip() for s in self.semi.split(newtext))
-                # else
-                #     if txt := convert(newtext):
-                #         self.item.formula[self.last_selection-1] = txt
+                if self.last_selection == 0:
+                    self.item.labels = list(s.strip() for s in self.semi.split(newtext))
+                else:
+                    if txt := convert(newtext):
+                        self.item.formula[self.last_selection-1] = txt
             case list():
                 if txt := convert(newtext):
-                   self.item[self.last_selection] = txt
+                    self.item[self.last_selection] = txt
 
         self.set_result()
 
     def drag(self, start, end):
-        "override do not move all"
-        # swap them
+        "do the drag"
 
-        if (self._parent.state != State.EDIT):
+        if self._parent.state != State.EDIT:
             return
 
         if isinstance(self.item, dat.MetaFormula):
             if (start == 0 or end == 0):
                 return
 
+        # swap them
         super().drag(start, end)
 
     def set_item(self, form: tuple[str, dat.Formula] | tuple[str, table]):
@@ -221,11 +230,10 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
             self.choices = []
             match self.item:
                 case dat.MetaFormula():
-                    self.choices = [",".join(
+                    self.choices = [";".join(self.item.labels)] + ["`".join(
                         self.get_name(itm) for itm in item.formula
                         ) for item in self.item.formula
-                    ]  # + ["label: " + b for b in self.item.labels]
-                    # todo figure out lables for MetaFormula; and how to make/edit them # top line lables?
+                    ]
                 case dat.Formula():
                     self.choices = [
                         f"{label};{self.get_name(item)}"

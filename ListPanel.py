@@ -16,7 +16,7 @@ class ListPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
         self.grid(column=column, row=0, sticky=(N, S, E, W))
         self.last_selection = None
         self.edit = None  # to allow out of band exit.
-        self.safepat = re.compile(r"[\w,|&:+()\[\] ]+")  # safe text pattern we want to preserve ';{}'
+        self.safepat = re.compile(r"[\w,|&:+()\[\] ]+")  # safe text pattern we want to preserve ';{}`'
         self.drag_start = None
 
         # listbox choices
@@ -58,15 +58,10 @@ class ListPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
         sel = self.lbox.curselection()
         if len(sel) == 1:
             self.last_selection = sel[0]
-        return self.last_selection
+            return self.last_selection
+        return None
 
     def _do_lbox_sel(self, *args):
-        # HACK to stop stomping on last_selection, making it None here; iirc returning 'break' on edit_start() is
-        # supposed to fix this type of problem. When editing it seems that we get called again, for some reason,
-        # possibly the UI capture, that sets last_selection to None.
-        if self.edit:  # if we are editing ...
-            return  # ... just exit.
-
         self.do_lbox_sel(*args)
 
     def _drag_begin(self, e):
