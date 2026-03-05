@@ -237,8 +237,10 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
         "handle add item button"
         if self.last_selection is None:
             return
-
-        self._parent.do_clipboard(self._parent.get_name(self.choices[self.last_selection]))
+        idx, tab = self._parent.get_name_index(self.choices[self.last_selection])
+        if idx is None:
+            return
+        self._parent.do_clipboard(self._parent.get_name(tab))
 
     def _filter(self):
         "filter the data"
@@ -266,5 +268,7 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
         if any(x[0] == newitem for x in self._cur_page):
             return # cannot have duplicates in the same page!
 
-        self._cur_page.append(self._parent.get_table(self._parent.get_name_index()[0]))
-        self.set_page(self._cur_page)
+        _, tab = self._parent.get_name_index(newitem)
+        if tab is not None:
+            self._cur_page.append((newitem, tab))
+            self.set_page(self._cur_page)

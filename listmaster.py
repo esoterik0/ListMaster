@@ -55,7 +55,7 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
         self.file_menu.add_command(label="Save", command=self.on_save)  # Save over the current file
         self.file_menu.add_command(label="Save as", command=self.on_save_as)  # Save to a New file
         self.file_menu.add_separator()
-        self.file_menu.add_command(label="Save & Quit", command=self.on_close)
+        self.file_menu.add_command(label="Save & Quit", command=self.on_save_quit)
         self.file_menu.add_command(label="Just Quit (No prompt)", command=self.on_quit)
         self.menu.add_cascade(menu=self.file_menu, label="File")  # put file menu in root
         # self.import_menu = tk.Menu(self.menu)
@@ -108,6 +108,12 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
         )
         self._main.do_save()
 
+    def on_save_quit(self):
+        "Save and Quit"
+        if self._u_sure():
+            self._main.do_save()  # Save & Quit
+            self.root.destroy()  # Quit
+
     def on_quit(self):
         "Quit without saving or prompting"
         self.root.destroy()  # Quit
@@ -129,7 +135,7 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
             self._main.do_save()  # Save & Quit
 
         self.root.destroy()  # No / Just Quit
-    
+
     def _u_sure(self):
         """ Check if the User is sure. "are you sure" """
         return bool(
@@ -141,16 +147,19 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
 
     def on_reset(self):
         "resets to hardcoded values"
-        self._u_sure()
-        self._main.do_reset()
+        if self._u_sure():
+            self._main.do_reset()
 
     def on_new(self):
         "clears all data creating a new clean setup"
-        self._u_sure()
-        self._main.do_clear()
+        if self._u_sure():
+            self._main.do_clear()
 
     def on_load(self):
         "loads data from a file"
+        if not self._u_sure():
+            return
+
         path, file = self.get_path_file()
         self._main.set_filename(
             filedialog.askopenfilename(

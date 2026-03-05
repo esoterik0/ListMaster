@@ -6,7 +6,7 @@ import dill as pickle
 from PanelCom import PanelCom
 
 import gendata as dat
-from enums import HEIGHT, WIDTH, State, table
+from enums import HEIGHT, WIDTH, State, table, COLWEIGHT
 from page import PagePanel
 from results import ResultsPanel
 from what import WhatPanel
@@ -39,9 +39,9 @@ class MainPanel(ttk.Frame, PanelCom):  # pylint: disable=too-many-ancestors
 
         # our panel are arranged horizontally, in a single row.
         self.rowconfigure(0, weight=1)
-        self.columnconfigure(0, weight=4) # weights describe relative movement so bigger
-        self.columnconfigure(1, weight=6) # movement is shrinking and growing faster
-        self.columnconfigure(2, weight=3) # smaller numbers stay larger at smaller sizes
+        self.columnconfigure(0, weight=COLWEIGHT[0]) # weights describe relative movement so bigger
+        self.columnconfigure(1, weight=COLWEIGHT[1]) # movement is shrinking and growing faster
+        self.columnconfigure(2, weight=COLWEIGHT[2]) # smaller numbers stay larger at smaller sizes
 
         # we start without a selection set.
         self._result.ungrid_set()

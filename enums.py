@@ -11,8 +11,12 @@ table = gendata.table # type alias pylint: disable=C0103
 WIDTH = 200
 HEIGHT = 20
 SINGLE = 1
-TEXTSIZE = 16
-MENUSIZE = 16
+TEXTSIZE = 12
+MENUSIZE = 12
+
+# weights describe relative movement so bigger movement is shrinking and growing faster smaller
+COLWEIGHT = (4,2,3) # numbers stay larger at smaller sizes
+
 
 class State(Enum):
     "defines for what state the program is in"

@@ -118,10 +118,10 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
     def get_effective_len(self, item):
         "metaformulas are actually one space bigger."
         match(item):
-            case list() | dat.Formula():
-                return len(item)
             case dat.MetaFormula():
                 return len(item)+1
+            case list() | dat.Formula():
+                return len(item)
 
     def accept_edit(self, newtext: str):
         "validate last selection, delete"
@@ -165,19 +165,28 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
 
         # if we need to reuse this move it at that point.
         def convert(text: str):
+            # only meta formuala's use this list format!
             if text.count('`') > 0:
                 out = []
                 for txt in self.backtick.split(text):
-                    out.append(_convert(txt))
+                    if txt:
+                        out.append(_convert(txt))
                 return out
             return _convert(text)
 
-        newtext = convert(newtext)
-
-        if not newtext:
-            return
-
         match (self.item):
+            case dat.MetaFormula():
+                if self.last_selection == 0:
+                    self.item.labels = list(
+                        s.strip() for s in self.semi.split(newtext)
+                    )
+                else:
+                    if txt := convert(newtext):
+                        self.item.formula[self.last_selection-1] = dat.Formula(
+                            txt,
+                            self.item.labels,
+                            self.item.name
+                        )
             case dat.Formula():
                 if newtext.count(';') != 1:
                     return
@@ -185,18 +194,12 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
                 if self._is_safe(label):
                     if txt := convert(text):
                         self.item.formula[self.last_selection] = txt
-                        self.item.label[self.last_selection] = label
-            case dat.MetaFormula():
-                if self.last_selection == 0:
-                    self.item.labels = list(s.strip() for s in self.semi.split(newtext))
-                else:
-                    if txt := convert(newtext):
-                        self.item.formula[self.last_selection-1] = txt
+                        self.item.labels[self.last_selection] = label
             case list():
                 if txt := convert(newtext):
                     self.item[self.last_selection] = txt
 
-        self.set_result()
+        self.set_item((self.item_name, self.item))
 
     def drag(self, start, end):
         "do the drag"
@@ -413,8 +416,7 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
             the name of each item in in the tuple is looked up by calling this function recursively
             in the form of (name1name2...namen)
             strings can be concatenated together, so each tuple can not have more than one string in
-            a row, a table must be between any strings in the tuple, one can have multiple tables, but
-            they should probably be separated by a space " " or something.
+            a row, a table must be between any strings in the tuple, one can have multiple tables.
 
             ex. "pre{table1} {table2}mid{table3} post"
 
