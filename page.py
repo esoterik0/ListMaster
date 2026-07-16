@@ -14,7 +14,7 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
     "generates the page frame, for choosing, inspecting, or editing which 'page', formula or table"
 
     def __init__(self, parent: PanelCom, **kwargs):
-        super().__init__(parent, 1, **kwargs)
+        super().__init__(parent, column=1, drag=False, **kwargs)
         self._parent: PanelCom = parent
         self.filter_type = None
 
@@ -114,8 +114,16 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
             return
 
         name = self.choices[self.last_selection]
+        if name == "":
+            self._parent.add_to_all(tup := (newtext, self._cur_page[self.last_selection][1]))
+            self._cur_page[self.last_selection] = tup
+            self.set_page(self._cur_page)
+
 
         if newtext == "":  # we can delete locally if we want to.
+            if name == "":
+                del self._cur_page[self.last_selection]
+                return # ignore broken edits
             if not self._parent.check_delete_from_all(name):
                 del self.choices[self.last_selection]
         elif self._is_safe(newtext) and self._parent.name_available(newtext):
@@ -128,9 +136,10 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
     def set_page(self, lst: list | None, sort = True):
         "sets the contents of the page panel"
         self.last_selection = None
-        if sort:
-            lst.sort(key = lambda x: x[0])
-        self._cur_page = lst
+        if lst is not None:
+            if sort:
+                lst.sort(key = lambda x: x[0])
+            self._cur_page = lst
         self._filter_page = self._filter()
         self.choices = [n[0] for n in self._filter_page]
         self._update_lbox()
@@ -180,58 +189,59 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
     def do_edit_item(self):
         "handle edit item button, and double click"
         if not self._cur_page:
-            return "return"
+            return "continue"
 
         if self._sel() is not None:
             return self._start_edit(self.choices[self.last_selection])
 
-        return "return"
+        return "continue"
 
     def do_new_form(self):
         "handle new Form button"
-        if not self._cur_page:
-            return "return"
+        if self._cur_page is None:
+            return "continue"
 
         if self.filter_type and self.filter_type != Formula:
-            return "return"
+            return "continue"
 
-        name = "New Formula"
+        name = ""
 
-        if self._parent.name_available(name):
-            form = Formula([], [], name)
-            self._parent.add_to_all((name, form))
-            self._cur_page.append((name, form))
-            self.set_page(self._cur_page, False)
-            self.last_selection = len(self._filter_page)-1
-            self.lbox.activate(self.last_selection)
-            return self._start_edit(name)
-
-        return "return"
+        form = Formula([], [], name)
+        self._cur_page.append((name, form))
+        self.set_page(self._cur_page, False)
+        self.last_selection = len(self._filter_page)-1
+        self.look()
+        return self._start_edit("New Formula")
 
 
     def do_new_list(self):
         "handle new list button"
-        if not self._cur_page:
-            return "return"
+        if self._cur_page is None:
+            return "continue"
 
         if self.filter_type and self.filter_type != list:
-            return "return"
+            return "continue"
 
-        name = "New List"
+        name = ""
 
         if self._parent.name_available(name):
-            form = []
-            self._parent.add_to_all((name, form))
-            self._cur_page.append((name, form))
+            self._cur_page.append((name, []))
             self.set_page(self._cur_page, False)
             self.last_selection = len(self._filter_page)-1
-            self.lbox.activate(self.last_selection)
-            return self._start_edit(name)
+            self.look()
+            return self._start_edit("New List")
 
-        return "return"
+        return "continue"
 
     def do_new_meta(self):
-        "TODO:: add meta formula"
+        "handle new MetaFormula button"
+        if self._cur_page is None:
+            return "continue"
+
+        if self.filter_type and self.filter_type != MetaFormula:
+            return "continue"
+
+        # todo:: implement new meta formula creation
 
     def do_copy_item(self):
         "handle add item button"

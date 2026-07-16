@@ -15,7 +15,7 @@ TEXTSIZE = 12
 MENUSIZE = 12
 
 # weights describe relative movement so bigger movement is shrinking and growing faster smaller
-COLWEIGHT = (4,2,3) # numbers stay larger at smaller sizes
+COLWEIGHT = (1,3,1) # numbers stay larger at smaller sizes
 
 
 class State(Enum):

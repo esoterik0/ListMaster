@@ -9,14 +9,27 @@ from enums import HEIGHT, WIDTH
 
 
 class ListPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-instance-attributes
-    "Abstract base class, ListPanel has a list box, and inplace edditing available"
+    """
+    Abstract base class ListPanel has:
+        a list box, and behavior for a sublasses to use
+        .safe() - a regex check for safe text
+        inplace edditing
+        drag and drop reordering
+    Subclasses must implement:
+        do_lbox_sel() - called when the listbox selection changes
+        accept_edit() - called when an inplace edit is accepted
+    Subclasses may implement:
+        cancel_edit() - called when an inplace edit is canceled
+        drag() - called when a drag and drop reordering is completed
+    """
     def __init__(self, parent, column, drag=False, **kwargs):
-        # initialize parent frame and grid ouselv
+        "initialize parent frame and grid ouselves"
         super().__init__(parent, borderwidth=5, relief="ridge", **kwargs)
         self.grid(column=column, row=0, sticky=(N, S, E, W))
         self.last_selection = None
         self.edit = None  # to allow out of band exit.
-        self.safepat = re.compile(r"[\w,|&:+()\[\] ]+")  # safe text pattern we want to preserve ';{}`'
+        # safe text pattern we want to preserve ';{}`' for delimiter use
+        self.safepat = re.compile(r"[\w,|&:+()\[\] ]+")
         self.drag_start = None
 
         # listbox choices
@@ -28,7 +41,7 @@ class ListPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
         self.lbox.grid(column=0, row=0, sticky=(N, S, E, W))
         self.lbox.bind("<<ListboxSelect>>", self._do_lbox_sel)
 
-        if drag:
+        if drag: # we only bind drag events if we are a drag enabled listbox
             self.lbox.bind("<ButtonPress-1>", self._drag_begin)
             self.lbox.bind("<ButtonRelease-1>", self._drag_end)
 
@@ -45,7 +58,9 @@ class ListPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
         #configure ourselves
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
-
+        self.rowconfigure(1, weight=1)
+        self.columnconfigure(1, weight=1)
+        self.rowconfigure(2, weight=1)
     def _update_lbox(self):
         """
         Updates the what_choice_var to self.choices
@@ -80,13 +95,17 @@ class ListPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
     def drag(self, start, end):
         "does completes the drag, may be overridden"
         l = len(self.choices)
-        if start >= l or end >= l:
+        if start >= l or end >= l or start < 0 or end < 0:
             return
 
         # swap them
         self.choices[start], self.choices[end] = self.choices[end], self.choices[start]
         self._update_lbox()
 
+    def look(self):
+        "activates and scrolls to the last selection"
+        self.lbox.activate(self.last_selection)
+        self.lbox.see(self.last_selection)
 
     def do_lbox_sel(self, *args):
         "Must be overridden by subclass; subclasses have different behavior."

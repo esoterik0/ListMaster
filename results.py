@@ -11,6 +11,7 @@ from ListPanel import ListPanel
 from PanelCom import PanelCom
 
 LOG = "rolls.log"
+DRAG = False  # make the parameter obvious in the super call.
 
 
 class Widgets(Enum):
@@ -42,8 +43,9 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
     """
 
     def __init__(self, parent: PanelCom, **kwargs):  # pylint: disable=too-many-statements
+        "initialize the results panel, create and grid the widgets"
         # initialize ...
-        super().__init__(parent, 2, True, **kwargs)  #  .. our super class
+        super().__init__(parent, column=2, drag=DRAG, **kwargs)  #  .. our super class
         self._parent: PanelCom = parent
 
         # state variables
@@ -53,7 +55,7 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
         self.item_name = ""
         self.logfile = LOG
         self.sep_pat = re.compile(r"({[\w,|&:+()\[\] ]+)}")
-        self.label_pat = re.compile(r"(?P<label>[\w,|&:+()\[\] ]+);{(?P<table>[\w,|&:+()\[\] ]+)}")
+        self.label_pat = re.compile(r"(?P<label>[\w,|&:+()\[\] ]+); *(?P<table>{[\w,|&:+()\[\] ]+})")
         self.semi = re.compile(r";")
         self.backtick = re.compile(r"`")
 
@@ -64,7 +66,7 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
 
         # holds the roll buttons, it can be swaped with a different frame
         self.roll_button_frame = ttk.Frame(self)
-        self.roll_button_frame.grid(column=0, row=2, sticky=(E, W))
+        self.roll_button_frame.grid(column=0, row=3, sticky=(E, W))
         self.roll_button_frame.grid_remove()
 
         # buttons for roll mode
@@ -92,7 +94,7 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
 
         # holds the edit buttons; swapped in during edit mode.
         self.edit_button_frame = ttk.Frame(self)
-        self.edit_button_frame.grid(column=0, row=1, sticky=(E, W))
+        self.edit_button_frame.grid(column=0, row=3, sticky=(E, W))
         self.edit_button_frame.grid_remove()
 
         # buttons for edit mode
@@ -128,7 +130,7 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
         if self.last_selection is None:
             return
 
-        if self.last_selection >= self.get_effective_len(self.item):
+        if self.last_selection > self.get_effective_len(self.item):
             return
 
         if len(newtext) == 0:
@@ -170,9 +172,9 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
                 out = []
                 for txt in self.backtick.split(text):
                     if txt:
-                        out.append(_convert(txt))
+                        out.append(_convert(txt.strip()))
                 return out
-            return _convert(text)
+            return _convert(text.strip())
 
         match (self.item):
             case dat.MetaFormula():
@@ -190,19 +192,23 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
             case dat.Formula():
                 if newtext.count(';') != 1:
                     return
-                label, text = self.semi.split(newtext)
-                if self._is_safe(label):
-                    if txt := convert(text):
-                        self.item.formula[self.last_selection] = txt
-                        self.item.labels[self.last_selection] = label
+                if mat := self.label_pat.match(newtext):
+                    label, text = mat.groups()
+                    if self._is_safe(label):
+                        if txt := convert(text):
+                            self.item.formula[self.last_selection] = txt
+                            self.item.labels[self.last_selection] = label.strip()
             case list():
                 if txt := convert(newtext):
                     self.item[self.last_selection] = txt
 
-        self.set_item((self.item_name, self.item))
+        self.set_item_edit()
 
     def drag(self, start, end):
         "do the drag"
+
+        if self.item is None:
+            return
 
         if self._parent.state != State.EDIT:
             return
@@ -211,8 +217,16 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
             if (start == 0 or end == 0):
                 return
 
-        # swap them
-        super().drag(start, end)
+        match(self.item):
+            case dat.MetaFormula():
+                self.item.formula[start], self.item.formula[end] = self.item.formula[end], self.item.formula[start]
+            case dat.Formula():
+                self.item.formula[start], self.item.formula[end] = self.item.formula[end], self.item.formula[start]
+                self.item.labels[start], self.item.labels[end] = self.item.labels[end], self.item.labels[start]
+            case list():
+                self.item[start], self.item[end] = self.item[end], self.item[start]
+
+        self.set_item_edit()
 
     def set_item(self, form: tuple[str, dat.Formula] | tuple[str, table]):
         "dispatches based on mode"
@@ -237,7 +251,7 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
 
     def set_item_edit(self):
         "sets the item to edit"
-        if self.item:
+        if self.item is not None:
             self.choices = []
             match self.item:
                 case dat.MetaFormula():
@@ -362,6 +376,25 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
 
     def do_add(self):
         "add item to item button"
+        if self.item is not None:
+            nw = ""
+            match(self.item):
+                case dat.MetaFormula():
+                    nw = "{}`{}"
+                case dat.Formula():
+                    nw = "Name; {}"
+                    self.item.formula.append([])
+                    self.item.labels.append("Name")
+                case list():
+                    nw = "Item Name"
+                    self.item.append(nw)
+
+            self.set_item_edit()
+            self.last_selection = len(self.choices)-1
+            self.look()
+            return self._start_edit(nw)
+
+        return "continue"
 
     def do_lbox_sel(self, *args):  # pylint: disable=unused-argument
         "selection clicking"

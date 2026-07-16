@@ -12,7 +12,7 @@ from PanelCom import PanelCom
 class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-instance-attributes
     "generates the What panel, for choosing what top level category to use"
     def __init__(self, parent: PanelCom, **kwargs):
-        super().__init__(parent, 0, True, **kwargs)
+        super().__init__(parent, column=0, drag=True, **kwargs)
         self._parent: PanelCom = parent
 
         self.what_list: list[tuple[str, table]] = []
@@ -139,6 +139,7 @@ class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
     def do_lbox_sel(self, *args):  # pylint: disable=unused-argument
         "handles the 'what' column, which is the top level category, and fills out the page choices"
 
+        # zero is allowed, so we need to check for None, not False
         if (sel := self._sel()) is not None:
             self._parent.set_page(self.what_list[sel])
 
@@ -152,14 +153,18 @@ class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
         self.what_list.append([])
         self._update_lbox()
         self.last_selection = len(self.choices)-1
-        self.lbox.activate(self.last_selection)
+        self.look()
         return self._start_edit("")
 
     def edit_cat(self, evt): # pylint: disable=W0613
         "edit the name of a category on the what panel"
 
+        if self._parent.state != State.EDIT:
+            return "continue"
+
         if self._sel():  # we don't want to to edit the special all tables entry at 0,
             self.lbox.activate(self.last_selection)
+            self.lbox.see(self.last_selection)
             return self._start_edit(self.choices[self.last_selection])
         return "break"
 
