@@ -20,6 +20,8 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
 
         self.lbox.bind("<Double-1>", self.do_double_page)
 
+        self.title_var.set("Page")
+
         # buttons for ROLL mode
         self.button_frame_roll = ttk.Frame(self)
         self.button_frame_roll.grid(column=0, row=self.ROW, sticky=(E, W))
@@ -64,17 +66,47 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
         self.button_frame_edit.grid(column=0, row=self.ROW+1, sticky=(E, W))
         self.button_frame_edit.grid_remove()
 
-        self.new_meta = ttk.Button(self.button_frame_edit, text="New Meta Formula", command=self.do_new_meta, default='disabled')
+        self.new_meta = ttk.Button(
+            self.button_frame_edit,
+            text="New Meta Formula",
+            command=self.do_new_meta,
+            default='disabled'
+        )
         self.new_meta.grid(column=0, row=2, sticky=(N, S, E, W))
-        self.new_form = ttk.Button(self.button_frame_edit, text="New Formula", command=self.do_new_form, default='disabled')
+
+        self.new_form = ttk.Button(
+            self.button_frame_edit, text="New Formula",
+            command=self.do_new_form,
+            default='disabled'
+        )
         self.new_form.grid(column=0, row=1, sticky=(N, S, E, W))
-        self.new_list = ttk.Button(self.button_frame_edit, text="New List", command=self.do_new_list)
+
+        self.new_list = ttk.Button(
+            self.button_frame_edit,
+            text="New List",
+            command=self.do_new_list
+        )
         self.new_list.grid(column=0, row=0, sticky=(N, S, E, W))
-        self.add_item = ttk.Button(self.button_frame_edit, text="Copy Item", command=self.do_copy_item)
+
+        self.add_item = ttk.Button(
+            self.button_frame_edit,
+            text="Copy Item",
+            command=self.do_copy_item
+        )
         self.add_item.grid(column=1, row=1, sticky=(N, S, E, W))
-        self.edit_item = ttk.Button(self.button_frame_edit, text="Edit Item", command=self.do_edit_item)
+
+        self.edit_item = ttk.Button(
+            self.button_frame_edit,
+            text="Edit Item",
+            command=self.do_edit_item
+        )
         self.edit_item.grid(column=1, row=0, sticky=(N, S, E, W))
-        self.insert_item = ttk.Button(self.button_frame_edit, text="Insert Item", command=self.do_insert_item)
+
+        self.insert_item = ttk.Button(
+            self.button_frame_edit,
+            text="Insert Item",
+            command=self.do_insert_item
+        )
         self.insert_item.grid(column=1, row=2, sticky=(N, S, E, W))
 
         self.button_frame_edit.rowconfigure(0, weight=1)
@@ -103,7 +135,7 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
             case _:
                 self.filter_type = None
 
-        self.set_page(self._cur_page)
+        self.set_page(self.title_var.get(), self._cur_page)
 
     def accept_edit(self, newtext: str) -> bool:
         "Must be overridden to edit"
@@ -117,7 +149,7 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
         if name == "":
             self._parent.add_to_all(tup := (newtext, self._cur_page[self.last_selection][1]))
             self._cur_page[self.last_selection] = tup
-            self.set_page(self._cur_page)
+            self.set_page(self.title_var.get(), self._cur_page)
 
 
         if newtext == "":  # we can delete locally if we want to.
@@ -131,10 +163,14 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
                 if x[0] == name:
                     self._parent.rename(name, newtext) # change all
                     break
-            self.set_page(self._cur_page)
+            self.set_page(self.title_var.get(), self._cur_page)
 
-    def set_page(self, lst: list | None, sort = True):
+    def set_page(self, name: str, lst: list | None, sort = True):
         "sets the contents of the page panel"
+        if name:
+            self.title_var.set(f'Page "{name}"')
+        else:
+            self.title_var.set("Page")
         self.last_selection = None
         if lst is not None:
             if sort:
@@ -281,4 +317,4 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
         _, tab = self._parent.get_name_index(newitem)
         if tab is not None:
             self._cur_page.append((newitem, tab))
-            self.set_page(self._cur_page)
+            self.set_page(self.title_var.get(), self._cur_page)

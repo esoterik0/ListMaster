@@ -62,6 +62,8 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
         # add double click.
         self.lbox.bind("<Double-1>", self.do_double_select)
 
+        self.title_var.set("Results")
+
         # Create and grid our child members; some members will also be grid_removed()ed
 
         # holds the roll buttons, it can be swaped with a different frame
@@ -71,25 +73,64 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
 
         # buttons for roll mode
         self.roll_buttons = {}
-        self.roll_buttons["reroll"] = ttk.Button(self.roll_button_frame, text="Re-Roll", command=self.do_reroll)
+
+        self.roll_buttons["reroll"] = ttk.Button(
+            self.roll_button_frame,
+            text="Re-Roll",
+            command=self.do_reroll
+        )
         self.roll_buttons["reroll"].grid(column=0, row=0, sticky=(N, S, E, W))
+
         self.roll_buttons["num_pages_label"] = ttk.Label(self.roll_button_frame, text="No. Pages")
         self.roll_buttons["num_pages_label"].grid(column=0, row=1, sticky=(N, S, E, W))
+
         self.num_pages_var = tk.StringVar()
         self.num_pages_var.set(f"{SINGLE}")
-        self.roll_buttons["num_pages"] = tk.Entry(self.roll_button_frame, textvariable=self.num_pages_var)
+        self.roll_buttons["num_pages"] = tk.Entry(
+            self.roll_button_frame,
+            textvariable=self.num_pages_var
+        )
         self.roll_buttons["num_pages"].grid(column=1, row=1, sticky=(N, S, E, W))
-        self.roll_buttons["clip_copy"] = ttk.Button(self.roll_button_frame, text="Copy to clipboard", command=self._copy_clip)
+
+        self.roll_buttons["clip_copy"] = ttk.Button(
+            self.roll_button_frame, text="Copy to clipboard",
+            command=self._copy_clip
+        )
         self.roll_buttons["clip_copy"].grid(column=1, row=0, sticky=(N, S, E, W))
-        self.roll_buttons["gen_xls"] = ttk.Button(self.roll_button_frame, text="Generate .xls file", command=self.do_xls)
+
+        self.roll_buttons["gen_xls"] = ttk.Button(
+            self.roll_button_frame,
+            text="Generate .xls file",
+            command=self.do_xls
+        )
         self.roll_buttons["gen_xls"].grid(column=2, row=1, sticky=(N, S, E, W))
-        self.roll_buttons["get_path"] = ttk.Button(self.roll_button_frame, text="Choose path", command=self.do_path)
+
+        self.roll_buttons["get_path"] = ttk.Button(
+            self.roll_button_frame,
+            text="Choose path",
+            command=self.do_path
+        )
         self.roll_buttons["get_path"].grid(column=2, row=0, sticky=(N, S, E, W))
-        self.roll_buttons["set_log"] = ttk.Button(self.roll_button_frame, text="Set log file", command=self.do_set_log)
+
+        self.roll_buttons["set_log"] = ttk.Button(
+            self.roll_button_frame,
+            text="Set log file",
+            command=self.do_set_log
+        )
         self.roll_buttons["set_log"].grid(column=0, row=2, sticky=(N, S, E, W))
-        self.roll_buttons["log_roll"] = ttk.Button(self.roll_button_frame, text="Reroll & log", command=self.do_logroll)
+
+        self.roll_buttons["log_roll"] = ttk.Button(
+            self.roll_button_frame,
+            text="Reroll & log",
+            command=self.do_logroll
+        )
         self.roll_buttons["log_roll"].grid(column=1, row=2, sticky=(N, S, E, W))
-        self.roll_buttons["log"] = ttk.Button(self.roll_button_frame, text="Log the roll", command=self.do_log)
+
+        self.roll_buttons["log"] = ttk.Button(
+            self.roll_button_frame,
+            text="Log the roll",
+            command=self.do_log
+        )
         self.roll_buttons["log"].grid(column=2, row=2, sticky=(N, S, E, W))
 
         # holds the edit buttons; swapped in during edit mode.
@@ -99,21 +140,35 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
 
         # buttons for edit mode
         self.edit_buttons = {}
-        self.edit_buttons["add_item"] = ttk.Button(self.edit_button_frame, text="Add Item", command=self.do_add)
+
+        self.edit_buttons["add_item"] = ttk.Button(
+            self.edit_button_frame,
+            text="Add Item",
+            command=self.do_add
+        )
         self.edit_buttons["add_item"].grid(column=0, row=0, sticky=(N, S, E, W))
-        self.edit_buttons["edit_item"] = ttk.Button(self.edit_button_frame, text="Edit Item", command=self.do_edit)
+
+        self.edit_buttons["edit_item"] = ttk.Button(
+            self.edit_button_frame,
+            text="Edit Item",
+            command=self.do_edit
+        )
         self.edit_buttons["edit_item"].grid(column=0, row=1, sticky=(N, S, E, W))
-        self.edit_buttons["done"] = ttk.Button(self.edit_button_frame, text="Done Editing", command=self.do_done)
+
+        self.edit_buttons["done"] = ttk.Button(
+            self.edit_button_frame,
+            text="Done Editing",
+            command=self.do_done
+        )
         self.edit_buttons["done"].grid(column=1, row=1, sticky=(N, S, E, W))
 
         # configure the grids
-        # self.rowconfigure(1, weight=1)
-        # 3x3 grid
-        for i in range(3):
+
+        for i in range(3):  # 3x3 grid
             self.roll_button_frame.rowconfigure(i, weight=1)
             self.roll_button_frame.columnconfigure(i, weight=1)
-        # 2x2 grid
-        for i in range(2):
+
+        for i in range(2):  # 2x2 grid
             self.edit_button_frame.columnconfigure(i, weight=1)
             self.edit_button_frame.rowconfigure(i, weight=1)
 
@@ -125,8 +180,45 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
             case list() | dat.Formula():
                 return len(item)
 
-    def accept_edit(self, newtext: str):
-        "validate last selection, delete"
+        return len(item) if item else 0
+
+    def _convert(self, text: str):
+        "converts a string to a table or tuple of tables, returns empty string if not safe"
+        if self._is_safe(text):
+            return text
+        # the above if will take care of strings that don't have {} in them
+        if text.count("{") == text.count("}"): # check that we have pairs of {}
+            out = [x for x in self.sep_pat.split(text) if x] # filter empty strings; sep_pat filters out '}'
+            #assert len(out) > 0
+            if len(out) == 1:
+                #assert out[0][0] == "{"
+                if self._is_safe(tab := out[0][1:]):
+                    return self._parent.get_name_index(tab)[1]
+            else:
+                put = []
+                for item in out:
+                    if item[0]=="{":
+                        if self._is_safe(tab := item[1:]):
+                            put.append(self._parent.get_name_index(tab)[1])
+                    elif self._is_safe(item):
+                        put.append(item)
+
+                return tuple(put)
+        return ""
+
+    def convert(self, text: str):
+        "converts a string to a table or tuple of tables, returns empty string if not safe"
+        # only meta formuala's use this list format!
+        if text.count('`') > 0:
+            out = []
+            for txt in self.backtick.split(text):
+                if txt:
+                    out.append(self._convert(txt.strip()))
+            return out
+        return self._convert(text.strip())
+
+    def accept_edit(self, newtext: str): # pylint: disable=too-many-branches,too-many-statements
+        "verify accept and execute edit"
         if self.last_selection is None:
             return
 
@@ -140,41 +232,7 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
                     del self.item.labels[self.last_selection]
                 case list():
                     del self.item[self.last_selection]
-
-        # if we need to reuse this move it at that point.
-        def _convert(text: str):
-            if self._is_safe(text):
-                return text
-            # the above if will take care of strings that don't have {} in them
-            if text.count("{") == text.count("}"): # check that we have pairs of {}
-                out = [x for x in self.sep_pat.split(text) if x] # filter empty strings; sep_pat filters out '}'
-                #assert len(out) > 0
-                if len(out) == 1:
-                    #assert out[0][0] == "{"
-                    if self._is_safe(tab := out[0][1:]):
-                        return self._parent.get_name_index(tab)[1]
-                else:
-                    put = []
-                    for item in out:
-                        if item[0]=="{":
-                            if self._is_safe(tab := item[1:]):
-                                put.append(self._parent.get_name_index(tab)[1])
-                        elif self._is_safe(item):
-                            put.append(item)
-
-                    return tuple(put)
-            return ""
-
-        # if we need to reuse this move it at that point.
-        def convert(text: str):
-            # only meta formuala's use this list format!
-            if text.count('`') > 0:
-                out = []
-                for txt in self.backtick.split(text):
-                    if txt:
-                        out.append(_convert(txt.strip()))
-                return out
-            return _convert(text.strip())
+            return
 
         match (self.item):
             case dat.MetaFormula():
@@ -183,7 +241,7 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
                         s.strip() for s in self.semi.split(newtext)
                     )
                 else:
-                    if txt := convert(newtext):
+                    if txt := self.convert(newtext):
                         self.item.formula[self.last_selection-1] = dat.Formula(
                             txt,
                             self.item.labels,
@@ -195,11 +253,11 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
                 if mat := self.label_pat.match(newtext):
                     label, text = mat.groups()
                     if self._is_safe(label):
-                        if txt := convert(text):
+                        if txt := self.convert(text):
                             self.item.formula[self.last_selection] = txt
                             self.item.labels[self.last_selection] = label.strip()
             case list():
-                if txt := convert(newtext):
+                if txt := self.convert(newtext):
                     self.item[self.last_selection] = txt
 
         self.set_item_edit()
@@ -236,8 +294,10 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
 
             match self._parent.state:
                 case State.ROLL:
+                    self.title_var.set(f'Rolling "{name}"')
                     self.set_item_roll()
                 case State.EDIT:
+                    self.title_var.set(f'Editing "{name}"')
                     self.set_item_edit()
                 case _:
                     pass
@@ -246,6 +306,7 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
         else:
             if self._parent.state == State.ROLL:
                 self.item_name, self.item = "", []
+                self.title_var.set("Results")
                 self.set_result([])
                 self.ungrid_set()
 
@@ -463,4 +524,3 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
                 return f"{"".join(self.get_name(itm) for itm in item)}"
             case str():
                 return item
-

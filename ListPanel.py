@@ -4,13 +4,13 @@ import re
 import tkinter as tk
 from tkinter import E, N, S, W, ttk
 from typing import Literal
-import autoScrollBar
+import AutoScrollBar
 
 from enums import HEIGHT, WIDTH
 
 ROW = 0
 
-class ListPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-instance-attributes
+class ListPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-instance-attributes,invalid-name
     """
     Abstract base class ListPanel has:
         a list box, and behavior for a sublasses to use
@@ -24,7 +24,8 @@ class ListPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
         cancel_edit() - called when an inplace edit is canceled
         drag() - called when a drag and drop reordering is completed
     """
-    OUR_ROW = 0
+    TITLE_ROW = 0
+    OUR_ROW = 1
     ROW = OUR_ROW + 2
     def __init__(self, parent, column, drag=False, **kwargs):
         "initialize parent frame and grid ouselves"
@@ -35,6 +36,11 @@ class ListPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
         # safe text pattern we want to preserve ';{}`' for delimiter use
         self.safepat = re.compile(r"[\w,|&:+()\[\] ]+")
         self.drag_start = None
+
+        self.title_var = tk.StringVar()
+        self.title = ttk.Label(self, textvariable=self.title_var, anchor="center")
+        self.title.grid(column=0, row=self.TITLE_ROW, sticky=(N, S, E, W))
+        self.title_var.set("Title")
 
         # listbox choices
         self.choices: list[str] = []
@@ -51,11 +57,11 @@ class ListPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
 
         # scroll bars for listbox # no easy way to hide when not needed (subclass overide disable?)
         # it might be possible to hook when the scrollbars change, and see if they need to be degridded?
-        self.scrolly = autoScrollBar.AutoScrollbar(self, command=self.lbox.yview)
+        self.scrolly = AutoScrollBar.AutoScrollBar(self, command=self.lbox.yview)
         self.lbox.configure(yscrollcommand=self.scrolly.set)
         self.scrolly.grid(row=self.OUR_ROW, column=1, sticky=(N, S))
 
-        self.scrollx = autoScrollBar.AutoScrollbar(self, orient="horizontal", command=self.lbox.xview)
+        self.scrollx = AutoScrollBar.AutoScrollBar(self, orient="horizontal", command=self.lbox.xview)
         self.lbox.configure(xscrollcommand=self.scrollx.set)
         self.scrollx.grid(row=self.OUR_ROW+1, column=0, sticky=(E, W))
 

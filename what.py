@@ -20,6 +20,8 @@ class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
 
         self.lbox.bind("<Double-1>", self.edit_cat)
 
+        self.title_var.set("What")
+
         # radio button set
         self.mode_var = tk.StringVar()
 
@@ -140,7 +142,7 @@ class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
 
         # zero is allowed, so we need to check for None, not False
         if (sel := self._sel()) is not None:
-            self._parent.set_page(self.what_list[sel])
+            self._parent.set_page(self.choices[sel], self.what_list[sel])
 
             # clear results if we are in the roll state
             if self._parent.state == State.ROLL:
@@ -169,8 +171,25 @@ class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
 
     def add_to_all(self, tab: tuple[str, table]):
         "add a new table to the all list"
-        if not self._parent.has_name(tab[0]): # n.b. double check when our caller checks first
+        if not self._is_safe(tab[0]):
+            return False
+
+        if not self._parent.has_name(tab[0]): 
             self.what_list[0].append(tab)
+            return True
+
+        return False
+
+    def add_to_cur(self, tab: tuple[str, table]):
+        "add a new table to the current list and the all list"
+        if not self._is_safe(tab[0]):
+            return False
+
+        if not self._parent.has_name(tab[0]):
+            self.what_list[0].append(tab)
+            self.what_list[self.last_selection].append(tab)
+            return True
+        return False
 
     def delete_from_all(self, name):
         "checks if we are in 'all tabels' and call delete from all"

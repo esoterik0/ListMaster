@@ -1,20 +1,21 @@
 "the main panel: holds all the panels; main frame in root window"
 
+import re
 from tkinter import E, N, S, W, messagebox, ttk
 
 import dill as pickle
-from PanelCom import PanelCom
 
 import gendata as dat
-from enums import HEIGHT, WIDTH, State, table, COLWEIGHT
+from enums import COLWEIGHT, HEIGHT, WIDTH, State, table
 from page import PagePanel
+from PanelCom import PanelCom
 from results import ResultsPanel
 from what import WhatPanel
 
 FNAME = "tables.dat"
 
 
-class MainPanel(ttk.Frame, PanelCom):  # pylint: disable=too-many-ancestors
+class MainPanel(ttk.Frame, PanelCom):  # pylint: disable=too-many-ancestors,too-many-instance-attributes,too-many-public-methods
     """
     Main frame for the UI
 
@@ -46,6 +47,8 @@ class MainPanel(ttk.Frame, PanelCom):  # pylint: disable=too-many-ancestors
         # we start without a selection set.
         self._result.ungrid_set()
 
+        self.numcut = re.compile(r"^[\d\.\,\;\:]+")  # ^ to garantee we only match at the start of the string.
+
         # initial state
         self.state = State.ROLL
         self._fname = FNAME
@@ -61,9 +64,9 @@ class MainPanel(ttk.Frame, PanelCom):  # pylint: disable=too-many-ancestors
         for panel in [self._what, self._page, self._result]:
             panel.set_state()
 
-    def set_page(self, page: list[table]):
+    def set_page(self, name: str, page: list[table]):
         "set page panel contents"
-        self._page.set_page(page)
+        self._page.set_page(name, page)
 
     def set_result_item(self, form: tuple[str, dat.Formula] | tuple[str, table] = ("", [])):
         "set the table for the result page to use"
@@ -245,19 +248,53 @@ class MainPanel(ttk.Frame, PanelCom):  # pylint: disable=too-many-ancestors
 
         self._clear_panels()
 
-    # numcut_pat = r"[\d\.\,\;\:]+"
     def do_import_pdf(self, file: str):
         "import from pdf"
         # TODO::
 
-    def do_import_txt(self, file: str):
-        "import from txt"
-        # TODO::
+    def do_import_txt(self, filename: str) -> bool:
+        "import from txt file"
+        title, _ = self._get_title_path_from_file(filename)
+        list = []
+        with open(filename, "r", encoding="utf-8") as f:
+            list = f.readlines()
+
+        list = self._filter_list(list)
+        return self._insert_new_table(title, list)
+
+    def _insert_new_table(self, title: str, list: list[str]) -> bool:
+        "insert a new table into the all tables list"
+        if not self.name_available(title):
+            messagebox.showerror(
+                message=f"Table name '{title}' already exists, please rename the file and try again.",
+                title="Table name already exists"
+            )
+            return False
+
+        return self._what.add_to_cur((title, list))
+
+    def _filter_list(self, lst: list[str]) -> list[str]:
+        "filters a table to remove empty lines and leading numbers"
+        lst = [self.numcut.split(x)[1].strip() for x in lst]
+        lst = [x for x in lst if x]  # remove empty strings
+        return lst
 
     ###########################################################################
     # helpers
+    def _get_title_path_from_file(self, file: str):
+        "gets the title from a filename"
+        path = ""
+        if x := max(file.rfind('/'), file.rfind('\\')) >= 0:
+            path = file[0:x]
+            file = file[x+1:]
+
+        if x := file.rfind('.'):
+            file = file[0:x]
+
+
+        return file, path
 
     def _clear_panels(self):
         "clear other panels"
-        self._page.set_page([])
+        self._page.set_page("", [])
         self.set_result_item()

@@ -1,4 +1,4 @@
-"Interface class for man-sub panel communications"
+"Interface class for main<->sub panel communications"
 import gendata as dat
 from enums import State, table
 
@@ -21,7 +21,7 @@ class PanelCom:
         "sets the internal state based on value"
         raise NotImplementedError
 
-    def set_page(self, page: list[table]):
+    def set_page(self, name: str, page: list[table]):
         "set page panel contents"
         raise NotImplementedError
 
