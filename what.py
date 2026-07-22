@@ -8,7 +8,7 @@ from gendata import Formula, MetaFormula
 from ListPanel import ListPanel
 from PanelCom import PanelCom
 
-ROW = 2
+ROW = 1
 
 
 class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-instance-attributes
