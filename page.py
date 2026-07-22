@@ -9,6 +9,7 @@ from gendata import Formula, MetaFormula
 from ListPanel import ListPanel
 from PanelCom import PanelCom
 
+ROW = 2
 
 class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-instance-attributes
     "generates the page frame, for choosing, inspecting, or editing which 'page', formula or table"
@@ -22,7 +23,7 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
 
         # buttons for ROLL mode
         self.button_frame_roll = ttk.Frame(self)
-        self.button_frame_roll.grid(column=0, row=2, sticky=(E, W))
+        self.button_frame_roll.grid(column=0, row=ROW, sticky=(E, W))
 
         # radio button set
         self.filter_var = tk.StringVar()
@@ -61,7 +62,7 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
 
         # buttons for EDIT mode
         self.button_frame_edit = ttk.Frame(self)
-        self.button_frame_edit.grid(column=0, row=3, sticky=(E, W))
+        self.button_frame_edit.grid(column=0, row=ROW+1, sticky=(E, W))
         self.button_frame_edit.grid_remove()
 
         self.new_meta = ttk.Button(self.button_frame_edit, text="New Meta Formula", command=self.do_new_meta, default='disabled')

@@ -24,12 +24,14 @@ class ListPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
         cancel_edit() - called when an inplace edit is canceled
         drag() - called when a drag and drop reordering is completed
     """
+    OUR_ROW = 0
+    ROW = OUR_ROW + 2
     def __init__(self, parent, column, drag=False, **kwargs):
         "initialize parent frame and grid ouselves"
         super().__init__(parent, borderwidth=5, relief="ridge", **kwargs)
-        self.grid(column=column, row=ROW, sticky=(N, S, E, W))
+        self.grid(column=column, row=0, sticky=(N, S, E, W))
         self.last_selection = None
-        self.edit = None  # to allow out of band exit.
+        self.edit = None  # to allow out of band exit, i.e. .widget.destroy()
         # safe text pattern we want to preserve ';{}`' for delimiter use
         self.safepat = re.compile(r"[\w,|&:+()\[\] ]+")
         self.drag_start = None
@@ -40,7 +42,7 @@ class ListPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
 
         # listbox
         self.lbox = tk.Listbox(self, listvariable=self.choice_var, width=int(WIDTH/5), height=HEIGHT)
-        self.lbox.grid(column=0, row=ROW, sticky=(N, S, E, W))
+        self.lbox.grid(column=0, row=self.OUR_ROW, sticky=(N, S, E, W))
         self.lbox.bind("<<ListboxSelect>>", self._do_lbox_sel)
 
         if drag: # we only bind drag events if we are a drag enabled listbox
@@ -51,15 +53,17 @@ class ListPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
         # it might be possible to hook when the scrollbars change, and see if they need to be degridded?
         self.scrolly = autoScrollBar.AutoScrollbar(self, command=self.lbox.yview)
         self.lbox.configure(yscrollcommand=self.scrolly.set)
-        self.scrolly.grid(row=ROW, column=1, sticky=(N, S))
+        self.scrolly.grid(row=self.OUR_ROW, column=1, sticky=(N, S))
 
         self.scrollx = autoScrollBar.AutoScrollbar(self, orient="horizontal", command=self.lbox.xview)
         self.lbox.configure(xscrollcommand=self.scrollx.set)
-        self.scrollx.grid(row=1, column=0, sticky=(E, W))
+        self.scrollx.grid(row=self.OUR_ROW+1, column=0, sticky=(E, W))
 
         #configure ourselves
-        self.rowconfigure(ROW, weight=1)
+        self.rowconfigure(self.OUR_ROW, weight=1)
+        self.rowconfigure(self.ROW, weight=1)
         self.columnconfigure(0, weight=1)
+
     def _update_lbox(self):
         """
         Updates the what_choice_var to self.choices

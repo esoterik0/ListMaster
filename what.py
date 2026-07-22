@@ -8,9 +8,6 @@ from gendata import Formula, MetaFormula
 from ListPanel import ListPanel
 from PanelCom import PanelCom
 
-ROW = 1
-
-
 class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-instance-attributes
     "generates the What panel, for choosing what top level category to use"
     def __init__(self, parent: PanelCom, **kwargs):
@@ -19,7 +16,7 @@ class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
 
         self.what_list: list[tuple[str, table]] = []
         self.button_frame = ttk.Frame(self)
-        self.button_frame.grid(column=0, row=ROW, sticky=(E, W))
+        self.button_frame.grid(column=0, row=self.ROW, sticky=(E, W))
 
         self.lbox.bind("<Double-1>", self.edit_cat)
 
