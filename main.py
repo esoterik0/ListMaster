@@ -255,23 +255,23 @@ class MainPanel(ttk.Frame, PanelCom):  # pylint: disable=too-many-ancestors,too-
     def do_import_txt(self, filename: str) -> bool:
         "import from txt file"
         title, _ = self._get_title_path_from_file(filename)
-        list = []
+        lst = []
         with open(filename, "r", encoding="utf-8") as f:
-            list = f.readlines()
+            lst = f.readlines()
 
-        list = self._filter_list(list)
-        return self._insert_new_table(title, list)
+        lst = self._filter_list(lst)
+        return self._insert_new_table(title, lst)
 
-    def _insert_new_table(self, title: str, list: list[str]) -> bool:
+    def _insert_new_table(self, title: str, lst: list[str]) -> bool:
         "insert a new table into the all tables list"
         if not self.name_available(title):
             messagebox.showerror(
-                message=f"Table name '{title}' already exists, please rename the file and try again.",
+                message=f"Table name '{title}' already exists,\n please rename the file and try again.",
                 title="Table name already exists"
-            )
+            )  # consider merging the tables.
             return False
 
-        return self._what.add_to_cur((title, list))
+        return self._what.add_to_cur((title, lst))
 
     def _filter_list(self, lst: list[str]) -> list[str]:
         "filters a table to remove empty lines and leading numbers"
