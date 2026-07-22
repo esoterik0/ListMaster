@@ -4,9 +4,11 @@ import re
 import tkinter as tk
 from tkinter import E, N, S, W, ttk
 from typing import Literal
+import autoScrollBar
 
 from enums import HEIGHT, WIDTH
 
+ROW = 0
 
 class ListPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-instance-attributes
     """
@@ -25,7 +27,7 @@ class ListPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
     def __init__(self, parent, column, drag=False, **kwargs):
         "initialize parent frame and grid ouselves"
         super().__init__(parent, borderwidth=5, relief="ridge", **kwargs)
-        self.grid(column=column, row=0, sticky=(N, S, E, W))
+        self.grid(column=column, row=ROW, sticky=(N, S, E, W))
         self.last_selection = None
         self.edit = None  # to allow out of band exit.
         # safe text pattern we want to preserve ';{}`' for delimiter use
@@ -38,7 +40,7 @@ class ListPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
 
         # listbox
         self.lbox = tk.Listbox(self, listvariable=self.choice_var, width=int(WIDTH/5), height=HEIGHT)
-        self.lbox.grid(column=0, row=0, sticky=(N, S, E, W))
+        self.lbox.grid(column=0, row=ROW, sticky=(N, S, E, W))
         self.lbox.bind("<<ListboxSelect>>", self._do_lbox_sel)
 
         if drag: # we only bind drag events if we are a drag enabled listbox
@@ -47,20 +49,17 @@ class ListPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
 
         # scroll bars for listbox # no easy way to hide when not needed (subclass overide disable?)
         # it might be possible to hook when the scrollbars change, and see if they need to be degridded?
-        self.scrolly = ttk.Scrollbar(self, command=self.lbox.yview)
+        self.scrolly = autoScrollBar.AutoScrollbar(self, command=self.lbox.yview)
         self.lbox.configure(yscrollcommand=self.scrolly.set)
-        self.scrolly.grid(row=0, column=1, sticky=(N, S))
+        self.scrolly.grid(row=ROW, column=1, sticky=(N, S))
 
-        self.scrollx = ttk.Scrollbar(self, orient="horizontal", command=self.lbox.xview)
+        self.scrollx = autoScrollBar.AutoScrollbar(self, orient="horizontal", command=self.lbox.xview)
         self.lbox.configure(xscrollcommand=self.scrollx.set)
         self.scrollx.grid(row=1, column=0, sticky=(E, W))
 
         #configure ourselves
-        self.rowconfigure(0, weight=1)
+        self.rowconfigure(ROW, weight=1)
         self.columnconfigure(0, weight=1)
-        self.rowconfigure(1, weight=1)
-        self.columnconfigure(1, weight=1)
-        self.rowconfigure(2, weight=1)
     def _update_lbox(self):
         """
         Updates the what_choice_var to self.choices
