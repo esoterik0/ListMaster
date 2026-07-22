@@ -11,7 +11,7 @@ from ListPanel import ListPanel
 from PanelCom import PanelCom
 
 LOG = "rolls.log"
-DRAG = False  # make the parameter obvious in the super call.
+DRAG = True  # make the parameter obvious in the super call.
 
 
 class Widgets(Enum):
@@ -66,7 +66,7 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
 
         # holds the roll buttons, it can be swaped with a different frame
         self.roll_button_frame = ttk.Frame(self)
-        self.roll_button_frame.grid(column=0, row=3, sticky=(E, W))
+        self.roll_button_frame.grid(column=0, row=self.ROW, sticky=(E, W))
         self.roll_button_frame.grid_remove()
 
         # buttons for roll mode
@@ -94,7 +94,7 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
 
         # holds the edit buttons; swapped in during edit mode.
         self.edit_button_frame = ttk.Frame(self)
-        self.edit_button_frame.grid(column=0, row=3, sticky=(E, W))
+        self.edit_button_frame.grid(column=0, row=self.ROW, sticky=(E, W))
         self.edit_button_frame.grid_remove()
 
         # buttons for edit mode

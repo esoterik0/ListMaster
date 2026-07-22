@@ -61,7 +61,7 @@ class ListPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
 
         #configure ourselves
         self.rowconfigure(self.OUR_ROW, weight=1)
-        self.rowconfigure(self.ROW, weight=1)
+        # self.rowconfigure(self.ROW, weight=1)
         self.columnconfigure(0, weight=1)
 
     def _update_lbox(self):
