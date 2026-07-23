@@ -156,9 +156,6 @@ class MainPanel(ttk.Frame, PanelCom):  # pylint: disable=too-many-ancestors,too-
 
     def delete_from_all(self, name):
         "delete a table from the 'all tables' table as well as every other tables"
-        if self._what.last_selection != 0:
-            return False
-
         if bool( # bool may not be needed could use == True, which is basically the same
             messagebox.askyesnocancel(
                 message="Are you sure you want to DELETE from all?",
@@ -254,12 +251,13 @@ class MainPanel(ttk.Frame, PanelCom):  # pylint: disable=too-many-ancestors,too-
 
     def do_import_txt(self, filename: str) -> bool:
         "import from txt file"
-        title, _ = self._get_title_path_from_file(filename)
+        title, _, _ = self._get_title_path_ext_from_file(filename)
         lst = []
         with open(filename, "r", encoding="utf-8") as f:
             lst = f.readlines()
 
         lst = self._filter_list(lst)
+        # TODO:: add a dialog which has the title and the list, and allows the user to edit the title and list before adding it to the lists.
         return self._insert_new_table(title, lst)
 
     ###########################################################################
@@ -282,18 +280,19 @@ class MainPanel(ttk.Frame, PanelCom):  # pylint: disable=too-many-ancestors,too-
         lst = [x for x in lst if x]  # remove empty strings
         return lst
 
-    def _get_title_path_from_file(self, file: str):
+    def _get_title_path_ext_from_file(self, fname: str):
         "gets the title from a filename"
         path = ""
-        if x := max(file.rfind('/'), file.rfind('\\')) >= 0:
-            path = file[0:x]
-            file = file[x+1:]
+        if (x := max(fname.rfind('/'), fname.rfind('\\'))) >= 0:
+            path = fname[0:x]
+            fname = fname[x+1:]
 
-        if x := file.rfind('.'):
-            file = file[0:x]
+        ext = ""
+        if (x := fname.rfind('.')) >= 0:
+            ext = fname[x+1:]
+            fname = fname[0:x]
 
-
-        return file, path
+        return fname, path, ext
 
     def _clear_panels(self):
         "clear other panels"
