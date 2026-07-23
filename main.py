@@ -262,6 +262,9 @@ class MainPanel(ttk.Frame, PanelCom):  # pylint: disable=too-many-ancestors,too-
         lst = self._filter_list(lst)
         return self._insert_new_table(title, lst)
 
+    ###########################################################################
+    # helpers
+
     def _insert_new_table(self, title: str, lst: list[str]) -> bool:
         "insert a new table into the all tables list"
         if not self.name_available(title):
@@ -279,8 +282,6 @@ class MainPanel(ttk.Frame, PanelCom):  # pylint: disable=too-many-ancestors,too-
         lst = [x for x in lst if x]  # remove empty strings
         return lst
 
-    ###########################################################################
-    # helpers
     def _get_title_path_from_file(self, file: str):
         "gets the title from a filename"
         path = ""
