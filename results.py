@@ -265,10 +265,10 @@ class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-in
     def drag(self, start, end):
         "do the drag"
 
-        if self.item is None:
+        if self._parent.state != State.EDIT:
             return
 
-        if self._parent.state != State.EDIT:
+        if self.item is None:
             return
 
         if isinstance(self.item, dat.MetaFormula):
