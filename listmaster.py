@@ -50,7 +50,7 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
         self.file_menu.add_command(label="Reset to defaults", command=self.on_reset)
         self.file_menu.add_separator()
         self.file_menu.add_command(label="Load", command=self.on_load)  # Replaces the data
-        self.file_menu.add_command(label="Import", command=self.on_import)  # Adds the the data
+        self.file_menu.add_command(label="Import Database", command=self.on_import)  # Adds the the data
         self.file_menu.add_separator()
         self.file_menu.add_command(label="Save", command=self.on_save)  # Save over the current file
         self.file_menu.add_command(label="Save as", command=self.on_save_as)  # Save to a New file
@@ -58,10 +58,10 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
         self.file_menu.add_command(label="Save & Quit", command=self.on_save_quit)
         self.file_menu.add_command(label="Just Quit (No prompt)", command=self.on_quit)
         self.menu.add_cascade(menu=self.file_menu, label="File")  # put file menu in root
-        # self.import_menu = tk.Menu(self.menu)
+        self.import_menu = tk.Menu(self.menu)
         # self.import_menu.add_command(label="Import list (pdf)", command=self.on_import_pdf)
-        # self.import_menu.add_command(label="Import list (txt)", command=self.on_import_txt)
-        # self.menu.add_cascade(menu=self.import_menu, label="Import")  # put import menu in root
+        self.import_menu.add_command(label="Import list (txt)", command=self.on_import_txt)
+        self.menu.add_cascade(menu=self.import_menu, label="Import")  # put import menu in root
         self.root["menu"] = self.menu  # set root menu
 
         font.nametofont("TkDefaultFont").configure(size=TEXTSIZE)
