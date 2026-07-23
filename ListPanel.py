@@ -10,12 +10,12 @@ from enums import HEIGHT, WIDTH
 
 ROW = 0
 
-class ListPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-instance-attributes,invalid-name
+class ListPanelABC(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-instance-attributes,invalid-name
     """
     Abstract base class ListPanel has:
         a list box, and behavior for a sublasses to use
         .safe() - a regex check for safe text
-        inplace edditing
+        inplace editing
         drag and drop reordering
     Subclasses must implement:
         do_lbox_sel() - called when the listbox selection changes
@@ -113,8 +113,8 @@ class ListPanel(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-insta
 
     def look(self):
         "activates and scrolls to the last selection"
-        self.lbox.activate(self.last_selection)
         self.lbox.see(self.last_selection)
+        self.lbox.activate(self.last_selection)
 
     def do_lbox_sel(self, *args):
         "Must be overridden by subclass; subclasses have different behavior."
