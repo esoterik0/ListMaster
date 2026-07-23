@@ -13,8 +13,6 @@
     +export all tables to txt. single/multiple file
 """
 
-# TODO:: implement delete from all
-
 import os
 import tkinter as tk
 from tkinter import filedialog, font, messagebox
