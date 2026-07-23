@@ -65,6 +65,3 @@ class PanelCom:
         "copy to the clipboard"
         raise NotImplementedError
 
-    def check_delete_from_all(self, name):
-        "returns trues if deleted from all"
-        raise NotImplementedError

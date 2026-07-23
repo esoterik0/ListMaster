@@ -7,7 +7,7 @@ from tkinter import E, N, S, W, filedialog, ttk
 
 import gendata as dat
 from enums import SINGLE, State, table
-from ListPanel import ListPanel
+from ListPanel import ListPanelABC
 from PanelCom import PanelCom
 
 LOG = "rolls.log"
@@ -29,7 +29,7 @@ def int_nun(s: str) -> int | None:
         return None
 
 
-class ResultsPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-instance-attributes
+class ResultsPanel(ListPanelABC):  # pylint: disable=too-many-ancestors,too-many-instance-attributes
     """
     generates the result panel frame
     displays results

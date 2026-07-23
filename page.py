@@ -6,11 +6,11 @@ from tkinter.simpledialog import askstring
 
 from enums import ItemColor, ItemType, State
 from gendata import Formula, MetaFormula
-from ListPanel import ListPanel
+from ListPanel import ListPanelABC
 from PanelCom import PanelCom
 
 
-class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-instance-attributes
+class PagePanel(ListPanelABC):  # pylint: disable=too-many-ancestors,too-many-instance-attributes
     "generates the page frame, for choosing, inspecting, or editing which 'page', formula or table"
 
     def __init__(self, parent: PanelCom, **kwargs):
@@ -122,6 +122,7 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
 
         self._cur_page = None
         self._filter_page = None
+        self._name = None
 
     def set_filter(self):
         "handles the filter radio button"
@@ -135,7 +136,7 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
             case _:
                 self.filter_type = None
 
-        self.set_page(self.title_var.get(), self._cur_page)
+        self.set_page(self._name, self._cur_page)
 
     def accept_edit(self, newtext: str) -> bool:
         "Must be overridden to edit"
@@ -149,7 +150,7 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
         if name == "":
             self._parent.add_to_all(tup := (newtext, self._cur_page[self.last_selection][1]))
             self._cur_page[self.last_selection] = tup
-            self.set_page(self.title_var.get(), self._cur_page)
+            self.set_page(self._name, self._cur_page)
 
 
         if newtext == "":  # we can delete locally if we want to.
@@ -163,11 +164,12 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
                 if x[0] == name:
                     self._parent.rename(name, newtext) # change all
                     break
-            self.set_page(self.title_var.get(), self._cur_page)
+            self.set_page(self._name, self._cur_page)
 
-    def set_page(self, name: str, lst: list | None, sort = True):
+    def set_page(self, name: str | None, lst: list | None, sort = True):
         "sets the contents of the page panel"
-        if name:
+        self._name = name
+        if self._name:
             self.title_var.set(f'Page "{name}"')
         else:
             self.title_var.set("Page")
@@ -244,11 +246,10 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
 
         form = Formula([], [], name)
         self._cur_page.append((name, form))
-        self.set_page(self._cur_page, False)
+        self.set_page(self._name, self._cur_page, False)
         self.last_selection = len(self._filter_page)-1
         self.look()
         return self._start_edit("New Formula")
-
 
     def do_new_list(self):
         "handle new list button"
@@ -258,16 +259,12 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
         if self.filter_type and self.filter_type != list:
             return "continue"
 
-        name = ""
+        self._cur_page.append(("", []))
+        self.set_page(self._name, self._cur_page, False)
+        self.last_selection = len(self._filter_page)-1
+        self.look()
+        return self._start_edit("New List")
 
-        if self._parent.name_available(name):
-            self._cur_page.append((name, []))
-            self.set_page(self._cur_page, False)
-            self.last_selection = len(self._filter_page)-1
-            self.look()
-            return self._start_edit("New List")
-
-        return "continue"
 
     def do_new_meta(self):
         "handle new MetaFormula button"
@@ -317,4 +314,4 @@ class PagePanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
         _, tab = self._parent.get_name_index(newitem)
         if tab is not None:
             self._cur_page.append((newitem, tab))
-            self.set_page(self.title_var.get(), self._cur_page)
+            self.set_page(self._name, self._cur_page)

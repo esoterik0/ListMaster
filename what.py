@@ -5,10 +5,10 @@ from tkinter import E, N, S, W, messagebox, ttk
 
 from enums import State, table
 from gendata import Formula, MetaFormula
-from ListPanel import ListPanel
+from ListPanel import ListPanelABC
 from PanelCom import PanelCom
 
-class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-instance-attributes
+class WhatPanel(ListPanelABC):  # pylint: disable=too-many-ancestors,too-many-instance-attributes
     "generates the What panel, for choosing what top level category to use"
     def __init__(self, parent: PanelCom, **kwargs):
         super().__init__(parent, column=0, drag=True, **kwargs)
@@ -131,8 +131,6 @@ class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
         self.what_list[start], self.what_list[end] = self.what_list[end], self.what_list[start]
         self._update_lbox()
 
-        # super().drag(start, end)
-
     def get_what(self) -> tuple[list[tuple[str, table]], list[str]]:
         "gets the top level what lists"
         return self.what_list, self.choices
@@ -174,7 +172,7 @@ class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
         if not self._is_safe(tab[0]):
             return False
 
-        if not self._parent.has_name(tab[0]): 
+        if not self._parent.has_name(tab[0]):
             self.what_list[0].append(tab)
             return True
 
@@ -188,16 +186,21 @@ class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
         if not self._parent.has_name(tab[0]):
             self.what_list[0].append(tab)
             self.what_list[self.last_selection].append(tab)
+            self._parent.set_page(  # reload the current page with the new table added
+                self.choices[self.last_selection],
+                self.what_list[self.last_selection]
+            )
             return True
+
         return False
 
     def delete_from_all(self, name):
-        "checks if we are in 'all tabels' and call delete from all"
-        if self.last_selection == 0:
-            self._delete_from_all(name)
-            return True
-
-        return False
+        "delete from all tables, and all other tables"
+        for j, lst in enumerate(self.what_list):
+            for i, x in enumerate(lst):
+                if x[0] == name:
+                    del self.what_list[j][i]
+                    break
 
     def rename(self, name: str, newname: str):
         "renames a table in the all list"
@@ -212,7 +215,3 @@ class WhatPanel(ListPanel):  # pylint: disable=too-many-ancestors,too-many-insta
                             x[1].name = newname
                     self.what_list[j][i] = (newname, x[1])
                     break
-
-    def _delete_from_all(self, name):
-        "actually deletes from all tables, 'all tables' included"
-        # TODO:: implement delete from all
