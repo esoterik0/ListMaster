@@ -156,9 +156,9 @@ class import_txt(import_base):  # pylint: disable=too-many-instance-attributes
                     lst = f.readlines()
 
                 lst = self._filter_list(lst)
-                self.frame.columnconfigure(1, weight=1)
-                edit_panel = ListEditPanel(self, self.winfo_toplevel(), 1)
+                edit_panel = ListEditPanel(self, self.winfo_toplevel())
                 self.lists.append(edit_panel)
+                self.frame.columnconfigure(1, weight=1)
                 edit_panel.grid(row=0, column=1)
                 edit_panel.title_var.set(title)
                 edit_panel.choices = lst
@@ -202,7 +202,7 @@ class import_txt(import_base):  # pylint: disable=too-many-instance-attributes
 
                     col = len(self.lists)
                     self.frame.columnconfigure(col, weight=1)
-                    edit_panel = ListEditPanel(self, self.winfo_toplevel(), col)
+                    edit_panel = ListEditPanel(self, self.winfo_toplevel())
                     self.lists.append(edit_panel)
                     edit_panel.grid(row=0, column=col)
                     edit_panel.title_var.set(title)
