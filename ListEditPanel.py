@@ -19,7 +19,6 @@ class ListEditPanel(ListPanelABC):  # pylint: disable=too-many-ancestors,too-man
         self.title = ttk.Entry(
             self,
             textvariable=self.title_var,
-            anchor="center",
             validate="key",
             validatecommand=self.title_val
         )
