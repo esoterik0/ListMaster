@@ -14,7 +14,7 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
     "generates the page frame, for choosing, inspecting, or editing which 'page', formula or table"
 
     def __init__(self, parent: PanelCom, **kwargs):
-        super().__init__(parent, column=1, drag=False, **kwargs)
+        super().__init__(parent, drag=False, **kwargs)
         self._parent: PanelCom = parent
         self.filter_type = None
 

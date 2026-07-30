@@ -42,7 +42,7 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
     def __init__(self, parent: PanelCom, **kwargs):  # pylint: disable=too-many-statements
         "initialize the results panel, create and grid the widgets"
         # initialize ...
-        super().__init__(parent, column=2, drag=True, **kwargs)  #  .. our super class
+        super().__init__(parent, drag=True, **kwargs)  #  .. our super class
         self._parent: PanelCom = parent
 
         # state variables

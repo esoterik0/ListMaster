@@ -36,8 +36,13 @@ class MainPanel(ttk.Frame, PanelCom):  # pylint: disable=too-many-ancestors,too-
 
         # all the panels of our application
         self._what = WhatPanel(self)  # A book, set, list, etc. A collection of rollables
+        self._what.grid(column=0, row=0, sticky=(N, S, E, W))
+
         self._page = PagePanel(self)  # A page is a list of rollables, in a collection
+        self._page.grid(column=1, row=0, sticky=(N, S, E, W))
+
         self._result = ResultsPanel(self)  # this is the resulst of rolling the rollabable
+        self._result.grid(column=2, row=0, sticky=(N, S, E, W))
 
         # our panel are arranged horizontally, in a single row.
         self.rowconfigure(0, weight=1)

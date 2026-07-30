@@ -22,14 +22,14 @@ class ListPanelABC(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
         cancel_edit() - called when an inplace edit is canceled
         drag() - called when a drag and drop reordering is completed
     """
-    def __init__(self, parent, column, drag=False, **kwargs):
+    def __init__(self, parent, drag=False, **kwargs):
         "initialize parent frame and grid ouselves"
         super().__init__(parent, borderwidth=5, relief="ridge", **kwargs)
         self.TOP_ROW = 0
         self.LIST_ROW = 1
         self.ROW = self.LIST_ROW + 2
 
-        self.grid(column=column, row=0, sticky=(N, S, E, W))
+        #self.grid(column=column, row=0, sticky=(N, S, E, W))
         self.last_selection = None
         self.edit = None  # to allow out of band exit, i.e. .widget.destroy()
         # safe text pattern we want to preserve ';{}`' for delimiter use

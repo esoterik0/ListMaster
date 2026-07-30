@@ -12,9 +12,8 @@ from PanelCom import PanelCom
 class WhatPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-many-instance-attributes
     "generates the What panel, for choosing what top level category to use"
     def __init__(self, parent: PanelCom, **kwargs):
-        super().__init__(parent, column=0, drag=True, **kwargs)
+        super().__init__(parent, drag=True, **kwargs)
         self._parent: PanelCom = parent
-
         self.what_list: list[tuple[str, table]] = []
         self.button_frame = ttk.Frame(self)
         self.button_frame.grid(column=0, row=self.ROW, sticky=(E, W))

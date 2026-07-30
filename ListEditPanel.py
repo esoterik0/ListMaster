@@ -10,8 +10,8 @@ class ListEditPanel(ListPanelABC):  # pylint: disable=too-many-ancestors,too-man
     """
     Panel for editing list items, with an editable title at the top of the listbox
     """
-    def __init__(self, parent, column: int, root: tk.Tk | tk.Toplevel, **kwargs):
-        super().__init__(parent, column **kwargs)
+    def __init__(self, parent, root: tk.Tk | tk.Toplevel, **kwargs):
+        super().__init__(parent, **kwargs)
 
         # setup title label, stringvar to control it, and validation.
         self.title_val = (root.register(self._is_safe), "%P")
