@@ -11,6 +11,7 @@ from page import PagePanel
 from PanelCom import PanelCom
 from results import ResultsPanel
 from what import WhatPanel
+from import_txt import import_txt
 
 FNAME = "tables.dat"
 
@@ -55,7 +56,7 @@ class MainPanel(ttk.Frame, PanelCom):  # pylint: disable=too-many-ancestors,too-
         self.do_try_load()
 
     ###########################################################################
-    # main panel state sub panle interop
+    # main panel state sub panel interop
 
     def set_state(self, state: State):
         "sets the internal state value to a state"
@@ -79,6 +80,23 @@ class MainPanel(ttk.Frame, PanelCom):  # pylint: disable=too-many-ancestors,too-
     def get_filename(self):
         "get the current file name"
         return self._fname
+
+    def get_tk_root(self):
+        "get the tk root"
+        return self.root
+
+    def insert_new_table(self, title: str, lst: list[str]) -> bool:
+        "insert a new table into the all tables list"
+        if not self.name_available(title):
+            messagebox.showerror(
+                message=f"Table name '{title}' already exists,\n please rename the file and try again.",
+                title="Table name already exists"
+            )  # consider merging the tables.
+            return False
+
+        return self._what.add_to_cur((title, lst))
+
+
 
     ###########################################################################
     # "all tables"  table searches
@@ -245,34 +263,20 @@ class MainPanel(ttk.Frame, PanelCom):  # pylint: disable=too-many-ancestors,too-
 
         self._clear_panels()
 
-    def do_import_pdf(self, file: str):
+    def do_import_pdf(self, filename: str):
         "import from pdf"
         # TODO::
+        # dlg = import_pdf(self.root, filename, self)
 
-    def do_import_txt(self, filename: str) -> bool:
+        # self.wait_window(dlg)
+    def do_import_txt(self, filename: str):
         "import from txt file"
-        title, _, _ = self._get_title_path_ext_from_file(filename)
-        lst = []
-        with open(filename, "r", encoding="utf-8") as f:
-            lst = f.readlines()
+        dlg = import_txt(self.root, filename, self)
 
-        lst = self._filter_list(lst)
-        # TODO:: add a dialog which has the title and the list, and allows the user to edit the title and list before adding it to the lists.
-        return self._insert_new_table(title, lst)
+        self.wait_window(dlg)
 
     ###########################################################################
     # helpers
-
-    def _insert_new_table(self, title: str, lst: list[str]) -> bool:
-        "insert a new table into the all tables list"
-        if not self.name_available(title):
-            messagebox.showerror(
-                message=f"Table name '{title}' already exists,\n please rename the file and try again.",
-                title="Table name already exists"
-            )  # consider merging the tables.
-            return False
-
-        return self._what.add_to_cur((title, lst))
 
     def _filter_list(self, lst: list[str]) -> list[str]:
         "filters a table to remove empty lines and leading numbers"

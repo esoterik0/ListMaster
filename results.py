@@ -6,12 +6,9 @@ from enum import Enum
 from tkinter import E, N, S, W, filedialog, ttk
 
 import gendata as dat
-from enums import SINGLE, State, table
-from ListPanel import ListPanelABC
+from enums import SINGLE, LOG, State, table
+from ListTitlePanelABC import ListTitlePanelABC
 from PanelCom import PanelCom
-
-LOG = "rolls.log"
-DRAG = True  # make the parameter obvious in the super call.
 
 
 class Widgets(Enum):
@@ -29,7 +26,7 @@ def int_nun(s: str) -> int | None:
         return None
 
 
-class ResultsPanel(ListPanelABC):  # pylint: disable=too-many-ancestors,too-many-instance-attributes
+class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-many-instance-attributes
     """
     generates the result panel frame
     displays results
@@ -45,7 +42,7 @@ class ResultsPanel(ListPanelABC):  # pylint: disable=too-many-ancestors,too-many
     def __init__(self, parent: PanelCom, **kwargs):  # pylint: disable=too-many-statements
         "initialize the results panel, create and grid the widgets"
         # initialize ...
-        super().__init__(parent, column=2, drag=DRAG, **kwargs)  #  .. our super class
+        super().__init__(parent, column=2, drag=True, **kwargs)  #  .. our super class
         self._parent: PanelCom = parent
 
         # state variables
@@ -54,8 +51,8 @@ class ResultsPanel(ListPanelABC):  # pylint: disable=too-many-ancestors,too-many
         self.item = None
         self.item_name = ""
         self.logfile = LOG
-        self.sep_pat = re.compile(r"({[\w,|&:+()\[\] ]+)}")
-        self.label_pat = re.compile(r"(?P<label>[\w,|&:+()\[\] ]+); *(?P<table>{[\w,|&:+()\[\] ]+})")
+        self.sep_pat = re.compile(f"({{{self.safe_set}+)}}")
+        self.label_pat = re.compile(f"(?P<label>{self.safe_set}+); *(?P<table>{{{self.safe_set}+}})")
         self.semi = re.compile(r";")
         self.backtick = re.compile(r"`")
 
@@ -361,7 +358,7 @@ class ResultsPanel(ListPanelABC):  # pylint: disable=too-many-ancestors,too-many
         # use results_list as is if called without a parameter
         if lst is not None:  # empty lists are allowed
             self.choices = lst
-        self._update_lbox()
+        self.update_lbox()
 
     def ungrid_set(self):
         "removes widgets from the grid bassed on mode"

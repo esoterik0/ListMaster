@@ -65,3 +65,10 @@ class PanelCom:
         "copy to the clipboard"
         raise NotImplementedError
 
+    def get_tk_root(self):
+        "get the tk root"
+        raise NotImplementedError
+
+    def insert_new_table(self, title: str, lst: list[str]) -> bool:
+        "insert a new table into currently selected page, and all tables"
+        raise NotImplementedError

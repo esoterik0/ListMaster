@@ -4,17 +4,15 @@ import re
 import tkinter as tk
 from tkinter import E, N, S, W, ttk
 from typing import Literal
-import AutoScrollBar
+from autoScrollBar import AutoScrollBar
 
 from enums import HEIGHT, WIDTH
-
-ROW = 0
 
 class ListPanelABC(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-instance-attributes,invalid-name
     """
     Abstract base class ListPanel has:
         a list box, and behavior for a sublasses to use
-        .safe() - a regex check for safe text
+        .is_safe() - a regex check for safe text
         inplace editing
         drag and drop reordering
     Subclasses must implement:
@@ -24,23 +22,22 @@ class ListPanelABC(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
         cancel_edit() - called when an inplace edit is canceled
         drag() - called when a drag and drop reordering is completed
     """
-    TITLE_ROW = 0
-    OUR_ROW = 1
-    ROW = OUR_ROW + 2
     def __init__(self, parent, column, drag=False, **kwargs):
         "initialize parent frame and grid ouselves"
         super().__init__(parent, borderwidth=5, relief="ridge", **kwargs)
+        self.TOP_ROW = 0
+        self.LIST_ROW = 1
+        self.ROW = self.LIST_ROW + 2
+
         self.grid(column=column, row=0, sticky=(N, S, E, W))
         self.last_selection = None
         self.edit = None  # to allow out of band exit, i.e. .widget.destroy()
         # safe text pattern we want to preserve ';{}`' for delimiter use
-        self.safepat = re.compile(r"[\w,|&:+()\[\] ]+")
+        self.safe_set =  r"[\w.,|&:+()\[\] ]"
+        self.safe_inv = r"[^\w.,|&:+()\[\] ]"
+        self.safepat = re.compile(f"{self.safe_set}+")
+        # self.stripsafepat = re.compile(f"{self.safe_inv}+")
         self.drag_start = None
-
-        self.title_var = tk.StringVar()
-        self.title = ttk.Label(self, textvariable=self.title_var, anchor="center")
-        self.title.grid(column=0, row=self.TITLE_ROW, sticky=(N, S, E, W))
-        self.title_var.set("Title")
 
         # listbox choices
         self.choices: list[str] = []
@@ -48,7 +45,7 @@ class ListPanelABC(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
 
         # listbox
         self.lbox = tk.Listbox(self, listvariable=self.choice_var, width=int(WIDTH/5), height=HEIGHT)
-        self.lbox.grid(column=0, row=self.OUR_ROW, sticky=(N, S, E, W))
+        self.lbox.grid(column=0, row=self.LIST_ROW, sticky=(N, S, E, W))
         self.lbox.bind("<<ListboxSelect>>", self._do_lbox_sel)
 
         if drag: # we only bind drag events if we are a drag enabled listbox
@@ -57,20 +54,20 @@ class ListPanelABC(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
 
         # scroll bars for listbox # no easy way to hide when not needed (subclass overide disable?)
         # it might be possible to hook when the scrollbars change, and see if they need to be degridded?
-        self.scrolly = AutoScrollBar.AutoScrollBar(self, command=self.lbox.yview)
+        self.scrolly = AutoScrollBar(self, command=self.lbox.yview)
         self.lbox.configure(yscrollcommand=self.scrolly.set)
-        self.scrolly.grid(row=self.OUR_ROW, column=1, sticky=(N, S))
+        self.scrolly.grid(row=self.LIST_ROW, column=1, sticky=(N, S))
 
-        self.scrollx = AutoScrollBar.AutoScrollBar(self, orient="horizontal", command=self.lbox.xview)
+        self.scrollx = AutoScrollBar(self, orient="horizontal", command=self.lbox.xview)
         self.lbox.configure(xscrollcommand=self.scrollx.set)
-        self.scrollx.grid(row=self.OUR_ROW+1, column=0, sticky=(E, W))
+        self.scrollx.grid(row=self.LIST_ROW+1, column=0, sticky=(E, W))
 
         #configure ourselves
-        self.rowconfigure(self.OUR_ROW, weight=1)
+        self.rowconfigure(self.LIST_ROW, weight=1)
         # self.rowconfigure(self.ROW, weight=1)
         self.columnconfigure(0, weight=1)
 
-    def _update_lbox(self):
+    def update_lbox(self):
         """
         Updates the what_choice_var to self.choices
         should be called by subclasses to update self.choice_var
@@ -109,7 +106,7 @@ class ListPanelABC(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
 
         # swap them
         self.choices[start], self.choices[end] = self.choices[end], self.choices[start]
-        self._update_lbox()
+        self.update_lbox()
 
     def look(self):
         "activates and scrolls to the last selection"
@@ -158,7 +155,7 @@ class ListPanelABC(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
         "accept and finish an in place edit"
         self.accept_edit(event.widget.get())  # subclass accept
         event.widget.destroy()  # close edit
-        self._update_lbox()  # update the listbox
+        self.update_lbox()  # update the listbox
         self.edit = None
 
     def _cancel_edit(self, event):

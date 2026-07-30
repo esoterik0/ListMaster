@@ -6,11 +6,11 @@ from tkinter.simpledialog import askstring
 
 from enums import ItemColor, ItemType, State
 from gendata import Formula, MetaFormula
-from ListPanel import ListPanelABC
+from ListTitlePanelABC import ListTitlePanelABC
 from PanelCom import PanelCom
 
 
-class PagePanel(ListPanelABC):  # pylint: disable=too-many-ancestors,too-many-instance-attributes
+class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-many-instance-attributes
     "generates the page frame, for choosing, inspecting, or editing which 'page', formula or table"
 
     def __init__(self, parent: PanelCom, **kwargs):
@@ -180,7 +180,7 @@ class PagePanel(ListPanelABC):  # pylint: disable=too-many-ancestors,too-many-in
             self._cur_page = lst
         self._filter_page = self._filter()
         self.choices = [n[0] for n in self._filter_page]
-        self._update_lbox()
+        self.update_lbox()
         for i, pg in enumerate(self._filter_page):
             _, entry = pg
             match (entry):

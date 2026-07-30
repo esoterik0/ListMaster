@@ -13,6 +13,7 @@ HEIGHT = 20
 SINGLE = 1
 TEXTSIZE = 12
 MENUSIZE = 12
+LOG = "rolls.log"
 
 # weights describe relative movement so bigger movement is shrinking and growing faster smaller
 COLWEIGHT = (1,1,1) # numbers stay larger at smaller sizes

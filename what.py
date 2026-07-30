@@ -5,10 +5,11 @@ from tkinter import E, N, S, W, messagebox, ttk
 
 from enums import State, table
 from gendata import Formula, MetaFormula
-from ListPanel import ListPanelABC
+from ListTitlePanelABC import ListTitlePanelABC
 from PanelCom import PanelCom
 
-class WhatPanel(ListPanelABC):  # pylint: disable=too-many-ancestors,too-many-instance-attributes
+
+class WhatPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-many-instance-attributes
     "generates the What panel, for choosing what top level category to use"
     def __init__(self, parent: PanelCom, **kwargs):
         super().__init__(parent, column=0, drag=True, **kwargs)
@@ -95,7 +96,7 @@ class WhatPanel(ListPanelABC):  # pylint: disable=too-many-ancestors,too-many-in
         self.what_list = lst
         self.choices = choice
         self.last_selection = None
-        self._update_lbox()
+        self.update_lbox()
 
     def set_mode(self):
         "Tells the parent to set the mode, and update siblings"
@@ -129,7 +130,7 @@ class WhatPanel(ListPanelABC):  # pylint: disable=too-many-ancestors,too-many-in
         # swap them
         self.choices[start], self.choices[end] = self.choices[end], self.choices[start]
         self.what_list[start], self.what_list[end] = self.what_list[end], self.what_list[start]
-        self._update_lbox()
+        self.update_lbox()
 
     def get_what(self) -> tuple[list[tuple[str, table]], list[str]]:
         "gets the top level what lists"
@@ -150,7 +151,7 @@ class WhatPanel(ListPanelABC):  # pylint: disable=too-many-ancestors,too-many-in
         "add a new category to the what panel"
         self.choices.append("")
         self.what_list.append([])
-        self._update_lbox()
+        self.update_lbox()
         self.last_selection = len(self.choices)-1
         self.look()
         return self._start_edit("")
