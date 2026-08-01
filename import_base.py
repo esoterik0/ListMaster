@@ -2,21 +2,7 @@
 
 import re
 import tkinter as tk
-from enum import Enum
-
-class ListType(Enum):
-    "list type single or multiple"
-    SINGLE = 1
-    MULTI = 2
-
-
-class TitleType(Enum):
-    "what is the title delim"
-    SAME=0
-    DIFF=1
-    NONE=2
-    FILE=3
-    MISS=4
+from tkinter import E, N, S, W, ttk
 
 
 class import_base(tk.Toplevel):
@@ -24,11 +10,15 @@ class import_base(tk.Toplevel):
     def __init__(self, parent, **kw_args):
         super().__init__(parent, **kw_args)
 
+        self.frame =  ttk.Frame(self)
+        self.frame.grid(row=0, column=0, sticky=(E, N, S, W))
+
         self.numcut = re.compile(r"^[\d\.\,\;\:]+")  # ^ to garantee we only match at the start of the string.
+
         self.wait_visibility()
+        self.transient(parent)
         self.protocol('WM_DELETE_WINDOW', self.grab_release())
         self.grab_set()
-        self.transient(parent)
 
     def _filter_list(self, lst: list[str]) -> list[str]:
         "filters a table to remove empty lines and leading numbers"

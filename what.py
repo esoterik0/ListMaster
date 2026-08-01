@@ -185,11 +185,12 @@ class WhatPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
 
         if not self._parent.has_name(tab[0]):
             self.what_list[0].append(tab)
-            self.what_list[self.last_selection].append(tab)
-            self._parent.set_page(  # reload the current page with the new table added
-                self.choices[self.last_selection],
-                self.what_list[self.last_selection]
-            )
+            if self.last_selection: #ignore 0 and None
+                self.what_list[self.last_selection].append(tab)
+                self._parent.set_page(  # reload the current page with the new table added
+                    self.choices[self.last_selection],
+                    self.what_list[self.last_selection]
+                )
             return True
 
         return False
