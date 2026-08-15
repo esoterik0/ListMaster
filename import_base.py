@@ -25,7 +25,7 @@ class import_base(tk.Toplevel):
 
     def _filter_list(self, lst: list[str]) -> list[str]:
         "filters a table to remove empty lines and leading numbers"
-        lst = [self.numcut.split(x)[1].strip() for x in lst]
+        lst = ["".join(self.numcut.split(x).strip()) for x in lst]
         lst = [x for x in lst if x]  # remove empty strings
         return lst
 

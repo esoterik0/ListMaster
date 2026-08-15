@@ -5,12 +5,13 @@ import tkinter as tk
 from enum import Enum
 from tkinter import E, N, W, messagebox, ttk
 
+import fitz as pdf
+
 from import_base import import_base
 from ListEditPanel import ListEditPanel
 from ListPanelLambda import ListPanelLambda
 from PanelCom import PanelCom
 from util import int_nun
-import fitz as pdf
 
 
 class Title_Enum(Enum):
@@ -19,6 +20,7 @@ class Title_Enum(Enum):
     SEP = "SEP"
 
 class Type_Enum(Enum):
+    "Type Enum"
     ALL = "ALL"  # all in one pdf chunk
     ONE = "ONE"  # one per pdf chunck
 
@@ -29,6 +31,7 @@ class import_pdf(import_base):
         self.panel: PanelCom = panel
         self.filename = file
         self.pagere = re.compile(r"(\d+)(?:-(\d+))?")
+        self.newre = re.compile("\n")
         self.lines = []
 
         self.frame.rowconfigure(0, weight=1)
@@ -93,7 +96,7 @@ class import_pdf(import_base):
             self.title_frame,
             text="on top",
             variable=self.title_var,
-            value=Title_Enum.TOP,
+            value=Title_Enum.TOP.value,
         )
         self.title_on_top.grid(row=0, column=1, sticky=(E, W))
 
@@ -101,9 +104,11 @@ class import_pdf(import_base):
             self.title_frame,
             text="Separate",
             variable=self.title_var,
-            value=Title_Enum.SEP,
+            value=Title_Enum.SEP.value,
         )
         self.title_separate.grid(row=0, column=2, sticky=(E, W))
+
+        self.title_var.set(Title_Enum.SEP.value)
 
         ########################################################
         # Type Frame
@@ -136,13 +141,15 @@ class import_pdf(import_base):
         )
         self.type_one_button.grid(row=0, column=2, sticky=(E, W))
 
+        self.type_var.set(Type_Enum.ALL.value)
+
         ########################################################
         # add title frame
 
         butrow += 1
         self.add_title = ttk.Button(
             self.button_frame,
-            command=self.add_title,
+            command=self.add_to_title,
             text="Add selection to title"
         )
         self.add_title.grid(row=butrow, column=0, sticky=(E, W))
@@ -212,8 +219,20 @@ class import_pdf(import_base):
         for block in page.get_text_blocks():
             self.lines.append(block[4])
 
-    def title(self, idx: int):
+    def add_to_title(self):
+        "add to title"
+        self._title(self.pdf_list.last_selection)
+
+    def _title(self, idx: int):
         "append to title"
+        match(self.title_var.get()):
+            case Title_Enum.TOP.value:
+                return
+            case Title_Enum.SEP.value:
+                new_title = " ".join(self.newre.split(self.lines[idx]))
+                new_title = " ".join([self.lstpan.title_var.get(), new_title])
+                self.lstpan.title_var.set(new_title)
+
 
     def drag(self, start: int, end: int):
         "add all in range to list"
@@ -221,4 +240,31 @@ class import_pdf(import_base):
             self.process(idx)
 
     def process(self, idx: int):
-        "process a selection to add"
+        "process a selection to add to the list"
+
+        top_title = self.title_var.get() == Title_Enum.TOP.value
+
+        match(self.type_var.get()):
+            case Type_Enum.ALL.value:
+                new_vals = self._filter_list(self.newre.split(self.lines[idx]))
+                if top_title:
+                    new_title = " ".join([self.lstpan.title_var.get(), new_vals[0]])
+                    self.lstpan.title_var.set(new_title)
+                    new_vals = new_vals[1:]
+
+                self.lstpan.choices = self.lstpan.choices + new_vals
+
+            case Type_Enum.ONE.value:
+
+                if top_title:
+                    messagebox.showerror(
+                        message="Title on top is in compatible with one per section",
+                        title="Invallid combination"
+                    )
+                    return
+
+                new_value = " ".join(self.newre.split(self.lines[idx]))
+                new_value = "".join(self.numcut.split(new_value).strip())
+                self.lstpan.choices.append(new_value)
+
+        self.lstpan.update_lbox()
