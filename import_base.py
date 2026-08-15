@@ -10,6 +10,9 @@ class import_base(tk.Toplevel):
     def __init__(self, parent, **kw_args):
         super().__init__(parent, **kw_args)
 
+        self.rowconfigure(0, weight=1)
+        self.columnconfigure(0, weight=1)
+
         self.frame =  ttk.Frame(self)
         self.frame.grid(row=0, column=0, sticky=(E, N, S, W))
 

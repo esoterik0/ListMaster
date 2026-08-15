@@ -44,5 +44,7 @@ class ListEditPanel(ListPanelABC):  # pylint: disable=too-many-ancestors,too-man
         "called when the listbox selection changes"
         self._sel()
 
-    def edit_cat(self, event = None):
+    def edit_cat(self, *args):
         "edit the selected category"
+        if self._sel() is not None:
+            return self._start_edit(self.choices[self.last_selection])

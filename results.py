@@ -6,9 +6,10 @@ from enum import Enum
 from tkinter import E, N, S, W, filedialog, ttk
 
 import gendata as dat
-from enums import SINGLE, LOG, State, table
+from enums import LOG, SINGLE, State, table
 from ListTitlePanelABC import ListTitlePanelABC
 from PanelCom import PanelCom
+from util import int_nun
 
 
 class Widgets(Enum):
@@ -17,16 +18,7 @@ class Widgets(Enum):
     FORM = "FORM"
 
 
-# utility candidate
-def int_nun(s: str) -> int | None:
-    "returns the string representation of the int or None if it cannot be converted"
-    try:
-        return int(s)
-    except ValueError:
-        return None
-
-
-class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-many-instance-attributes
+class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-many-instance-attributes,too-many-public-methods
     """
     generates the result panel frame
     displays results
@@ -180,9 +172,9 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
         return len(item) if item else 0
 
     def _convert(self, text: str):
-        "converts a string to a table or tuple of tables, returns empty string if not safe"
-        if self._is_safe(text):
-            return text
+        "converts a string to a table or tuple of strings and tables, returns empty string if not safe"
+        if self._is_safe(text): # if it is safe, it doesn't have any thing to convert inside it ...
+            return text  # ... so we just return the text
         # the above if will take care of strings that don't have {} in them
         if text.count("{") == text.count("}"): # check that we have pairs of {}
             out = [x for x in self.sep_pat.split(text) if x] # filter empty strings; sep_pat filters out '}'
