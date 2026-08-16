@@ -147,12 +147,23 @@ class import_pdf(import_base):
         # add title frame
 
         butrow += 1
-        self.add_title = ttk.Button(
-            self.button_frame,
+        self.add_title_frame = ttk.Frame(self.button_frame)
+        self.add_title_frame.rowconfigure(0, weight=1)
+        for x in range(2):
+            self.add_title_frame.columnconfigure(x, weight=1)
+        self.add_title_frame.grid(row=butrow, column=0)
+        self.add_title_butt = ttk.Button(
+            self.add_title_frame,
             command=self.add_to_title,
-            text="Add selection to title"
+            text="Add to title"
         )
-        self.add_title.grid(row=butrow, column=0, sticky=(E, W))
+        self.add_title_butt.grid(row=0, column=0, sticky=(E, W))
+        self.set_title_butt = ttk.Button(
+            self.add_title_frame,
+            command=self.set_title,
+            text="set title"
+        )
+        self.set_title_butt.grid(row=0, column=1, sticky=(E, W))
 
         ########################################################
         # command frame
@@ -160,18 +171,21 @@ class import_pdf(import_base):
         butrow += 1
         self.command_frame = ttk.Frame(self.button_frame)
         self.command_frame.rowconfigure(0, weight=1)
-        for x in range(2):
+        for x in range(3):
             self.command_frame.columnconfigure(x, weight=1)
         self.command_frame.grid(row=butrow, column=0)
 
-        self.parse_butt = tk.Button(self.command_frame, text="Parse", command=self.parse)
+        self.parse_butt = ttk.Button(self.command_frame, text="Parse PDF", command=self.parse)
         self.parse_butt.grid(row=0, column=0, sticky=(E,W))
 
-        self.save_butt = tk.Button(self.command_frame, text="Save", command=self.save)
+        self.save_butt = ttk.Button(self.command_frame, text="Save List", command=self.save)
         self.save_butt.grid(row=0, column=1, sticky=(E,W))
 
+        self.save_quit_butt = ttk.Button(self.command_frame, text="Save & Quit", command=self.save_quit)
+        self.save_quit_butt.grid(row=0, column=1, sticky=(E, W))
+
     def parse(self):
-        "parse the pdf"
+        "parse the pdf file and build the table"
 
         m = self.pagere.match(self.page_var.get().strip())
 
@@ -182,6 +196,7 @@ class import_pdf(import_base):
             )
             return
 
+        # if we have a match, start will be valid
         start, end = m.groups()
         start, end = int_nun(start), int_nun(end)
 
@@ -195,8 +210,10 @@ class import_pdf(import_base):
         doc = pdf.open(self.filename)
 
         if end is None:
+            # single page
             self.parse_page(doc.load_page(start))
         else:
+            # multiple pages
             for page in range(start, end+1):
                 self.parse_page(doc.load_page(page))
 
@@ -206,13 +223,25 @@ class import_pdf(import_base):
         ]
         self.pdf_list.update_lbox()
 
+    def save_quit(self):
+        "save table/list and quit"
+        self._save()
+        self.destroy()
+
     def save(self):
         "save the list"
+        self._save()
+        self.lstpan.choices = []
+        self.lstpan.title_var.set("")
+        self.lstpan.update_lbox()
 
+    def _save(self):
+        "save the list"
         if self.lstpan.choices:
-            self.panel.insert_new_table(self.lstpan.title_var.get(), self.lstpan.choices)
-
-        self.destroy()
+            self.panel.insert_new_table(
+                self.lstpan.title_var.get()[:self.Title_Len],
+                self.lstpan.choices
+            )
 
     def parse_page(self, page: pdf.Page):
         "parse the page"
@@ -223,14 +252,20 @@ class import_pdf(import_base):
         "add to title"
         self._title(self.pdf_list.last_selection)
 
-    def _title(self, idx: int):
+    def set_title(self):
+        "add to title"
+        self._title(self.pdf_list.last_selection, False)
+
+    def _title(self, idx: int, add=True):
         "append to title"
         match(self.title_var.get()):
             case Title_Enum.TOP.value:
                 return
             case Title_Enum.SEP.value:
                 new_title = " ".join(self.newre.split(self.lines[idx]))
-                new_title = " ".join([self.lstpan.title_var.get(), new_title])
+                if add:
+                    new_title = " ".join([self.lstpan.title_var.get(), new_title])
+
                 self.lstpan.title_var.set(new_title)
 
 

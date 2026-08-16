@@ -10,6 +10,8 @@ class import_base(tk.Toplevel):
     def __init__(self, parent, **kw_args):
         super().__init__(parent, **kw_args)
 
+        self.Title_Len = 80
+
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
 
