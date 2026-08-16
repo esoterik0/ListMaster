@@ -1,4 +1,4 @@
-"import pdf"
+"dialog to import lists from pdf files"
 
 import re
 import tkinter as tk
@@ -16,8 +16,8 @@ from util import int_nun
 
 class Title_Enum(Enum):
     "Title Enum"
-    TOP = "TOP"
-    SEP = "SEP"
+    TOP = "TOP"  # title is at the top of the chunk
+    SEP = "SEP"  # title is in a separate chunk
 
 class Type_Enum(Enum):
     "Type Enum"
@@ -25,7 +25,7 @@ class Type_Enum(Enum):
     ONE = "ONE"  # one per pdf chunck
 
 class import_pdf(import_base):
-    "import pdf"
+    "UI & code to import lists from pdf files"
     def __init__(self, parent, file, panel, **kw_args):
         super().__init__(parent, **kw_args)
         self.panel: PanelCom = panel
@@ -38,9 +38,9 @@ class import_pdf(import_base):
         for x in range(3):
             self.frame.columnconfigure(x, weight=1)
 
-        fname, _, ext = self._get_title_path_ext_from_file(self.filename)
+        fname, _, ext = self._get_title_path_ext_from_file()
 
-        self.pdf_list = ListPanelLambda(self.frame, None, self.process, self.drag)
+        self.pdf_list = ListPanelLambda(self.frame, None, self.double, self.drag)
         self.pdf_list.grid(row=0, column=1)
         self.pdf_list.title_var.set(f"{fname}.{ext}")
 
@@ -97,6 +97,7 @@ class import_pdf(import_base):
             text="on top",
             variable=self.title_var,
             value=Title_Enum.TOP.value,
+            command=self.title_type
         )
         self.title_on_top.grid(row=0, column=1, sticky=(E, W))
 
@@ -105,6 +106,7 @@ class import_pdf(import_base):
             text="Separate",
             variable=self.title_var,
             value=Title_Enum.SEP.value,
+            command=self.title_type
         )
         self.title_separate.grid(row=0, column=2, sticky=(E, W))
 
@@ -152,6 +154,7 @@ class import_pdf(import_base):
         for x in range(2):
             self.add_title_frame.columnconfigure(x, weight=1)
         self.add_title_frame.grid(row=butrow, column=0)
+
         self.add_title_butt = ttk.Button(
             self.add_title_frame,
             command=self.add_to_title,
@@ -184,6 +187,15 @@ class import_pdf(import_base):
         self.save_quit_butt = ttk.Button(self.command_frame, text="Save & Quit", command=self.save_quit)
         self.save_quit_butt.grid(row=0, column=1, sticky=(E, W))
 
+    def title_type(self):
+        "hide buttons based on title handling type"
+        match(self.title_var.get()):
+            case Title_Enum.SEP.value:
+                self.add_title_frame.grid()
+            case Title_Enum.TOP.value:
+                self.add_title_frame.grid_remove()
+
+
     def parse(self):
         "parse the pdf file and build the table"
 
@@ -195,6 +207,8 @@ class import_pdf(import_base):
                 title="No page number"
             )
             return
+
+        self.lines = []
 
         # if we have a match, start will be valid
         start, end = m.groups()
@@ -218,7 +232,7 @@ class import_pdf(import_base):
                 self.parse_page(doc.load_page(page))
 
         self.pdf_list.choices = [
-            f"{s.count('\n')}: {s[:min(s.find('\n'), 80)]}"
+            f"{s.count('\n')}: {s[:min(s.find('\n'), self.Title_Len)]}"
             for s in self.lines
         ]
         self.pdf_list.update_lbox()
@@ -260,6 +274,10 @@ class import_pdf(import_base):
         "append to title"
         match(self.title_var.get()):
             case Title_Enum.TOP.value:
+                messagebox.showerror(
+                    message="This button does not work in Title on top mode.",
+                    title="Invallid combination"
+                )
                 return
             case Title_Enum.SEP.value:
                 new_title = " ".join(self.newre.split(self.lines[idx]))
@@ -270,11 +288,23 @@ class import_pdf(import_base):
 
 
     def drag(self, start: int, end: int):
-        "add all in range to list"
+        "add all in range to list via dragging"
         for idx in range(start, end+1):
-            self.process(idx)
+            self._process(idx)
 
-    def process(self, idx: int):
+        #removed processed
+        for idx in range(start, end+1):
+            del self.pdf_list.choices[idx]
+
+        self.pdf_list.update_lbox()
+
+    def double(self, idx: int):
+        "double click to add to list"
+        self._process(idx)
+        del self.pdf_list.choices[idx]
+        self.pdf_list.update_lbox()
+
+    def _process(self, idx: int):
         "process a selection to add to the list"
 
         top_title = self.title_var.get() == Title_Enum.TOP.value
@@ -282,15 +312,16 @@ class import_pdf(import_base):
         match(self.type_var.get()):
             case Type_Enum.ALL.value:
                 new_vals = self._filter_list(self.newre.split(self.lines[idx]))
-                if top_title:
-                    new_title = " ".join([self.lstpan.title_var.get(), new_vals[0]])
-                    self.lstpan.title_var.set(new_title)
-                    new_vals = new_vals[1:]
 
+                # only add the title if choices are empty
+                if top_title and not self.lstpan.choices:
+                    self.lstpan.title_var.set(new_vals[0])
+                    new_vals = new_vals[1:]  # shave off the title
+
+                # add the items to the list
                 self.lstpan.choices = self.lstpan.choices + new_vals
 
             case Type_Enum.ONE.value:
-
                 if top_title:
                     messagebox.showerror(
                         message="Title on top is in compatible with one per section",

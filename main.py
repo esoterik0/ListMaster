@@ -289,20 +289,6 @@ class MainPanel(ttk.Frame, PanelCom):  # pylint: disable=too-many-ancestors,too-
         lst = [x for x in lst if x]  # remove empty strings
         return lst
 
-    def _get_title_path_ext_from_file(self, fname: str):
-        "gets the title from a filename"
-        path = ""
-        if (x := max(fname.rfind('/'), fname.rfind('\\'))) >= 0:
-            path = fname[0:x]
-            fname = fname[x+1:]
-
-        ext = ""
-        if (x := fname.rfind('.')) >= 0:
-            ext = fname[x+1:]
-            fname = fname[0:x]
-
-        return fname, path, ext
-
     def _clear_panels(self):
         "clear other panels"
         self._page.set_page("", [])

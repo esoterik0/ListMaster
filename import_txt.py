@@ -1,4 +1,4 @@
-"module window/dialog, to import a text file"
+"module window/dialog, to import a list from text file"
 
 import tkinter as tk
 from tkinter import E, N, W, ttk
@@ -9,7 +9,7 @@ from PanelCom import PanelCom
 
 
 class import_txt(import_base):  # pylint: disable=too-many-instance-attributes
-    "window/dialog to import a text file"
+    "window/dialog to import a list from text file"
     def __init__(self, parent, file, panel: PanelCom, **kw_args):
         super().__init__(parent, **kw_args)
         self.panel: PanelCom = panel
@@ -40,7 +40,7 @@ class import_txt(import_base):  # pylint: disable=too-many-instance-attributes
 
     def parse(self):
         "parse the text file and make tables"
-        title, _, _ = self._get_title_path_ext_from_file(self.filename)
+        title, _, _ = self._get_title_path_ext_from_file()
 
         lst: list[str]
         with open(self.filename, "r", encoding="utf-8") as f:

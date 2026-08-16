@@ -10,7 +10,8 @@ class import_base(tk.Toplevel):
     def __init__(self, parent, **kw_args):
         super().__init__(parent, **kw_args)
 
-        self.Title_Len = 80
+        self.Title_Len = 60
+        self.filename = ""
 
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
@@ -31,9 +32,10 @@ class import_base(tk.Toplevel):
         lst = [x for x in lst if x]  # remove empty strings
         return lst
 
-    def _get_title_path_ext_from_file(self, fname: str) -> tuple[str, str, str]:
+    def _get_title_path_ext_from_file(self) -> tuple[str, str, str]:
         "gets the title from a filename"
         path = ""
+        fname = self.filename
         if (x := max(fname.rfind('/'), fname.rfind('\\'))) >= 0:
             path = fname[0:x]
             fname = fname[x+1:]
