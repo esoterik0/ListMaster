@@ -238,21 +238,12 @@ class MainPanel(ttk.Frame, PanelCom):  # pylint: disable=too-many-ancestors,too-
         except FileNotFoundError:
             return
 
-        append = []  # values to add after combining choices with the same name
-
-        # merge existing lists and track new choices to append.
+        # TODO:: fix merge
+        # merge in data and check for name collisions and resolve them
         for fob, choice in zip(data["what_list"], data["what_choices"]):
-            try:
-                # if the choice exists merge the lists
-                wlist[wchoices.index(choice)] += fob
-            except ValueError:
-                # if the choice is new add it after this loop.
-                append.append((choice, fob))
-
-        # add new choices
-        for choice, fob in append:
-            wlist.append(fob)
-            wchoices.append(choice)
+            pass
+            # wlist.append(fob)
+            # wchoices.append(choice)
 
         # set the choices.
         self._what.set_what_data(wlist, wchoices)
