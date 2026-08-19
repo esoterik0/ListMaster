@@ -55,6 +55,7 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
         self.file_menu.add_separator()
         self.file_menu.add_command(label="Save & Quit", command=self.on_save_quit)
         self.file_menu.add_command(label="Just Quit (No prompt)", command=self.on_quit)
+        self.file_menu.entryconfig(4, state=tk.DISABLED) # import is broken atm
         self.menu.add_cascade(menu=self.file_menu, label="File")  # put file menu in root
         self.import_menu = tk.Menu(self.menu)
         self.import_menu.add_command(label="Import list (txt)", command=self.on_import_txt)
