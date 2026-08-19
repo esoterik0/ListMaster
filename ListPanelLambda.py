@@ -5,7 +5,13 @@ from collections.abc import Callable
 from ListTitlePanelABC import ListTitlePanelABC
 
 class ListPanelLambda(ListTitlePanelABC):
-    "Allows external functions to be called on events"
+    """
+    Allows external functions to be called on events
+    There are three callable parameters:
+        sel_foo (int) called on selection
+        double_foo(int) called on double click
+        drag_foo(int, int), called on drag.
+    """
     def __init__(
         self,
         parent,

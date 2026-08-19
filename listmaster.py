@@ -57,9 +57,14 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
         self.file_menu.add_command(label="Just Quit (No prompt)", command=self.on_quit)
         self.menu.add_cascade(menu=self.file_menu, label="File")  # put file menu in root
         self.import_menu = tk.Menu(self.menu)
-        # self.import_menu.add_command(label="Import list (pdf)", command=self.on_import_pdf)
         self.import_menu.add_command(label="Import list (txt)", command=self.on_import_txt)
+        self.import_menu.add_command(label="Import list (pdf)", command=self.on_import_pdf)
         self.menu.add_cascade(menu=self.import_menu, label="Import")  # put import menu in root
+        self.export_menu = tk.Menu(self.menu)
+        self.export_menu.add_command(label="Export list (txt)", command=self.export_text)
+        self.menu.add_cascade(menu=self.export_menu, label="Export")
+        self.menu.entryconfig(1, state=tk.DISABLED)
+        self.menu.entryconfig(2, state=tk.DISABLED)
         self.root["menu"] = self.menu  # set root menu
 
         font.nametofont("TkDefaultFont").configure(size=TEXTSIZE)
@@ -77,7 +82,18 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
         self.root.rowconfigure(0, weight=1)
         self.root.columnconfigure(0, weight=1)
         # Main Panel is our single panel application.
-        self._main = MainPanel(self.root)
+        self._main = MainPanel(self.root, self.set_state)
+
+    def set_state(self, edit=False) -> None:
+        "set the state"
+
+        if edit:
+            self.menu.entryconfig(1, state=tk.NORMAL)
+            # self.menu.entryconfig(2, state=tk.DISABLED)
+        else:
+            self.menu.entryconfig(1, state=tk.DISABLED)
+            # self.menu.entryconfig(2, state=tk.NORMAL)
+
 
     def get_path_file(self):
         "gets the path and filename of the current file to save"
@@ -187,3 +203,7 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
     def on_import_txt(self):
         "import from txt"
         self._main.do_import_txt(filedialog.askopenfilename())
+
+    def export_text(self):
+        "export to text"
+        self._main.do_export_text(filedialog.Directory())

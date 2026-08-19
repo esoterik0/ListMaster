@@ -19,16 +19,21 @@ class import_base(tk.Toplevel):
         self.frame =  ttk.Frame(self)
         self.frame.grid(row=0, column=0, sticky=(E, N, S, W))
 
+        # re to cut the numbers from the begining of the line
         self.numcut = re.compile(r"^[\d\.\,\;\:]+")  # ^ to garantee we only match at the start of the string.
 
-        self.wait_visibility()
-        self.transient(parent)
-        self.protocol('WM_DELETE_WINDOW', self.grab_release())
-        self.grab_set()
+        # setup modal dialog
+        self.wait_visibility() # this is needed apparently
+        self.transient(parent) # informs modal behavior
+        self.protocol('WM_DELETE_WINDOW', self.grab_release()) # release modal behavior on close
+        self.grab_set() # start modal behavior
+
+    ###########################################################################
+    # helpers
 
     def _filter_list(self, lst: list[str]) -> list[str]:
         "filters a table to remove empty lines and leading numbers"
-        lst = ["".join(self.numcut.split(x).strip()) for x in lst]
+        lst = ["".join([y.strip() for y in self.numcut.split(x)]) for x in lst]  # remove leading numbers
         lst = [x for x in lst if x]  # remove empty strings
         return lst
 
@@ -46,3 +51,4 @@ class import_base(tk.Toplevel):
             fname = fname[0:x]
 
         return fname, path, ext
+

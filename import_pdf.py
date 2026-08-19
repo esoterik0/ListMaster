@@ -5,7 +5,7 @@ import tkinter as tk
 from enum import Enum
 from tkinter import E, N, W, messagebox, ttk
 
-import fitz as pdf
+import pymupdf as pdf
 
 from import_base import import_base
 from ListEditPanel import ListEditPanel
@@ -24,7 +24,7 @@ class Type_Enum(Enum):
     ALL = "ALL"  # all in one pdf chunk
     ONE = "ONE"  # one per pdf chunck
 
-class import_pdf(import_base):
+class import_pdf(import_base):  # pylint: disable=too-many-instance-attributes
     "UI & code to import lists from pdf files"
     def __init__(self, parent, file, panel, **kw_args):
         super().__init__(parent, **kw_args)
@@ -50,21 +50,25 @@ class import_pdf(import_base):
 
         self.button_frame = ttk.Frame(self.frame)
         self.button_frame.columnconfigure(0, weight=1)
-        for x in range(4):
+        for x in range(6):
             self.button_frame.rowconfigure(x, weight=1)
         self.button_frame.grid(row=0, column=0, sticky=(N, E, W))
 
-        ########################################################
-        # file label 'frame'
-        butrow = 0
+        # add frames to button frame
+        self._file_frame_foo(0)
+        self._page_frame_foo(1)
+        self._title_frame_foo(2)
+        self._type_frame_foo(3)
+        self._add_title_frame_foo(4)
+        self._command_frame_foo(5)
 
-        self.file_label = tk.Label(self.button_frame, text=f"File: {file}")
+    def _file_frame_foo(self, butrow):
+        "construct the file frame"
+        self.file_label = tk.Label(self.button_frame, text=f"File: {self.filename}")
         self.file_label.grid(row=butrow, column=0, sticky=(E, W))
 
-        ########################################################
-        # page 'frame'
-
-        butrow += 1
+    def _page_frame_foo(self, butrow):
+        "construct the page frame"
         self.page_frame = ttk.Frame(self.button_frame)
         self.page_var = tk.StringVar()
         self.page_frame.rowconfigure(0, weight=1)
@@ -78,10 +82,9 @@ class import_pdf(import_base):
         self.page_entry = ttk.Entry(self.page_frame, textvariable=self.page_var)
         self.page_entry.grid(row=1, column=0)
 
-        ########################################################
-        # title option frame
 
-        butrow += 1
+    def _title_frame_foo(self, butrow):
+        "construct title option frame"
         self.title_var = tk.StringVar()
         self.title_frame = ttk.Frame(self.button_frame)
         self.title_frame.rowconfigure(0, weight=1)
@@ -112,10 +115,8 @@ class import_pdf(import_base):
 
         self.title_var.set(Title_Enum.SEP.value)
 
-        ########################################################
-        # Type Frame
-
-        butrow += 1
+    def _type_frame_foo(self, butrow):
+        "construct list type frame"
         self.type_var = tk.StringVar()
 
         self.type_frame = ttk.Frame(self.button_frame)
@@ -145,10 +146,8 @@ class import_pdf(import_base):
 
         self.type_var.set(Type_Enum.ALL.value)
 
-        ########################################################
-        # add title frame
-
-        butrow += 1
+    def _add_title_frame_foo(self, butrow):
+        "construct add title frame"
         self.add_title_frame = ttk.Frame(self.button_frame)
         self.add_title_frame.rowconfigure(0, weight=1)
         for x in range(2):
@@ -168,10 +167,8 @@ class import_pdf(import_base):
         )
         self.set_title_butt.grid(row=0, column=1, sticky=(E, W))
 
-        ########################################################
-        # command frame
-
-        butrow += 1
+    def _command_frame_foo(self, butrow):
+        "constuct command frame"
         self.command_frame = ttk.Frame(self.button_frame)
         self.command_frame.rowconfigure(0, weight=1)
         for x in range(3):
@@ -239,23 +236,25 @@ class import_pdf(import_base):
 
     def save_quit(self):
         "save table/list and quit"
-        self._save()
-        self.destroy()
+        if self._save():
+            self.destroy()
 
     def save(self):
         "save the list"
-        self._save()
-        self.lstpan.choices = []
-        self.lstpan.title_var.set("")
-        self.lstpan.update_lbox()
+        if self._save():
+            self.lstpan.choices = []
+            self.lstpan.title_var.set("")
+            self.lstpan.update_lbox()
 
-    def _save(self):
+    def _save(self) -> bool:
         "save the list"
         if self.lstpan.choices:
-            self.panel.insert_new_table(
+            return self.panel.insert_new_table(
                 self.lstpan.title_var.get()[:self.Title_Len],
                 self.lstpan.choices
             )
+
+        return False
 
     def parse_page(self, page: pdf.Page):
         "parse the page"
@@ -274,27 +273,40 @@ class import_pdf(import_base):
         "append to title"
         match(self.title_var.get()):
             case Title_Enum.TOP.value:
+                # n.b. should never come up because we hide the button in this mode
                 messagebox.showerror(
                     message="This button does not work in Title on top mode.",
                     title="Invallid combination"
                 )
                 return
             case Title_Enum.SEP.value:
+                # remove newlines
                 new_title = " ".join(self.newre.split(self.lines[idx]))
-                if add:
+
+                if add:  # append the title
                     new_title = " ".join([self.lstpan.title_var.get(), new_title])
 
+                # set the title
                 self.lstpan.title_var.set(new_title)
+                del self.lines[idx]
+                del self.pdf_list.choices[idx]
+                self.pdf_list.update_lbox()
 
 
     def drag(self, start: int, end: int):
         "add all in range to list via dragging"
+
+        # if they dragged in the opposite direction
+        if start > end:
+            start, end = end, start
+
         for idx in range(start, end+1):
             self._process(idx)
 
-        #removed processed
+        # remove processed
         for idx in range(start, end+1):
             del self.pdf_list.choices[idx]
+            del self.lines[idx]
 
         self.pdf_list.update_lbox()
 
@@ -302,6 +314,7 @@ class import_pdf(import_base):
         "double click to add to list"
         self._process(idx)
         del self.pdf_list.choices[idx]
+        del self.lines[idx]
         self.pdf_list.update_lbox()
 
     def _process(self, idx: int):

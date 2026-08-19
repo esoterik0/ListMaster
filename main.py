@@ -1,6 +1,6 @@
 "the main panel: holds all the panels; main frame in root window"
 
-import re
+from collections.abc import Callable
 from tkinter import E, N, S, W, messagebox, ttk
 
 import dill as pickle
@@ -12,6 +12,7 @@ from PanelCom import PanelCom
 from results import ResultsPanel
 from what import WhatPanel
 from import_txt import import_txt
+from import_pdf import import_pdf
 
 FNAME = "tables.dat"
 
@@ -29,10 +30,11 @@ class MainPanel(ttk.Frame, PanelCom):  # pylint: disable=too-many-ancestors,too-
     to the other panels. The main panel then routes the message to the correct panel.
 
     """
-    def __init__(self, parent, **kwargs):
+    def __init__(self, parent, pstate: Callable[[bool], None], **kwargs):
         super().__init__(parent, padding=5, width=WIDTH, height=HEIGHT, **kwargs)
         self.grid(column=0, row=0, sticky=(N, S, E, W))
         self.root = parent
+        self.parent_set_state: Callable[[bool], None] = pstate
 
         # all the panels of our application
         self._what = WhatPanel(self)  # A book, set, list, etc. A collection of rollables
@@ -53,8 +55,6 @@ class MainPanel(ttk.Frame, PanelCom):  # pylint: disable=too-many-ancestors,too-
         # we start without a selection set.
         self._result.ungrid_set()
 
-        self.numcut = re.compile(r"^[\d\.\,\;\:]+")  # ^ to garantee we only match at the start of the string.
-
         # initial state
         self.state = State.ROLL
         self._fname = FNAME
@@ -69,6 +69,8 @@ class MainPanel(ttk.Frame, PanelCom):  # pylint: disable=too-many-ancestors,too-
         # signal our parts that the state has changed.
         for panel in [self._what, self._page, self._result]:
             panel.set_state()
+
+        self.parent_set_state(state == State.EDIT)
 
     def set_page(self, name: str, page: list[table]):
         "set page panel contents"
@@ -100,8 +102,6 @@ class MainPanel(ttk.Frame, PanelCom):  # pylint: disable=too-many-ancestors,too-
             return False
 
         return self._what.add_to_cur((title, lst))
-
-
 
     ###########################################################################
     # "all tables"  table searches
@@ -204,7 +204,10 @@ class MainPanel(ttk.Frame, PanelCom):  # pylint: disable=too-many-ancestors,too-
                 }
                 pickle.dump(data, f)
         except FileNotFoundError:
-            pass
+            messagebox.showerror(
+                title="File not found",
+                message=f"Could not open the file: {self._fname} for writing"
+            )
 
     def do_try_load(self):
         "try to load data from the disk"
@@ -270,24 +273,20 @@ class MainPanel(ttk.Frame, PanelCom):  # pylint: disable=too-many-ancestors,too-
 
     def do_import_pdf(self, filename: str):
         "import from pdf"
-        # TODO::
-        # dlg = import_pdf(self.root, filename, self)
+        dlg = import_pdf(self.root, filename, self)
 
-        # self.wait_window(dlg)
+        self.wait_window(dlg)
     def do_import_txt(self, filename: str):
         "import from txt file"
         dlg = import_txt(self.root, filename, self)
 
         self.wait_window(dlg)
 
+    def do_export_text(self, folder: str):
+        "export to text"
+
     ###########################################################################
     # helpers
-
-    def _filter_list(self, lst: list[str]) -> list[str]:
-        "filters a table to remove empty lines and leading numbers"
-        lst = [self.numcut.split(x)[1].strip() for x in lst]
-        lst = [x for x in lst if x]  # remove empty strings
-        return lst
 
     def _clear_panels(self):
         "clear other panels"

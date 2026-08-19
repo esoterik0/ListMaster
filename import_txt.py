@@ -57,9 +57,8 @@ class import_txt(import_base):  # pylint: disable=too-many-instance-attributes
         "save the list"
 
         if self.lstpan:
-            self.panel.insert_new_table(
+            if self.panel.insert_new_table(
                 self.lstpan.title_var.get()[:self.Title_Len],
                 self.lstpan.choices
-            )
-
-        self.destroy()
+            ):
+                self.destroy()
