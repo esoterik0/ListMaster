@@ -7,3 +7,5 @@ def int_nun(s: str) -> int | None:
         return int(s)
     except ValueError:
         return None
+    except TypeError:
+        return None

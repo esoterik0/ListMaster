@@ -253,6 +253,8 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
 
     def drag(self, start, end):
         "do the drag"
+        if start == end:
+            return
 
         if self._parent.state != State.EDIT:
             return

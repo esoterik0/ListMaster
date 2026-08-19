@@ -115,7 +115,9 @@ class WhatPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
     def drag(self, start, end):
         "override do not move all tables entry"
         # swap them
-
+        if start == end:
+            return
+        
         if self._parent.state != State.EDIT:
             return
 

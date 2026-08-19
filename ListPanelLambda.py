@@ -38,7 +38,7 @@ class ListPanelLambda(ListTitlePanelABC):
         if self.sel_foo:
             self.sel_foo(self.last_selection)
 
-    def double(self):
+    def double(self, *args):
         "called on double clicks"
         self._sel()
         if self.double_foo:
@@ -46,5 +46,8 @@ class ListPanelLambda(ListTitlePanelABC):
 
     def drag(self, start, end):
         "called on drags"
+        if start == end:
+            return
+
         if self.drag_foo:
             self.drag_foo(start, end)

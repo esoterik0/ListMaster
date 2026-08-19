@@ -100,6 +100,9 @@ class ListPanelABC(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
 
     def drag(self, start, end):
         "does completes the drag, may be overridden"
+        if start == end:
+            return
+
         l = len(self.choices)
         if start >= l or end >= l or start < 0 or end < 0:
             return

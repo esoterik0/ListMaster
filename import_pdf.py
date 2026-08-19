@@ -77,10 +77,10 @@ class import_pdf(import_base):  # pylint: disable=too-many-instance-attributes
         self.page_frame.grid(row=butrow, column=0)
 
         self.page_label = tk.Label(self.page_frame, text="Page #: ")
-        self.page_label.grid(row=0, column=0)
+        self.page_label.grid(row=0, column=0,sticky=(E, W))
 
         self.page_entry = ttk.Entry(self.page_frame, textvariable=self.page_var)
-        self.page_entry.grid(row=1, column=0)
+        self.page_entry.grid(row=0, column=1, sticky=(E, W))
 
 
     def _title_frame_foo(self, butrow):
@@ -93,7 +93,7 @@ class import_pdf(import_base):  # pylint: disable=too-many-instance-attributes
         self.title_frame.grid(row=butrow, column=0, sticky=(E, W))
 
         self.title_label = ttk.Label(self.title_frame, text="Title is ")
-        self.title_label.grid(row=0, column=0, sticky=(E, W))
+        self.title_label.grid(row=0, column=0, sticky=(W))
 
         self.title_on_top = ttk.Radiobutton(
             self.title_frame,
@@ -182,7 +182,7 @@ class import_pdf(import_base):  # pylint: disable=too-many-instance-attributes
         self.save_butt.grid(row=0, column=1, sticky=(E,W))
 
         self.save_quit_butt = ttk.Button(self.command_frame, text="Save & Quit", command=self.save_quit)
-        self.save_quit_butt.grid(row=0, column=1, sticky=(E, W))
+        self.save_quit_butt.grid(row=0, column=2, sticky=(E, W))
 
     def title_type(self):
         "hide buttons based on title handling type"
@@ -209,7 +209,10 @@ class import_pdf(import_base):  # pylint: disable=too-many-instance-attributes
 
         # if we have a match, start will be valid
         start, end = m.groups()
-        start, end = int_nun(start), int_nun(end)
+        start, end = int_nun(start)-1, int_nun(end)
+
+        if end:
+            end -= 1
 
         if end and end <= start:
             messagebox.showerror(
