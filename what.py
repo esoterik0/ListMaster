@@ -117,7 +117,7 @@ class WhatPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
         # swap them
         if start == end:
             return
-        
+
         if self._parent.state != State.EDIT:
             return
 
