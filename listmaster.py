@@ -4,13 +4,12 @@
     load set of tables
     import set of tables
     create random tables.
-    +create random formulas; a set of tables to roll at once.
+    create random formulas; a set of tables to roll at once.
     +create random metaformulas; a table of similar formulas to choose from.
     edit random tables.
-    +import tables from pdf.
-    +import tables from txt.
-    +export table to txt.
-    +export all tables to txt. single/multiple file
+    import tables from pdf.
+    import tables from txt.
+    export table to txt.
 """
 
 import os

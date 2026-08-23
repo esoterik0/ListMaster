@@ -181,7 +181,7 @@ class MainPanel(ttk.Frame, PanelCom):  # pylint: disable=too-many-ancestors,too-
         "delete a table from the 'all tables' table as well as every other tables"
         if bool( # bool may not be needed could use == True, which is basically the same
             messagebox.askyesnocancel(
-                message="Are you sure you want to DELETE from all?",
+                message="Do you want to DELETE from all?\n",
                 title="Are you sure?"
             )
         ):
