@@ -359,9 +359,7 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
         match self._parent.state:
             case State.ROLL:
                 self.roll_button_frame.grid_remove()
-                # we only un/grid the buttons that change
-                self.roll_buttons["gen_xls"].grid_remove()
-                self.roll_buttons["get_path"].grid_remove()
+                self.edit_button_frame.grid_remove()
             case State.EDIT:
                 self.edit_button_frame.grid_remove()
                 self.roll_button_frame.grid_remove()
@@ -375,16 +373,6 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
                 self.edit_button_frame.grid()
             case State.ROLL:
                 self.roll_button_frame.grid()
-                # we only un/grid the buttons that change
-                match self.item:
-                    case dat.MetaFormula() | dat.Formula():
-                        self.roll_buttons["gen_xls"].grid()
-                        self.roll_buttons["get_path"].grid()
-                        self.roll_buttons["num_pages_label"].configure(text="No. Pages")
-                    case list():
-                        self.roll_buttons["num_pages_label"].configure(text="No. to Roll")
-                    case _:
-                        pass  # don't do anything if None or unexpected.
 
     def do_reroll(self):
         "handles the re-roll button, generates and populates the results column"
