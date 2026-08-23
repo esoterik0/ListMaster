@@ -72,3 +72,7 @@ class PanelCom:
     def insert_new_table(self, title: str, lst: list[str]) -> bool:
         "insert a new table into currently selected page, and all tables"
         raise NotImplementedError
+
+    def check_delete_from_all(self, name):
+        "Ask if user wants to delete from all"
+        raise NotImplementedError
