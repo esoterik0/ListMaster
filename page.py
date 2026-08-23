@@ -1,7 +1,7 @@
 "the page panel: shows what pages are in the top level category chosen by the what panel."
 
 import tkinter as tk
-from tkinter import E, N, S, W, ttk
+from tkinter import E, N, S, W, messagebox, ttk
 from tkinter.simpledialog import askstring
 
 from enums import ItemColor, ItemType, State
@@ -70,14 +70,13 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
             self.button_frame_edit,
             text="New Meta Formula",
             command=self.do_new_meta,
-            default='disabled'
         )
         self.new_meta.grid(column=0, row=2, sticky=(N, S, E, W))
+        self.new_meta["state"] = "disabled"
 
         self.new_form = ttk.Button(
             self.button_frame_edit, text="New Formula",
             command=self.do_new_form,
-            default='disabled'
         )
         self.new_form.grid(column=0, row=1, sticky=(N, S, E, W))
 
@@ -139,7 +138,7 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
         self.set_page(self._name, self._cur_page)
 
     def accept_edit(self, newtext: str) -> bool:
-        "Must be overridden to edit"
+        "validate and accept edit or reject it"
         if self.last_selection is None:
             return # igrone broken edits
 
@@ -147,24 +146,20 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
             return
 
         name = self.choices[self.last_selection]
-        if name == "":
-            self._parent.add_to_all(tup := (newtext, self._cur_page[self.last_selection][1]))
-            self._cur_page[self.last_selection] = tup
-            self.set_page(self._name, self._cur_page)
-
-
-        if newtext == "":  # we can delete locally if we want to.
+        if newtext == "":
             if name == "":
                 del self._cur_page[self.last_selection]
-                return # ignore broken edits
-            if not self._parent.check_delete_from_all(name):
-                del self.choices[self.last_selection]
-        elif self._is_safe(newtext) and self._parent.name_available(newtext):
-            for x in self._cur_page:
-                if x[0] == name:
-                    self._parent.rename(name, newtext) # change all
-                    break
-            self.set_page(self._name, self._cur_page)
+            elif not self._parent.check_delete_from_all(name):
+                del self._cur_page[self.last_selection]
+        elif self._is_safe(newtext):
+            if name == "":
+                self._parent.add_to_all(tup := (newtext, self._cur_page[self.last_selection][1]))
+                self._cur_page[self.last_selection] = tup
+                self.set_page(self._name, self._cur_page)
+            elif self._parent.name_available(newtext):
+                self._parent.rename(name, newtext) # change all
+
+        self.set_page(self._name, self._cur_page)
 
     def set_page(self, name: str | None, lst: list | None, sort = True):
         "sets the contents of the page panel"
@@ -319,6 +314,11 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
     def export(self, path: str):
         "export a table"
         if self.last_selection is None:
+            messagebox.showerror(
+                title="Missing Selection",
+                text="Nothing has been selected for export\n"
+                     "Please choose something on the page panel"
+            )
             return
 
         title, tbl = self._cur_page[self.last_selection]
