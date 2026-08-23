@@ -48,6 +48,8 @@ class ListPanelABC(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
         self.lbox.grid(column=0, row=self.LIST_ROW, sticky=(N, S, E, W))
         self.lbox.bind("<<ListboxSelect>>", self._do_lbox_sel)
 
+        # TODO:: record the position of the events so we can check how far the mouse has moved
+        # and then we can take the shift off.
         if drag: # we only bind drag events if we are a drag enabled listbox
             self.lbox.bind("<Shift-ButtonPress-1>", self._drag_begin)
             self.lbox.bind("<Shift-ButtonRelease-1>", self._drag_end)

@@ -27,15 +27,29 @@ class ListEditPanel(ListPanelABC):  # pylint: disable=too-many-ancestors,too-man
 
         self.button_frame = ttk.Frame(self)
         self.button_frame.grid(column=0, row=self.ROW, sticky=(E, W))
+        self.button_frame.rowconfigure(0, weight=1)
+        self.button_frame.columnconfigure(0, weight=1)
+
+        self.add_item_button = ttk.Button(
+            self.button_frame,
+            text="add item",
+            command=self.add_item
+        )
+        self.add_item_button.grid(row=0,column=0,sticky=(N, S, E, W))
 
         self.lbox.bind("<Double-1>", self.edit_cat)
 
     def accept_edit(self, newtext: str) -> bool:
         "verify accept and execute edit"
+
+        if newtext == "":
+            del self.choices[self.last_selection]
+            self.update_lbox()
+            return True
+
         if self._is_safe(newtext):
             self.choices[self.last_selection] = newtext
             self.update_lbox()
-
             return True
 
         return False
@@ -48,3 +62,11 @@ class ListEditPanel(ListPanelABC):  # pylint: disable=too-many-ancestors,too-man
         "edit the selected category"
         if self._sel() is not None:
             return self._start_edit(self.choices[self.last_selection])
+
+    def add_item(self):
+        "add item"
+        self.choices.append("")
+        self.update_lbox()
+        self.last_selection = len(self.choices)-1
+        self.look()
+        return self._start_edit("")
