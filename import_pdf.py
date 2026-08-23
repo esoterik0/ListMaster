@@ -235,10 +235,13 @@ class import_pdf(import_base):  # pylint: disable=too-many-instance-attributes
             )
             return
 
-        self.lines = []
+        self.lines = []  # reset lines
+        self.lstpan.choices = []
+        self.lstpan.title_var.set("")
+        self.lstpan.update_lbox()
 
-        # if we have a match, start will be valid
         start, end = m.groups()
+        # if we have a match, start will be valid
         start, end = int_nun(start)-1, int_nun(end)
 
         if end:
@@ -291,8 +294,10 @@ class import_pdf(import_base):  # pylint: disable=too-many-instance-attributes
 
     def parse_page(self, page: pdf.Page):
         "parse the page"
-        for block in page.get_text_blocks():
-            self.lines.append(block[4])
+        # block ~=(x0, y0, x1, y1, "lines in the block", block_no, block_type)
+        for block in page.get_text("blocks"):  # TextPage.extractBLOCKS()
+            if block[6] == 0:  # get text boxes only
+                self.lines.append(block[4])  # get the text
 
     def add_to_title(self):
         "add to title"
@@ -329,7 +334,9 @@ class import_pdf(import_base):  # pylint: disable=too-many-instance-attributes
     def drag(self, start: int, end: int):
         "add all in range to list via dragging"
 
-        # if they dragged in the opposite direction
+        if start == end:
+            return
+
         if start > end:
             start, end = end, start
 

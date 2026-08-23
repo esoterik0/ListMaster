@@ -49,8 +49,8 @@ class ListPanelABC(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
         self.lbox.bind("<<ListboxSelect>>", self._do_lbox_sel)
 
         if drag: # we only bind drag events if we are a drag enabled listbox
-            self.lbox.bind("<ButtonPress-1>", self._drag_begin)
-            self.lbox.bind("<ButtonRelease-1>", self._drag_end)
+            self.lbox.bind("<Shift-ButtonPress-1>", self._drag_begin)
+            self.lbox.bind("<Shift-ButtonRelease-1>", self._drag_end)
 
         # scroll bars for listbox # no easy way to hide when not needed (subclass overide disable?)
         # it might be possible to hook when the scrollbars change, and see if they need to be degridded?
