@@ -315,3 +315,14 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
         if tab is not None:
             self._cur_page.append((newitem, tab))
             self.set_page(self._name, self._cur_page)
+
+    def export(self, path: str):
+        "export a table"
+        if self.last_selection is None:
+            return
+
+        title, tbl = self._cur_page[self.last_selection]
+
+        with open(f"{path}/{title}.txt", "w", encoding="utf-8") as f:
+            lines = [self._parent.get_name(x) for x in tbl]
+            print(*lines, sep='\n', end='\n', file=f)

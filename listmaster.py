@@ -55,7 +55,6 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
         self.file_menu.add_separator()
         self.file_menu.add_command(label="Save & Quit", command=self.on_save_quit)
         self.file_menu.add_command(label="Just Quit (No prompt)", command=self.on_quit)
-        #self.file_menu.entryconfig(4, state=tk.DISABLED) # import is broken atm
         self.menu.add_cascade(menu=self.file_menu, label="File")  # put file menu in root
         self.import_menu = tk.Menu(self.menu)
         self.import_menu.add_command(label="Import list (txt)", command=self.on_import_txt)
@@ -65,7 +64,6 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
         self.export_menu.add_command(label="Export list (txt)", command=self.export_text)
         self.menu.add_cascade(menu=self.export_menu, label="Export")
         self.menu.entryconfig(1, state=tk.DISABLED)
-        self.menu.entryconfig(2, state=tk.DISABLED)
         self.root["menu"] = self.menu  # set root menu
 
         font.nametofont("TkDefaultFont").configure(size=TEXTSIZE)
@@ -90,10 +88,10 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
 
         if edit:
             self.menu.entryconfig(1, state=tk.NORMAL)
-            # self.menu.entryconfig(2, state=tk.DISABLED)
+            self.menu.entryconfig(2, state=tk.DISABLED)
         else:
             self.menu.entryconfig(1, state=tk.DISABLED)
-            # self.menu.entryconfig(2, state=tk.NORMAL)
+            self.menu.entryconfig(2, state=tk.NORMAL)
 
 
     def get_path_file(self):
@@ -207,4 +205,4 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
 
     def export_text(self):
         "export to text"
-        self._main.do_export_text(filedialog.Directory())
+        self._main.do_export_text(filedialog.askdirectory())

@@ -290,6 +290,7 @@ class MainPanel(ttk.Frame, PanelCom):  # pylint: disable=too-many-ancestors,too-
 
     def do_export_text(self, folder: str):
         "export to text"
+        self._page.export(folder)
 
     ###########################################################################
     # helpers
