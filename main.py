@@ -240,16 +240,31 @@ class MainPanel(ttk.Frame, PanelCom):  # pylint: disable=too-many-ancestors,too-
                 data = pickle.load(f)
         except FileNotFoundError:
             return
+        lst = data["what_list"]
+        choice = data["what_choices"]
+        allitems = lst[0]
+        lst = lst[1:]
+        choice = choice[1:]
 
-        # TODO:: fix merge
-        # merge in data and check for name collisions and resolve them
-        for fob, choice in zip(data["what_list"], data["what_choices"]):
-            pass
-            # wlist.append(fob)
-            # wchoices.append(choice)
+        collisions = []
+        for itm in allitems:
+            if not self.add_to_all(itm):
+                collisions.append(itm)
+
+        for lst, choice in zip(lst, choice):
+            for i, itm in enumerate(lst):
+                lbl, tbl = itm
+                if lbl in collisions:
+                    lbl = lbl + "copy"
+                    lst[i][0] = lbl + "copy"
+                    self.add_to_all((lbl, tbl))
+            wlist.append(lst)
+            wchoices.append(choice)
 
         # set the choices.
         self._what.set_what_data(wlist, wchoices)
+
+    # this could be a utility
 
     def do_clear(self):
         "Clear all data"
