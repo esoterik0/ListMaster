@@ -220,8 +220,8 @@ class import_pdf(import_base):  # pylint: disable=too-many-instance-attributes
             case Type_Enum.ONE.value:
                 self.title_var.set(Title_Enum.SEP.value)
                 self.title_on_top.state(["disabled"])
+                self.title_type_checked()
 
-        self.title_type_checked()
 
     def parse(self):
         "parse the pdf file and build the table"
