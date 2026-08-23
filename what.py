@@ -183,6 +183,10 @@ class WhatPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
     def add_to_cur(self, tab: tuple[str, table]):
         "add a new table to the current list and the all list"
         if not self._is_safe(tab[0]):
+            messagebox.showerror(
+                title="Invalid Characters",
+                text="Your title has illegal characters in it"
+            )
             return False
 
         if not self._parent.has_name(tab[0]):
@@ -195,6 +199,10 @@ class WhatPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
                 )
             return True
 
+        messagebox.showerror(
+            title="Name collision",
+            text="You have chosen a name that already exists"
+        )
         return False
 
     def delete_from_all(self, name):

@@ -28,7 +28,9 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
         generate xls
         copy to clip board
     editing
-        test
+        lists
+        formulas
+        metaformulas
     """
 
     def __init__(self, parent: PanelCom, **kwargs):  # pylint: disable=too-many-statements
