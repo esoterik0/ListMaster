@@ -28,11 +28,18 @@ class import_pdf(import_base):  # pylint: disable=too-many-instance-attributes
     "UI & code to import lists from pdf files"
     def __init__(self, parent, file, panel, **kw_args):
         super().__init__(parent, **kw_args)
+        self.title("Import PDF")
         self.panel: PanelCom = panel
-        self.filename = file
+        self.filename: str = file
+        self.file_disp: int = 42
+        self.pady = 3
         self.pagere = re.compile(r"(\d+)(?:-(\d+))?")
         self.newre = re.compile("\n")
         self.lines = []
+
+        # n.b. some of this stuff may not need to be saved in self. once it has
+        # been added/gridded it shouldn't get garbage collected, but we save
+        # everything just in case.
 
         self.frame.rowconfigure(0, weight=1)
         for x in range(3):
@@ -61,11 +68,22 @@ class import_pdf(import_base):  # pylint: disable=too-many-instance-attributes
         self._type_frame_foo(3)
         self._add_title_frame_foo(4)
         self._command_frame_foo(5)
+        self.title_type_checked()
+
+    # def _add_sep(self, buttrow: int):
+    #     "add a separator"
+    #     # sep = ttk.Separator(self.button_frame, orient="horizontal")
+    #     # sep.grid(row=buttrow, column=0, sticky=(E, W))
+    #     sep = tk.Frame(self.button_frame, bd=10, relief='sunken', height=2, background="black")
+    #     sep.grid(row=buttrow, column=0, sticky=(E,W),pady=6)
 
     def _file_frame_foo(self, butrow):
         "construct the file frame"
-        self.file_label = tk.Label(self.button_frame, text=f"File: {self.filename}")
-        self.file_label.grid(row=butrow, column=0, sticky=(E, W))
+        filename = self.filename
+        if len(filename) > self.file_disp:
+            filename = "..."+filename[-self.file_disp:]
+        self.file_label = tk.Label(self.button_frame, text=f"File: {filename}")
+        self.file_label.grid(row=butrow, column=0, sticky=(E, W), pady=self.pady)
 
     def _page_frame_foo(self, butrow):
         "construct the page frame"
@@ -74,7 +92,7 @@ class import_pdf(import_base):  # pylint: disable=too-many-instance-attributes
         self.page_frame.rowconfigure(0, weight=1)
         for x in range(2):
             self.page_frame.columnconfigure(x, weight=1)
-        self.page_frame.grid(row=butrow, column=0)
+        self.page_frame.grid(row=butrow, column=0, pady=self.pady)
 
         self.page_label = tk.Label(self.page_frame, text="Page #: ")
         self.page_label.grid(row=0, column=0,sticky=(E, W))
@@ -90,17 +108,17 @@ class import_pdf(import_base):  # pylint: disable=too-many-instance-attributes
         self.title_frame.rowconfigure(0, weight=1)
         for x in range(3):
             self.title_frame.columnconfigure(x, weight=1)
-        self.title_frame.grid(row=butrow, column=0, sticky=(E, W))
+        self.title_frame.grid(row=butrow, column=0, pady=self.pady)
 
         self.title_label = ttk.Label(self.title_frame, text="Title is ")
-        self.title_label.grid(row=0, column=0, sticky=(W))
+        self.title_label.grid(row=0, column=0, sticky=(E, W))
 
         self.title_on_top = ttk.Radiobutton(
             self.title_frame,
             text="on top",
             variable=self.title_var,
             value=Title_Enum.TOP.value,
-            command=self.title_type
+            command=self.title_type_checked
         )
         self.title_on_top.grid(row=0, column=1, sticky=(E, W))
 
@@ -109,11 +127,11 @@ class import_pdf(import_base):  # pylint: disable=too-many-instance-attributes
             text="Separate",
             variable=self.title_var,
             value=Title_Enum.SEP.value,
-            command=self.title_type
+            command=self.title_type_checked
         )
         self.title_separate.grid(row=0, column=2, sticky=(E, W))
 
-        self.title_var.set(Title_Enum.SEP.value)
+        self.title_var.set(Title_Enum.TOP.value)
 
     def _type_frame_foo(self, butrow):
         "construct list type frame"
@@ -123,7 +141,7 @@ class import_pdf(import_base):  # pylint: disable=too-many-instance-attributes
         self.type_frame.rowconfigure(0, weight=1)
         for x in range(3):
             self.type_frame.columnconfigure(x, weight=1)
-        self.type_frame.grid(row=butrow, column=0)
+        self.type_frame.grid(row=butrow, column=0, pady=self.pady)
 
         self.type_label = ttk.Label(self.type_frame, text="List Type")
         self.type_label.grid(row=0, column=0, sticky=(E, W))
@@ -133,6 +151,7 @@ class import_pdf(import_base):  # pylint: disable=too-many-instance-attributes
             text="All in one section",
             variable=self.type_var,
             value=Type_Enum.ALL.value,
+            command=self.list_type_checked
         )
         self.type_all_button.grid(row=0, column=1, sticky=(E, W))
 
@@ -141,6 +160,7 @@ class import_pdf(import_base):  # pylint: disable=too-many-instance-attributes
             text="One per section",
             variable=self.type_var,
             value=Type_Enum.ONE.value,
+            command=self.list_type_checked
         )
         self.type_one_button.grid(row=0, column=2, sticky=(E, W))
 
@@ -152,7 +172,7 @@ class import_pdf(import_base):  # pylint: disable=too-many-instance-attributes
         self.add_title_frame.rowconfigure(0, weight=1)
         for x in range(2):
             self.add_title_frame.columnconfigure(x, weight=1)
-        self.add_title_frame.grid(row=butrow, column=0)
+        self.add_title_frame.grid(row=butrow, column=0, pady=self.pady)
 
         self.add_title_butt = ttk.Button(
             self.add_title_frame,
@@ -173,7 +193,7 @@ class import_pdf(import_base):  # pylint: disable=too-many-instance-attributes
         self.command_frame.rowconfigure(0, weight=1)
         for x in range(3):
             self.command_frame.columnconfigure(x, weight=1)
-        self.command_frame.grid(row=butrow, column=0)
+        self.command_frame.grid(row=butrow, column=0, pady=self.pady)
 
         self.parse_butt = ttk.Button(self.command_frame, text="Parse PDF", command=self.parse)
         self.parse_butt.grid(row=0, column=0, sticky=(E,W))
@@ -184,7 +204,7 @@ class import_pdf(import_base):  # pylint: disable=too-many-instance-attributes
         self.save_quit_butt = ttk.Button(self.command_frame, text="Save & Quit", command=self.save_quit)
         self.save_quit_butt.grid(row=0, column=2, sticky=(E, W))
 
-    def title_type(self):
+    def title_type_checked(self):
         "hide buttons based on title handling type"
         match(self.title_var.get()):
             case Title_Enum.SEP.value:
@@ -192,6 +212,16 @@ class import_pdf(import_base):  # pylint: disable=too-many-instance-attributes
             case Title_Enum.TOP.value:
                 self.add_title_frame.grid_remove()
 
+    def list_type_checked(self):
+        "hide buttons based on list type"
+        match(self.type_var.get()):
+            case Type_Enum.ALL.value:
+                self.title_on_top.state(["!disabled"])
+            case Type_Enum.ONE.value:
+                self.title_var.set(Title_Enum.SEP.value)
+                self.title_on_top.state(["disabled"])
+
+        self.title_type_checked()
 
     def parse(self):
         "parse the pdf file and build the table"

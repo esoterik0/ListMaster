@@ -12,6 +12,7 @@ class import_txt(import_base):  # pylint: disable=too-many-instance-attributes
     "window/dialog to import a list from text file"
     def __init__(self, parent, file, panel: PanelCom, **kw_args):
         super().__init__(parent, **kw_args)
+        self.title("Import TXT")
         self.panel: PanelCom = panel
         self.filename = file
         self.lstpan: ListEditPanel | None = None
