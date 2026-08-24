@@ -3,7 +3,7 @@
 import re
 import tkinter as tk
 from enum import Enum
-from tkinter import E, N, S, W, filedialog, ttk
+from tkinter import E, N, S, W, filedialog, messagebox, ttk
 
 import gendata as dat
 from enums import LOG, SINGLE, State, table
@@ -190,12 +190,25 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
                 for item in out:
                     if item[0]=="{":
                         if self._is_safe(tab := item[1:]):
-                            put.append(self._parent.get_name_index(tab)[1])
+                            namidx = self._parent.get_name_index(tab)
+                            if all(item is not None for item in namidx):
+                                put.append(namidx[1])
+                            else:
+                                messagebox.showerror(
+                                    title="Not Found",
+                                    text=f"the table {{{tab}}} couldn't be found!"
+                                )
+                                return None
                     elif self._is_safe(item):
                         put.append(item)
 
                 return tuple(put)
-        return ""
+
+        messagebox.showerror(
+            title="mismatched {}",
+            text="it seems that you have unballanced {} in your entry"
+        )
+        return None
 
     def convert(self, text: str):
         "converts a string to a table or tuple of tables, returns empty string if not safe"
@@ -204,7 +217,9 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
             out = []
             for txt in self.backtick.split(text):
                 if txt:
-                    out.append(self._convert(txt.strip()))
+                    ret = self._convert(txt.strip())
+                    if ret is not None:
+                        out.append(ret)
             return out
         return self._convert(text.strip())
 
