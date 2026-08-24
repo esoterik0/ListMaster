@@ -22,42 +22,48 @@ class ListPanelABC(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
         cancel_edit() - called when an inplace edit is canceled
         drag() - called when a drag and drop reordering is completed
     """
-    def __init__(self, parent, drag=False, **kwargs):
+    def __init__(
+        self,
+        parent,
+        safe=r"\w.,|&:+()\[\] ",  # we want to preserve ';{}`' for delimiter use
+        drag=False,
+        **kwargs
+    ):
         "initialize parent frame and grid ouselves"
         super().__init__(parent, borderwidth=5, relief="ridge", **kwargs)
         self.TOP_ROW = 0
         self.LIST_ROW = 1
-        self.ROW = self.LIST_ROW + 2
+        self.ROW = self.LIST_ROW + 2 # make room for scrollbar
         self.last_click = (0,0)
         self.drag_dist = 10
-
-        #self.grid(column=column, row=0, sticky=(N, S, E, W))
         self.last_selection = None
         self.edit = None  # to allow out of band exit, i.e. .widget.destroy()
-        # safe text pattern we want to preserve ';{}`' for delimiter use
-        self.safe_set =  r"[\w.,|&:+()\[\] ]"
-        self.safe_inv = r"[^\w.,|&:+()\[\] ]"
+        # safe text patterns
+        self.safe_set = f"[{safe}]"
+        self.safe_inv = f"[^{safe}]"
         self.safepat = re.compile(f"{self.safe_set}+")
-        # self.stripsafepat = re.compile(f"{self.safe_inv}+")
-        self.drag_start = None
+        # self.splitmakesafepat = re.compile(f"{self.safe_inv}+")
+        self._drag_start = None
 
         # listbox choices
         self.choices: list[str] = []
         self.choice_var = tk.StringVar()
 
         # listbox
-        self.lbox = tk.Listbox(self, listvariable=self.choice_var, width=int(WIDTH/5), height=HEIGHT)
+        self.lbox = tk.Listbox(
+            self,
+            listvariable=self.choice_var,
+            width=int(WIDTH/5),
+            height=HEIGHT
+        )
         self.lbox.grid(column=0, row=self.LIST_ROW, sticky=(N, S, E, W))
         self.lbox.bind("<<ListboxSelect>>", self._do_lbox_sel)
 
-        # TODO:: record the position of the events so we can check how far the mouse has moved
-        # and then we can take the shift off.
+        # TODO:: test if we can remove shift; do the new conditions work?
         if drag: # we only bind drag events if we are a drag enabled listbox
             self.lbox.bind("<Shift-ButtonPress-1>", self._drag_begin)
             self.lbox.bind("<Shift-ButtonRelease-1>", self._drag_end)
 
-        # scroll bars for listbox # no easy way to hide when not needed (subclass overide disable?)
-        # it might be possible to hook when the scrollbars change, and see if they need to be degridded?
         self.scrolly = AutoScrollBar(self, command=self.lbox.yview)
         self.lbox.configure(yscrollcommand=self.scrolly.set)
         self.scrolly.grid(row=self.LIST_ROW, column=1, sticky=(N, S))
@@ -93,13 +99,13 @@ class ListPanelABC(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
         "begin a drag"
         # x, y = e.x, e.y
         self.last_click = (e.x, e.y)
-        self.drag_start = self.lbox.index(f"@{e.x},{e.y}")
+        self._drag_start = self.lbox.index(f"@{e.x},{e.y}")
 
     def _drag_end(self, e):
         "end drag"
         end = self.lbox.index(f"@{e.x},{e.y}")
 
-        if self.drag_start == end:
+        if self._drag_start == end:
             return
 
         x2, y2 = e.x, e.y
@@ -109,10 +115,10 @@ class ListPanelABC(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
         if dist < self.drag_dist:
             return
 
-        if self.drag_start is not None and end is not None:
-            if 0 <= self.drag_start < len(self.choices):
+        if self._drag_start is not None and end is not None:
+            if 0 <= self._drag_start < len(self.choices):
                 if 0 <= end < len(self.choices):
-                    self.drag(self.drag_start, end)
+                    self.drag(self._drag_start, end)
 
     def drag(self, start, end):
         "does completes the drag, may be overridden"
