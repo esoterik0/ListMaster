@@ -99,7 +99,7 @@ class ListPanelABC(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
         "end drag"
         end = self.lbox.index(f"@{e.x},{e.y}")
 
-        if(self.drag_start == end):
+        if self.drag_start == end:
             return
 
         x2, y2 = e.x, e.y
@@ -110,8 +110,8 @@ class ListPanelABC(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
             return
 
         if self.drag_start is not None and end is not None:
-            if self.drag_start < len(self.choices) and self.drag_start >= 0:
-                if end < len(self.choices) and end > 0:
+            if 0 <= self.drag_start < len(self.choices):
+                if 0 <= end < len(self.choices):
                     self.drag(self.drag_start, end)
 
     def drag(self, start, end):
