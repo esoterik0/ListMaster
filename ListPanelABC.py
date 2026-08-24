@@ -28,6 +28,8 @@ class ListPanelABC(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
         self.TOP_ROW = 0
         self.LIST_ROW = 1
         self.ROW = self.LIST_ROW + 2
+        self.last_click = (0,0)
+        self.drag_dist = 10
 
         #self.grid(column=column, row=0, sticky=(N, S, E, W))
         self.last_selection = None
@@ -90,25 +92,30 @@ class ListPanelABC(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
     def _drag_begin(self, e):
         "begin a drag"
         # x, y = e.x, e.y
+        self.last_click = (e.x, e.y)
         self.drag_start = self.lbox.index(f"@{e.x},{e.y}")
 
     def _drag_end(self, e):
         "end drag"
-        # x, y = e.x, e.y
         end = self.lbox.index(f"@{e.x},{e.y}")
 
+        if(self.drag_start == end):
+            return
+
+        x2, y2 = e.x, e.y
+        x1, y1 = self.last_click
+        dist = (x2-x1)**2 + (y2-y1)**2
+
+        if dist < self.drag_dist:
+            return
+
         if self.drag_start is not None and end is not None:
-            self.drag(self.drag_start, end)
+            if self.drag_start < len(self.choices) and self.drag_start >= 0:
+                if end < len(self.choices) and end > 0:
+                    self.drag(self.drag_start, end)
 
     def drag(self, start, end):
         "does completes the drag, may be overridden"
-        if start == end:
-            return
-
-        l = len(self.choices)
-        if start >= l or end >= l or start < 0 or end < 0:
-            return
-
         # swap them
         self.choices[start], self.choices[end] = self.choices[end], self.choices[start]
         self.update_lbox()
