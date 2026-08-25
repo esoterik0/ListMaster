@@ -158,8 +158,27 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
                 self.set_page(self._name, self._cur_page)
             elif self._parent.name_available(newtext):
                 self._parent.rename(name, newtext) # change all
+            else:
+                self.edit.destroy()
+                self.edit = None
+                messagebox.showerror(
+                    title="Name collision",
+                    message=f"The chosen name: {newtext} already exists"
+                )
+                return
+        else:
+            self.edit.destroy()
+            self.edit = None
+            messagebox.showerror(
+                title="Invallid characters",
+                message="Your entry contains invallid characters\n"
+                     "the only characters allowed are\n"
+                     "'a-z','A-z','0-9','.,|&:+-()[] '",
+            )
+            return
 
         self.set_page(self._name, self._cur_page)
+
 
     def set_page(self, name: str | None, lst: list | None, sort = True):
         "sets the contents of the page panel"
@@ -322,7 +341,9 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
             return
 
         title, tbl = self._cur_page[self.last_selection]
-
         with open(f"{path}/{title}.txt", "w", encoding="utf-8") as f:
-            lines = [self._parent.get_name(x) for x in tbl]
+            lines = [
+                f"{iota}. {self._parent.get_name(x)}"
+                for iota, x in enumerate(tbl, 1)
+            ]
             print(*lines, sep='\n', end='\n', file=f)
