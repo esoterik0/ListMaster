@@ -19,6 +19,7 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
         self.filter_type = None
 
         self.lbox.bind("<Double-1>", self.do_double_page)
+        self.lbox.bind("<F2>", self.do_edit_item)
 
         self.title_var.set("Page")
 
@@ -238,7 +239,7 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
             if self._parent.state == State.EDIT:
                 self._parent.set_result_item(self._cur_page[self.last_selection])
 
-    def do_edit_item(self):
+    def do_edit_item(self, *args):
         "handle edit item button, and double click"
         if not self._cur_page:
             return "continue"

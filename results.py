@@ -52,6 +52,7 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
 
         # add double click.
         self.lbox.bind("<Double-1>", self.do_double_select)
+        self.lbox.bind("<F2>", self.do_double_select)
 
         self.title_var.set("Results")
 

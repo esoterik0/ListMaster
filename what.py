@@ -19,6 +19,7 @@ class WhatPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
         self.button_frame.grid(column=0, row=self.ROW, sticky=(E, W))
 
         self.lbox.bind("<Double-1>", self.edit_cat)
+        self.lbox.bind("<F2>", self.edit_cat)
 
         self.title_var.set("What")
 
@@ -157,7 +158,7 @@ class WhatPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
         self.look()
         return self._start_edit("")
 
-    def edit_cat(self, evt): # pylint: disable=W0613
+    def edit_cat(self, *args): # pylint: disable=W0613
         "edit the name of a category on the what panel"
 
         if self._parent.state != State.EDIT:
