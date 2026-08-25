@@ -287,7 +287,7 @@ class import_pdf(import_base):  # pylint: disable=too-many-instance-attributes
         if self.lstpan.choices:
             return self.panel.insert_new_table(
                 self.lstpan.title_var.get()[:self.Title_Len],
-                self.lstpan.choices
+                sorted(self.lstpan.choices)
             )
 
         return False
@@ -353,6 +353,9 @@ class import_pdf(import_base):  # pylint: disable=too-many-instance-attributes
     def double(self, idx: int):
         "double click to add to list"
         self._process(idx)
+        # deleteing the item caused drag to see two different indexes
+        # as the items have shifted, or dissapeared,
+        # checking the distance moved between events now
         del self.pdf_list.choices[idx]
         del self.lines[idx]
         self.pdf_list.update_lbox()

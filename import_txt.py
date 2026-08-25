@@ -60,6 +60,6 @@ class import_txt(import_base):  # pylint: disable=too-many-instance-attributes
         if self.lstpan:
             if self.panel.insert_new_table(
                 self.lstpan.title_var.get()[:self.Title_Len],
-                self.lstpan.choices
+                sorted(self.lstpan.choices)
             ):
                 self.destroy()
