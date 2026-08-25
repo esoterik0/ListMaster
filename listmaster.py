@@ -60,8 +60,11 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
         self.import_menu.add_command(label="Import list (pdf)", command=self.on_import_pdf)
         self.menu.add_cascade(menu=self.import_menu, label="Import")  # put import menu in root
         self.export_menu = tk.Menu(self.menu)
-        self.export_menu.add_command(label="Export list (txt)", command=self.export_text)
         self.menu.add_cascade(menu=self.export_menu, label="Export")
+        self.export_menu.add_command(label="Export list (txt)", command=self.export_text)
+        self.about_menu = tk.Menu(self.menu)
+        self.about_menu.add_command(label="About", command=self.about)
+        self.menu.add_cascade(menu=self.about_menu, label="About")
         self.menu.entryconfig(1, state=tk.DISABLED)
         self.root["menu"] = self.menu  # set root menu
 
@@ -207,3 +210,12 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
     def export_text(self):
         "export to text"
         self._main.do_export_text(filedialog.askdirectory())
+
+    def about(self):
+        "the about page"
+        messagebox.showinfo(
+            title="About ListMaster",
+            message="ListMaster manages random tables\n"
+                    "https://github.com/esoterik0/ListMaster\n\n"
+                    "contains content used under the CC-BY 4.0 License from Maze Rats by Ben Milton."
+        )
