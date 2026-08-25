@@ -25,7 +25,7 @@ class ListPanelABC(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
     def __init__(
         self,
         parent,
-        safe=r"\w.,|&:+()\[\] ",  # we want to preserve ';{}`' for delimiter use
+        safe=r"\w.,|&:+()\[\]\- ",  # we want to preserve ';{}`' for delimiter use
         drag=False,
         **kwargs
     ):
@@ -61,8 +61,10 @@ class ListPanelABC(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
 
         # TODO:: test if we can remove shift; do the new conditions work?
         if drag: # we only bind drag events if we are a drag enabled listbox
-            self.lbox.bind("<Shift-ButtonPress-1>", self._drag_begin)
-            self.lbox.bind("<Shift-ButtonRelease-1>", self._drag_end)
+            self.lbox.bind("<ButtonPress-1>", self._drag_begin)
+            self.lbox.bind("<ButtonRelease-1>", self._drag_end)
+            # self.lbox.bind("<Shift-ButtonPress-1>", self._drag_begin)
+            # self.lbox.bind("<Shift-ButtonRelease-1>", self._drag_end)
 
         self.scrolly = AutoScrollBar(self, command=self.lbox.yview)
         self.lbox.configure(yscrollcommand=self.scrolly.set)
