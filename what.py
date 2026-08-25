@@ -46,7 +46,7 @@ class WhatPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
 
         self.mode_var.set(State.ROLL.value)
 
-        self.add_button = ttk.Button(self.button_frame, text="New Category", command=self.add_cat)
+        self.add_button = ttk.Button(self.button_frame, text="New Collection", command=self.add_cat)
         self.add_button.grid(column=0, row=2, sticky=(N, S, E, W))
         self.add_button.grid_remove()
 

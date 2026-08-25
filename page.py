@@ -90,7 +90,7 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
 
         self.add_item = ttk.Button(
             self.button_frame_edit,
-            text="Copy Item",
+            text="Copy Item Name",
             command=self.do_copy_item
         )
         self.add_item.grid(column=1, row=1, sticky=(N, S, E, W))

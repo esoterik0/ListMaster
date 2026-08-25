@@ -391,6 +391,11 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
                 self.edit_button_frame.grid()
             case State.ROLL:
                 self.roll_button_frame.grid()
+                match(self.item):
+                    case list():
+                        self.roll_buttons["num_pages_label"].configure(text="No. times to roll (& pages)")
+                    case dat.MetaFormula() | dat.Formula():
+                        self.roll_buttons["num_pages_label"].configure(text="No. pages")
 
     def do_reroll(self):
         "handles the re-roll button, generates and populates the results column"
