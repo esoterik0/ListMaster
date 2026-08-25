@@ -14,7 +14,7 @@
 
 import os
 import tkinter as tk
-from tkinter import filedialog, font, messagebox
+from tkinter import E, N, S, W, filedialog, font, messagebox
 
 from enums import MENUSIZE, TEXTSIZE
 from main import MainPanel
@@ -81,6 +81,7 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
         self.root.columnconfigure(0, weight=1)
         # Main Panel is our single panel application.
         self._main = MainPanel(self.root, self.set_state)
+        self._main.grid(column=0, row=0, sticky=(N, S, E, W))
 
     def set_state(self, edit=False) -> None:
         "set the state"
@@ -137,7 +138,8 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
                     "Yes:\tSave & Quit\n"
                     "No:\tJust Quit\n"
                     "Cancel:\tDon't Quit",
-            title="Save & Quit?"
+            title="Save & Quit?",
+            parent=self.root
         )
 
         if code is None:  # Cancel

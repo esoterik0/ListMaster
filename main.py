@@ -32,7 +32,6 @@ class MainPanel(ttk.Frame, PanelCom):  # pylint: disable=too-many-ancestors,too-
     """
     def __init__(self, parent, pstate: Callable[[bool], None], **kwargs):
         super().__init__(parent, padding=5, width=WIDTH, height=HEIGHT, **kwargs)
-        self.grid(column=0, row=0, sticky=(N, S, E, W))
         self.root = parent
         self.parent_set_state: Callable[[bool], None] = pstate
 
