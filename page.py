@@ -141,7 +141,7 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
     def accept_edit(self, newtext: str) -> bool:
         "validate and accept edit or reject it"
         if self.last_selection is None:
-            return # igrone broken edits
+            return # ignore broken edits
 
         if self.last_selection >= len(self.choices):
             return
@@ -337,7 +337,7 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
             messagebox.showerror(
                 title="Missing Selection",
                 text="Nothing has been selected for export\n"
-                     "Please choose something on the page panel"
+                     "Please choose something on the page panel",
             )
             return
 
