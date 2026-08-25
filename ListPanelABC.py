@@ -59,7 +59,6 @@ class ListPanelABC(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
         self.lbox.grid(column=0, row=self.LIST_ROW, sticky=(N, S, E, W))
         self.lbox.bind("<<ListboxSelect>>", self._do_lbox_sel)
 
-        # TODO:: test if we can remove shift; do the new conditions work?
         if drag: # we only bind drag events if we are a drag enabled listbox
             self.lbox.bind("<ButtonPress-1>", self._drag_begin)
             self.lbox.bind("<ButtonRelease-1>", self._drag_end)
