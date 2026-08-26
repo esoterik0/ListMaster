@@ -239,7 +239,7 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
             if self._parent.state == State.EDIT:
                 self._parent.set_result_item(self._cur_page[self.last_selection])
 
-    def do_edit_item(self, *args):
+    def do_edit_item(self, *args):  # pylint: disable=unused-argument
         "handle edit item button, and double click"
         if not self._cur_page:
             return "continue"
@@ -280,7 +280,6 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
         self.look()
         return self._start_edit("New List")
 
-
     def do_new_meta(self):
         "handle new MetaFormula button"
         if self._cur_page is None:
@@ -290,6 +289,7 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
             return "continue"
 
         # todo:: implement new meta formula creation
+        return "continue"
 
     def do_copy_item(self):
         "handle add item button"
