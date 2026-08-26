@@ -97,7 +97,11 @@ class import_pdf(import_base):  # pylint: disable=too-many-instance-attributes
         self.page_label = tk.Label(self.page_frame, text="Page #: ")
         self.page_label.grid(row=0, column=0,sticky=(E, W))
 
-        self.page_entry = ttk.Entry(self.page_frame, textvariable=self.page_var)
+        self.page_entry = ttk.Entry(
+            self.page_frame,
+            textvariable=self.page_var,
+            command=self.parse
+        )
         self.page_entry.grid(row=0, column=1, sticky=(E, W))
 
 
