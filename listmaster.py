@@ -33,6 +33,7 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
         self.root.option_add('*tearOff', False)  # disable obsolete default ui setting
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)  # handle close messages
         self.root.title("List Master")  # set's main (root) menu title
+        root.iconphoto(True, tk.PhotoImage(file='icon.png'))
 
         # menu setup
         # -| menu bar (root)

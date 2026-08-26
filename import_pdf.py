@@ -36,7 +36,6 @@ class import_pdf(import_base):  # pylint: disable=too-many-instance-attributes
         self.pagere = re.compile(r"(\d+)(?:-(\d+))?")
         self.newre = re.compile("\n")
         self.lines = []
-
         # n.b. some of this stuff may not need to be saved in self. once it has
         # been added/gridded it shouldn't get garbage collected, but we save
         # everything just in case.
@@ -97,12 +96,9 @@ class import_pdf(import_base):  # pylint: disable=too-many-instance-attributes
         self.page_label = tk.Label(self.page_frame, text="Page #: ")
         self.page_label.grid(row=0, column=0,sticky=(E, W))
 
-        self.page_entry = ttk.Entry(
-            self.page_frame,
-            textvariable=self.page_var,
-            command=self.parse
-        )
+        self.page_entry = ttk.Entry(self.page_frame, textvariable=self.page_var)
         self.page_entry.grid(row=0, column=1, sticky=(E, W))
+        self.page_entry.bind("<Return>", self.parse)
 
 
     def _title_frame_foo(self, butrow):
@@ -227,7 +223,7 @@ class import_pdf(import_base):  # pylint: disable=too-many-instance-attributes
                 self.title_type_checked()
 
 
-    def parse(self):
+    def parse(self, *args): # pylint: disable=W0613
         "parse the pdf file and build the table"
 
         m = self.pagere.match(self.page_var.get().strip())

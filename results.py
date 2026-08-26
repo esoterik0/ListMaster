@@ -46,6 +46,8 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
         self.item_name = ""
         self.logfile = LOG
         self.sep_pat = re.compile(f"({{{self.safe_set}+)}}")
+
+        # TODO:: open this up so we can have tuples as well
         self.label_pat = re.compile(f"(?P<label>{self.safe_set}+); *(?P<table>{{{self.safe_set}+}})")
         self.semi = re.compile(r";")
         self.backtick = re.compile(r"`")
@@ -284,6 +286,7 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
             if (start == 0 or end == 0):
                 return
 
+        # TODO:: make this move one item to a new slot
         match(self.item):
             case dat.MetaFormula():
                 self.item.formula[start], self.item.formula[end] = self.item.formula[end], self.item.formula[start]

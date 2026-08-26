@@ -26,7 +26,7 @@ class ListEditPanel(ListPanelABC):  # pylint: disable=too-many-ancestors,too-man
         self.title_var.set("Title")
 
         self.lbox.bind("<Delete>", self.remove)
-        self.lbox.bind("<Backspace>", self.remove)
+        self.lbox.bind("<BackSpace>", self.remove)
 
         self.button_frame = ttk.Frame(self)
         self.button_frame.grid(column=0, row=self.ROW, sticky=(E, W))
@@ -42,7 +42,7 @@ class ListEditPanel(ListPanelABC):  # pylint: disable=too-many-ancestors,too-man
 
         self.lbox.bind("<Double-1>", self.edit_cat)
 
-    def remove(self):
+    def remove(self, *args):
         "remove an entry"
         if self.last_selection is not None:
             del self.choices[self.last_selection]

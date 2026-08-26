@@ -130,6 +130,7 @@ class WhatPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
             return
 
         # swap them
+        # TODO:: make this move one item to a new slot
         self.choices[start], self.choices[end] = self.choices[end], self.choices[start]
         self.what_list[start], self.what_list[end] = self.what_list[end], self.what_list[start]
         self.update_lbox()

@@ -26,6 +26,7 @@ Currently implmented features, struckout features are not yet implemented.
 - import tables from pdf.
 - import tables from txt.
 - export table to txt.
+- Drag to swap in edit mode (todo: change to move instead of swap)
 
 ## Basic Usage
 There are three main columns to the program:
@@ -80,6 +81,7 @@ When you select a collection its contents will be displayed in the page column.
 In edit mode you can:
 - add a collection
 - edit a collection - double click or F2 to edit
+- drag to swap items
 
 ### Page
 This column lists the 'pages' in the 'book'/collection.
@@ -118,6 +120,7 @@ edit mode has:
 - Edit item - also double click and F2
 - delete an item; edit it to nothing ""
 - Finish Editing
+- drag to swap items
 
 ### Menus
 
