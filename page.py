@@ -148,15 +148,17 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
 
         name = self.choices[self.last_selection]
         if newtext == "":
-            if name == "":
+            if name == "":  # skip spurrious adds
                 del self._cur_page[self.last_selection]
             elif not self._parent.check_delete_from_all(name):
                 del self._cur_page[self.last_selection]
         elif self._is_safe(newtext):
-            if name == "":
+            if name == "":  # new entry
                 self._parent.add_to_all(tup := (newtext, self._cur_page[self.last_selection][1]))
                 self._cur_page[self.last_selection] = tup
                 self.set_page(self._name, self._cur_page)
+            elif name == newtext:  # skip unchanged entries
+                return
             elif self._parent.name_available(newtext):
                 self._parent.rename(name, newtext) # change all
             else:
@@ -179,7 +181,6 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
             return
 
         self.set_page(self._name, self._cur_page)
-
 
     def set_page(self, name: str | None, lst: list | None, sort = True):
         "sets the contents of the page panel"
