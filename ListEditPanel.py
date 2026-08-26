@@ -25,6 +25,9 @@ class ListEditPanel(ListPanelABC):  # pylint: disable=too-many-ancestors,too-man
         self.title.grid(column=0, row=self.TOP_ROW, sticky=(N, S, E, W))
         self.title_var.set("Title")
 
+        self.lbox.bind("<Delete>", self.remove)
+        self.lbox.bind("<Backspace>", self.remove)
+
         self.button_frame = ttk.Frame(self)
         self.button_frame.grid(column=0, row=self.ROW, sticky=(E, W))
         self.button_frame.rowconfigure(0, weight=1)
@@ -38,6 +41,12 @@ class ListEditPanel(ListPanelABC):  # pylint: disable=too-many-ancestors,too-man
         self.add_item_button.grid(row=0,column=0,sticky=(N, S, E, W))
 
         self.lbox.bind("<Double-1>", self.edit_cat)
+
+    def remove(self):
+        "remove an entry"
+        if self.last_selection is not None:
+            del self.choices[self.last_selection]
+            self.update_lbox()
 
     def accept_edit(self, newtext: str) -> bool:
         "verify accept and execute edit"
@@ -54,14 +63,16 @@ class ListEditPanel(ListPanelABC):  # pylint: disable=too-many-ancestors,too-man
 
         return False
 
-    def do_lbox_sel(self, *args):
+    def do_lbox_sel(self, *args):  # pylint: disable=W0613
         "called when the listbox selection changes"
         self._sel()
 
-    def edit_cat(self, *args):
+    def edit_cat(self, *args):  # pylint: disable=W0613
         "edit the selected category"
         if self._sel() is not None:
             return self._start_edit(self.choices[self.last_selection])
+
+        return "continue"
 
     def add_item(self):
         "add item"
