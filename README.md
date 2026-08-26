@@ -5,8 +5,10 @@ Create, Maintain, and roll random tables for RPG or other use. Single or group c
 mazedat.py contains content used under the CC-BY 4.0 License from Maze Rats by Ben Milton.
 
 # Usage
-- Clone into a folter ListMaster
-- from the ListMaster folder: `python start.py'
+- Clone into a folder ListMaster
+- create and enter a virtual environment (optional)
+- from the ListMaster folder run: 'pip install -r LM.pip
+- from the ListMaster folder run: `python start.py'
 
 Alternatively use the windows EXE
 
