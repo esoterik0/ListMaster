@@ -241,7 +241,7 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
 
     def do_double_page(self, e):  # pylint: disable=unused-argument
         "handles double click on the 'page' column to choose what to edit"
-        if not self._cur_page:
+        if self.check_page():
             return
 
         if self._sel() is not None:
@@ -250,7 +250,7 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
 
     def do_edit_item(self, *args):  # pylint: disable=unused-argument
         "handle edit item button, and double click"
-        if not self._cur_page:
+        if self.check_page():
             return "continue"
 
         if self._sel() is not None:
@@ -271,7 +271,7 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
         if self._cur_page is None:
             messagebox.showerror(
                 title="Missing Collection",
-                message="You must select a collection to add items to."
+                message="You must select a collection to perform this task."
             )
             return True
         return False
@@ -328,6 +328,9 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
 
     def do_insert_item(self):
         "insert an item into our list"
+        if self.check_page():
+            return
+
         newitem = askstring("Insert Item", "Name of the item; {} are optional, no duplicates").strip()
 
         # strip {}
