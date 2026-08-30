@@ -178,7 +178,7 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
 
         return len(item) if item else 0
 
-    def _convert(self, text: str) -> str | table | tuple:
+    def convert(self, text: str) -> str | table | tuple:
         "converts a string to a table or tuple of strings and tables, returns empty string if not safe"
         if self._is_safe(text): # if it is safe, it doesn't have any thing to convert inside it ...
             return text  # ... so we just return the text
@@ -214,18 +214,16 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
         )
         return None
 
-    def convert(self, text: str) -> str | table | tuple:
+    def convert_meta(self, text: str) -> str | table | tuple:
         "converts a string to a table or tuple of tables, returns empty string if not safe"
         # only meta formuala's use this list format!
-        if text.count('`') > 0:
-            out = []
-            for txt in self.backtick.split(text):
-                if txt:
-                    ret = self._convert(txt.strip())
-                    if ret is not None:
-                        out.append(ret)
-            return out
-        return self._convert(text.strip())
+        out = []
+        for txt in self.backtick.split(text):
+            if txt:
+                ret = self.convert(txt.strip())
+                if ret is not None:
+                    out.append(ret)
+        return out
 
     def accept_edit(self, newtext: str): # pylint: disable=too-many-branches,too-many-statements
         "verify accept and execute edit"
@@ -251,12 +249,13 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
                         s.strip() for s in self.semi.split(newtext)
                     )
                 else:
-                    if txt := self.convert(newtext):
+                    if txt := self.convert_meta(newtext):
                         self.item.formula[self.last_selection-1] = dat.Formula(
                             txt,
                             self.item.labels,
                             self.item.name
                         )
+
             case dat.Formula():
                 if newtext.count(';') != 1:
                     messagebox.showerror(
@@ -326,11 +325,10 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
 
             self.grid_set()
         else:
-            if self._parent.state == State.ROLL:
-                self.item_name, self.item = "", []
-                self.title_var.set("Results")
-                self.set_result([])
-                self.ungrid_set()
+            self.item_name, self.item = "", []
+            self.title_var.set("Results")
+            self.set_result([])
+            self.ungrid_set()
 
     def set_item_edit(self):
         "sets the item to edit"
@@ -461,6 +459,7 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
             match(self.item):
                 case dat.MetaFormula():
                     nw = "{}`{}"
+                    self.item.formula.append(dat.Formula([], self.item.labels, self.item.name))
                 case dat.Formula():
                     nw = "Name; {}"
                     self.item.formula.append([])
