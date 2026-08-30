@@ -1,4 +1,4 @@
-"ListPanelLambda"
+"ListPanelLambda: callse callables on events"
 
 from collections.abc import Callable
 

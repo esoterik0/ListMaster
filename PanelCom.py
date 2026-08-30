@@ -12,7 +12,7 @@ class PanelCom:
 
     This allows breaking the circular import if we want to use type hints and the UI help that
     comes with that. Both main.py and the sub panels (what/page/results.py) can import this file
-    and not have the sub panels 'from main import MainPanel' which causes a circular import loop.
+    and the sub panels won't need 'from main import MainPanel' which causes a circular import loop.
     """
     def __init__(self):
         self.state: State = State.ROLL # we want an instance variable, not a class variable

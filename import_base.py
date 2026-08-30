@@ -6,7 +6,7 @@ from tkinter import E, N, S, W, ttk
 
 
 class import_base(tk.Toplevel):
-    "base class for importing has common functions"
+    "base class for importing; has common functions"
     def __init__(self, parent, **kw_args):
         super().__init__(parent, **kw_args)
 
@@ -23,7 +23,7 @@ class import_base(tk.Toplevel):
         self.numcut = re.compile(r"^[\d\.\,\;\:]+")  # ^ to garantee we only match at the start of the string.
 
         # setup modal dialog
-        self.wait_visibility() # this is needed apparently
+        self.wait_visibility() # this is apparently needed
         self.transient(parent) # informs modal behavior
         self.protocol('WM_DELETE_WINDOW', self.grab_release()) # release modal behavior on close
         self.grab_set() # start modal behavior

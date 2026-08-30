@@ -33,7 +33,7 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
         self.root.option_add('*tearOff', False)  # disable obsolete default ui setting
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)  # handle close messages
         self.root.title("List Master")  # set's main (root) menu title
-        root.iconphoto(True, tk.PhotoImage(file='icon.png'))
+        root.iconphoto(True, tk.PhotoImage(file='icon.png'))  # app icon
 
         # menu setup
         # -| menu bar (root)
@@ -43,7 +43,6 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
         #   |- Commands
         self.menu = tk.Menu(self.root)
         self.file_menu = tk.Menu(self.menu)
-        # add commands
         self.file_menu.add_command(label="New / Clear data", command=self.on_new)
         self.file_menu.add_command(label="Reset to defaults", command=self.on_reset)
         self.file_menu.add_separator()
@@ -56,19 +55,25 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
         self.file_menu.add_command(label="Save & Quit", command=self.on_save_quit)
         self.file_menu.add_command(label="Just Quit (No prompt)", command=self.on_quit)
         self.menu.add_cascade(menu=self.file_menu, label="File")  # put file menu in root
+
         self.import_menu = tk.Menu(self.menu)
         self.import_menu.add_command(label="Import list (txt)", command=self.on_import_txt)
         self.import_menu.add_command(label="Import list (pdf)", command=self.on_import_pdf)
         self.menu.add_cascade(menu=self.import_menu, label="Import")  # put import menu in root
+
         self.export_menu = tk.Menu(self.menu)
-        self.menu.add_cascade(menu=self.export_menu, label="Export")
         self.export_menu.add_command(label="Export list (txt)", command=self.export_text)
+        self.export_menu.add_command(label="Export Collection", command=self.export_coll)
+        self.menu.add_cascade(menu=self.export_menu, label="Export")
+
         self.about_menu = tk.Menu(self.menu)
         self.about_menu.add_command(label="About", command=self.about)
         self.menu.add_cascade(menu=self.about_menu, label="About")
-        self.menu.entryconfig(1, state=tk.DISABLED)
+
+        self.menu.entryconfig(1, state=tk.DISABLED) # import starts disabled in ROLL mode
         self.root["menu"] = self.menu  # set root menu
 
+        # modify font sizes
         font.nametofont("TkDefaultFont").configure(size=TEXTSIZE)
         font.nametofont("TkTextFont").configure(size=TEXTSIZE)
         font.nametofont("TkFixedFont").configure(size=TEXTSIZE)
@@ -83,20 +88,19 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
         # a single panel that contains all the application UI.
         self.root.rowconfigure(0, weight=1)
         self.root.columnconfigure(0, weight=1)
-        # Main Panel is our single panel application.
-        self._main = MainPanel(self.root, self.set_state)
+        self._main = MainPanel(self.root, self.set_state)  # Main Panel is our single panel application.
         self._main.grid(column=0, row=0, sticky=(N, S, E, W))
 
     def set_state(self, edit=False) -> None:
         "set the state"
 
+        # if we are editing we need to enable import, and disable export
         if edit:
             self.menu.entryconfig(1, state=tk.NORMAL)
             self.menu.entryconfig(2, state=tk.DISABLED)
-        else:
+        else:  # if we are rolling we disable import, and enable export
             self.menu.entryconfig(1, state=tk.DISABLED)
             self.menu.entryconfig(2, state=tk.NORMAL)
-
 
     def get_path_file(self):
         "gets the path and filename of the current file to save"
@@ -206,7 +210,7 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
 
     def on_import_txt(self):
         "import from txt"
-        self._main.do_import_txt(filedialog.askopenfilename())
+        self._main.do_import_txt(filedialog.askopenfilename(defaultextension=".txt"))
 
     def export_text(self):
         "export to text"
@@ -216,7 +220,11 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
         "the about page"
         messagebox.showinfo(
             title="About ListMaster",
-            message="ListMaster manages random tables\n"
+            message="ListMaster: manages random tables\n"
                     "https://github.com/esoterik0/ListMaster\n\n"
                     "contains content used under the CC-BY 4.0 License from Maze Rats by Ben Milton."
         )
+
+    def export_coll(self):
+        "export collection"
+        self._main.do_export_coll(filedialog.askopenfilename(defaultextension=".dat"))

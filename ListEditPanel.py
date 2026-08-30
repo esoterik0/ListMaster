@@ -42,7 +42,7 @@ class ListEditPanel(ListPanelABC):  # pylint: disable=too-many-ancestors,too-man
 
         self.lbox.bind("<Double-1>", self.edit_cat)
 
-    def remove(self, *args):
+    def remove(self, *args): # plint: disable=W0613
         "remove an entry"
         if self.last_selection is not None:
             del self.choices[self.last_selection]

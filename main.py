@@ -202,10 +202,11 @@ class MainPanel(ttk.Frame, PanelCom):  # pylint: disable=too-many-ancestors,too-
                     "what_choices": d[1]
                 }
                 pickle.dump(data, f)
-        except FileNotFoundError:
+        except OSError as e:
             messagebox.showerror(
                 title="File not found",
-                message=f"Could not open the file: {self._fname} for writing"
+                message=f"Could not open the file: {self._fname} for writing\n"
+                        f"Code:{e.errno} {e.strerror}\n"
             )
 
     def do_try_load(self):
@@ -214,8 +215,12 @@ class MainPanel(ttk.Frame, PanelCom):  # pylint: disable=too-many-ancestors,too-
             with open(self._fname, "rb", ) as f:
                 data = pickle.load(f)
                 self._what.set_what_data(data["what_list"], data["what_choices"])
-        except FileNotFoundError:
-            self.do_reset()
+        except OSError as e:
+            messagebox.showerror(
+                title="Load failed",
+                message="Something unexpected happened to your file\n"
+                        f"Code:{e.errno} {e.strerror}\n"
+            )
             return
 
         self._clear_panels()
@@ -237,8 +242,14 @@ class MainPanel(ttk.Frame, PanelCom):  # pylint: disable=too-many-ancestors,too-
         try:
             with open(file, "rb", ) as f:
                 data = pickle.load(f)
-        except FileNotFoundError:
+        except OSError as e:
+            messagebox.showerror(
+                title="Opening file failed",
+                message=f"Something happend while trying to open {file}\n"
+                        f"Code:{e.errno} {e.strerror}\n"
+            )
             return
+
         lst = data["what_list"]
         choice = data["what_choices"]
         allitems = lst[0]
@@ -263,8 +274,6 @@ class MainPanel(ttk.Frame, PanelCom):  # pylint: disable=too-many-ancestors,too-
         # set the choices.
         self._what.set_what_data(wlist, wchoices)
 
-    # this could be a utility
-
     def do_clear(self):
         "Clear all data"
 
@@ -281,6 +290,7 @@ class MainPanel(ttk.Frame, PanelCom):  # pylint: disable=too-many-ancestors,too-
         dlg = import_pdf(self.root, filename, self)
 
         self.wait_window(dlg)
+
     def do_import_txt(self, filename: str):
         "import from txt file"
         dlg = import_txt(self.root, filename, self)
@@ -290,6 +300,34 @@ class MainPanel(ttk.Frame, PanelCom):  # pylint: disable=too-many-ancestors,too-
     def do_export_text(self, folder: str):
         "export to text"
         self._page.export(folder)
+
+    def do_export_coll(self, filename: str):
+        "export a collection"
+        if self._what.last_selection is None:
+            messagebox.showerror(
+                title="Missing Selection",
+                message="You must select a collection for export"
+            )
+
+        choices = ["All Tables", self._what.choices[self._what.last_selection]]
+        lst = [
+            self._what.what_list[self._what.last_selection].copy(),
+            self._what.what_list[self._what.last_selection]
+        ]
+
+        try:
+            with open(filename, "wb") as f:
+                data = {
+                    "what_list": lst,
+                    "what_choices": choices
+                }
+                pickle.dump(data, f)
+        except OSError as e:
+            messagebox.showerror(
+                title="File not found",
+                message=f"Could not open the file: {filename} for writing\n"
+                        f"Code:{e.errno} {e.strerror}\n"
+            )
 
     ###########################################################################
     # helpers

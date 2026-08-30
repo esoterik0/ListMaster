@@ -26,13 +26,13 @@ Currently implmented features, struckout features are not yet implemented.
 - import tables from pdf.
 - import tables from txt.
 - export table to txt.
-- Drag to swap in edit mode (todo: change to move instead of swap)
+- Drag to reorder items in the what, and results column whilst in edit mode
 
 ## Basic Usage
 There are three main columns to the program:
-- what
-- page
-- results
+- What
+- Page
+- Results
 
 There are two modes:
 - Dice Tables: Dice mode
@@ -49,21 +49,21 @@ There are three types of tables
 a basic list. a list can contain
 - text
 - {ref} to another table
-- tex with a {ref} inserted or {ref2}
+- text with a {ref} inserted or {ref_two}
 
-references to other tables must be surrounded by {}, page has a copy item functon to help with this.
+References to other tables must be surrounded by {}, Page has a copy item functon to help with this.
 
 #### Formula
 A named collection of tables to roll all at once, i.e. a NPC. Entries may be any type of table.
 
-Entries look like 'name ;{table}'
+Entries look like 'Name ;{Table}'
 
 #### Meta formula
 A collection of similar formulas, that share a set of names, one formula is chosen to be used.
 
 The top line in edit mode will have a ';' separated list of names. Each other entry is a '`' (backtick) separated list of tables.
 
-N.b. editing the one metaformula seems to work, but there is no way to create a new one yet.
+N.b. editing the one existing metaformula seems to work, but there is no way to create a new one yet.
 
 ### What
 What book/collection to choose from.
@@ -81,7 +81,7 @@ When you select a collection its contents will be displayed in the page column.
 In edit mode you can:
 - add a collection
 - edit a collection - double click or F2 to edit
-- drag to swap items
+- drag to move items
 
 ### Page
 This column lists the 'pages' in the 'book'/collection.
@@ -120,7 +120,7 @@ edit mode has:
 - Edit item - also double click and F2
 - delete an item; edit it to nothing ""
 - Finish Editing
-- drag to swap items
+- drag to move items
 
 ### Menus
 

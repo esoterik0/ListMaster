@@ -67,14 +67,8 @@ class import_pdf(import_base):  # pylint: disable=too-many-instance-attributes
         self._type_frame_foo(3)
         self._add_title_frame_foo(4)
         self._command_frame_foo(5)
-        self.title_type_checked()
 
-    # def _add_sep(self, buttrow: int):
-    #     "add a separator"
-    #     # sep = ttk.Separator(self.button_frame, orient="horizontal")
-    #     # sep.grid(row=buttrow, column=0, sticky=(E, W))
-    #     sep = tk.Frame(self.button_frame, bd=10, relief='sunken', height=2, background="black")
-    #     sep.grid(row=buttrow, column=0, sticky=(E,W),pady=6)
+        self.title_type_checked()
 
     def _file_frame_foo(self, butrow):
         "construct the file frame"
@@ -226,6 +220,7 @@ class import_pdf(import_base):  # pylint: disable=too-many-instance-attributes
     def parse(self, *args): # pylint: disable=W0613
         "parse the pdf file and build the table"
 
+        # check to see if the user entered a valid page number or range
         m = self.pagere.match(self.page_var.get().strip())
 
         if m is None:
@@ -235,16 +230,20 @@ class import_pdf(import_base):  # pylint: disable=too-many-instance-attributes
             )
             return
 
-        self.lines = []  # reset lines
+        # reset our dialog
+        self.lines = []
         self.lstpan.choices = []
         self.lstpan.title_var.set("")
         self.lstpan.update_lbox()
 
+        # get the page (range) the pdf software starts on page 0, while the pdfs themselfs
+        # start counting at 1, so we need to subtract one from the page number to get the
+        # intended page.
         start, end = m.groups()
         # if we have a match, start will be valid
         start, end = int_nun(start)-1, int_nun(end)
 
-        if end:
+        if end:  # adjust end if it exists.
             end -= 1
 
         if end and end <= start:
@@ -256,19 +255,19 @@ class import_pdf(import_base):  # pylint: disable=too-many-instance-attributes
 
         doc = pdf.open(self.filename)
 
-        if end is None:
-            # single page
+        if end is None:  # single page
             self.parse_page(doc.load_page(start))
-        else:
-            # multiple pages
+        else: # multiple pages
             for page in range(start, end+1):
                 self.parse_page(doc.load_page(page))
 
+        # we want to show the user the number of newlines in the block, plus
+        # the first line or part of it if it is longer than self.Title_Len
         self.pdf_list.choices = [
             f"{s.count('\n')}: {s[:min(s.find('\n'), self.Title_Len)]}"
             for s in self.lines
         ]
-        self.pdf_list.update_lbox()
+        self.pdf_list.update_lbox()  # update the UI; display changes to the user.
 
     def save_quit(self):
         "save table/list and quit"
@@ -276,17 +275,17 @@ class import_pdf(import_base):  # pylint: disable=too-many-instance-attributes
             self.destroy()
 
     def save(self):
-        "save the list"
+        "save the list and reset lstpan"
         if self._save():
             self.lstpan.choices = []
             self.lstpan.title_var.set("")
             self.lstpan.update_lbox()
 
     def _save(self) -> bool:
-        "save the list"
+        "save the list from lstpan"
         if self.lstpan.choices:
             return self.panel.insert_new_table(
-                self.lstpan.title_var.get()[:self.Title_Len],
+                self.lstpan.title_var.get()[:self.Title_Len],  # truncate title if we need to
                 sorted(self.lstpan.choices)
             )
 
@@ -294,7 +293,7 @@ class import_pdf(import_base):  # pylint: disable=too-many-instance-attributes
 
     def parse_page(self, page: pdf.Page):
         "parse the page"
-        # block ~=(x0, y0, x1, y1, "lines in the block", block_no, block_type)
+        # block ~=(x0, y0, x1, y1, "lines in the block\n...", block_no, block_type)
         for block in page.get_text("blocks"):  # TextPage.extractBLOCKS()
             if block[6] == 0:  # get text boxes only
                 self.lines.append(block[4])  # get the text
@@ -304,11 +303,11 @@ class import_pdf(import_base):  # pylint: disable=too-many-instance-attributes
         self._title(self.pdf_list.last_selection)
 
     def set_title(self):
-        "add to title"
+        "set the title"
         self._title(self.pdf_list.last_selection, False)
 
     def _title(self, idx: int, add=True):
-        "append to title"
+        "append or set the title"
         match(self.title_var.get()):
             case Title_Enum.TOP.value:
                 # n.b. should never come up because we hide the button in this mode
@@ -324,10 +323,9 @@ class import_pdf(import_base):  # pylint: disable=too-many-instance-attributes
                 if add:  # append the title
                     new_title = " ".join([self.lstpan.title_var.get(), new_title])
 
-                # set the title
-                self.lstpan.title_var.set(new_title)
-                del self.lines[idx]
-                del self.pdf_list.choices[idx]
+                self.lstpan.title_var.set(new_title) # set the title
+                del self.lines[idx]  # remove the used line
+                del self.pdf_list.choices[idx] # remove the used line
                 self.pdf_list.update_lbox()
 
 
@@ -358,6 +356,7 @@ class import_pdf(import_base):  # pylint: disable=too-many-instance-attributes
         # checking the distance moved between events now
         del self.pdf_list.choices[idx]
         del self.lines[idx]
+        
         self.pdf_list.update_lbox()
 
     def _process(self, idx: int):
