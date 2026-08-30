@@ -45,10 +45,12 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
         self.item = None
         self.item_name = ""
         self.logfile = LOG
-        self.sep_pat = re.compile(f"({{{self.safe_set}+)}}")
+        self.table_sep_pat = re.compile(f"({{{self.safe_set}+)}}")
 
-        # TODO:: open this up so we can have tuples as well
-        self.label_pat = re.compile(f"(?P<label>{self.safe_set}+); *(?P<table>{{{self.safe_set}+}})")
+        # maybe open this up so we can have tuples as well
+        self.label_pat = re.compile(
+            f"(?P<label>{self.safe_set}+); *(?P<table>{{{self.safe_set}+}})"
+        )
         self.semi = re.compile(r";")
         self.backtick = re.compile(r"`")
 
@@ -176,20 +178,20 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
 
         return len(item) if item else 0
 
-    def _convert(self, text: str):
+    def _convert(self, text: str) -> str | table | tuple:
         "converts a string to a table or tuple of strings and tables, returns empty string if not safe"
         if self._is_safe(text): # if it is safe, it doesn't have any thing to convert inside it ...
             return text  # ... so we just return the text
         # the above if will take care of strings that don't have {} in them
-        if text.count("{") == text.count("}"): # check that we have pairs of {}
-            out = [x for x in self.sep_pat.split(text) if x] # filter empty strings; sep_pat filters out '}'
-            #assert len(out) > 0
+        if text.count("{") == text.count("}"): # check that we have pairs of {} # pylint: disable=R1702
+            out = [x for x in self.table_sep_pat.split(text) if x] # filter empty strings; sep_pat filters out '}'
+            #assert len(out) > 0 # due to our pattern and that we have at least one {} pair inside
             if len(out) == 1:
-                #assert out[0][0] == "{"
+                #assert out[0][0] == "{" # due to our pattern
                 if self._is_safe(tab := out[0][1:]):
-                    return self._parent.get_name_index(tab)[1]
-            else:
-                put = []
+                    return self._parent.get_name_index(tab)[1] # return table reference.
+            else:  # we need to make a tuple
+                put = []  # [out]`put
                 for item in out:
                     if item[0]=="{":
                         if self._is_safe(tab := item[1:]):
@@ -204,7 +206,6 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
                                 return None
                     elif self._is_safe(item):
                         put.append(item)
-
                 return tuple(put)
 
         messagebox.showerror(
@@ -213,7 +214,7 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
         )
         return None
 
-    def convert(self, text: str):
+    def convert(self, text: str) -> str | table | tuple:
         "converts a string to a table or tuple of tables, returns empty string if not safe"
         # only meta formuala's use this list format!
         if text.count('`') > 0:
@@ -258,6 +259,11 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
                         )
             case dat.Formula():
                 if newtext.count(';') != 1:
+                    messagebox.showerror(
+                        title="Formula syntax error",
+                        message="Formulas entries must be of the form\n"
+                                "\t\t'Name;{Table}'",
+                    )
                     return
                 if mat := self.label_pat.match(newtext):
                     label, text = mat.groups()
@@ -287,12 +293,7 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
                 return
 
         match(self.item):
-            case dat.MetaFormula():
-                self.item.formula.insert(end, self.item.formula[start])
-                if end < start:
-                    start += 1 # we inserted before our index so we must add one to compensate
-                del self.item.formula[start]
-            case dat.Formula():
+            case dat.MetaFormula() | dat.Formula():
                 self.item.formula.insert(end, self.item.formula[start])
                 self.item.labels.insert(end, self.item.labels[start])
                 if end < start:
@@ -440,7 +441,11 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
     def do_xls(self):
         "Handles the Generate .xls button, currently makes double sided three hole punched 8 1/2 x 11 pages."
         self._update_num()
-        dat.manufacture(self.item, self.path, self.item_name, self.num)
+        if not self.path:  # if the user hasn't chosen a filename yet, ask them to do so
+            self.do_path()
+
+        if self.path:  # the user could have cancelled the dialog
+            dat.manufacture(self.item, self.path, self.item_name, self.num)
 
     def do_done(self):
         "handle the done editing button"
