@@ -57,6 +57,7 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
         # add double click.
         self.lbox.bind("<Double-1>", self.do_double_select)
         self.lbox.bind("<F2>", self.do_double_select)
+        self.lbox.bind("<Return>", self.do_add_enter)
 
         self.title_var.set("Results")
 
@@ -452,8 +453,15 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
         self.set_result([])
         self.ungrid_set()
 
+    def do_add_enter(self, *args): # pylint: disable=W0613
+        "for bind to call, calls do_add"
+        return self.do_add()
+
     def do_add(self):
         "add item to item button"
+        if self._parent.state != State.EDIT:
+            return
+
         if self.item is not None:
             nw = ""
             match(self.item):
