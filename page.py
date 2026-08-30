@@ -266,7 +266,8 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
         self.look()
         return self._start_edit(prompt)
 
-    def _check_page(self):
+    def check_page(self):
+        "returns true if there is no page"
         if self._cur_page is None:
             messagebox.showerror(
                 title="Missing Collection",
@@ -277,7 +278,7 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
 
     def do_new_form(self):
         "handle new Form button"
-        if self._check_page():
+        if self.check_page():
             return "continue"
 
         if self.filter_type and self.filter_type != Formula:
@@ -287,7 +288,7 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
 
     def do_new_list(self):
         "handle new list button"
-        if self._check_page():
+        if self.check_page():
             return "continue"
 
         if self.filter_type and self.filter_type != list:
@@ -297,7 +298,7 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
 
     def do_new_meta(self):
         "handle new MetaFormula button"
-        if self._check_page():
+        if self.check_page():
             return "continue"
 
         if self.filter_type and self.filter_type != MetaFormula:
@@ -351,7 +352,7 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
 
     def export(self, path: str):
         "export a table"
-        if self.last_selection is None:
+        if self._cur_page is None or self.last_selection is None:
             messagebox.showerror(
                 title="Missing Selection",
                 text="Nothing has been selected for export\n"

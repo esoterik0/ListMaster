@@ -287,14 +287,18 @@ class MainPanel(ttk.Frame, PanelCom):  # pylint: disable=too-many-ancestors,too-
 
     def do_import_pdf(self, filename: str):
         "import from pdf"
-        dlg = import_pdf(self.root, filename, self)
+        if self._page.check_page():
+            return
 
+        dlg = import_pdf(self.root, filename, self)
         self.wait_window(dlg)
 
     def do_import_txt(self, filename: str):
         "import from txt file"
-        dlg = import_txt(self.root, filename, self)
+        if self._page.check_page():
+            return
 
+        dlg = import_txt(self.root, filename, self)
         self.wait_window(dlg)
 
     def do_export_text(self, folder: str):
