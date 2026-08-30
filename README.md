@@ -21,7 +21,7 @@ Currently implmented features, struckout features are not yet implemented.
 - import set of tables
 - create random tables.
 - create random formulas; a set of tables to roll at once.
-- ~~create random metaformulas; a table of similar formulas to choose from.~~
+- create random metaformulas; a table of similar formulas to choose from.
 - edit random tables.
 - import tables from pdf.
 - import tables from txt.
@@ -63,8 +63,6 @@ A collection of similar formulas, that share a set of names, one formula is chos
 
 The top line in edit mode will have a ';' separated list of names. Each other entry is a '`' (backtick) separated list of tables.
 
-N.b. editing the one existing metaformula seems to work, but there is no way to create a new one yet.
-
 ### What
 What book/collection to choose from.
 
@@ -92,7 +90,7 @@ You can choose which 'page' to roll, some are lists, some are formuals, etc. you
 In edit mode there are buttons to:
 - Add a new List
 - Add a new Formula
-- ~~add a new metaformula~~
+- add a new metaformula
 - Edit an Item - also press F2
 - Copy an Item name
 - Insert an Item into the collocetion by name
