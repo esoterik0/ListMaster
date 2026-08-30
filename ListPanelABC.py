@@ -181,9 +181,11 @@ class ListPanelABC(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
         event.widget.destroy()  # close edit
         self.update_lbox()  # update the listbox
         self.edit = None
+        self.lbox.focus()
 
     def _cancel_edit(self, event):
         "cancel an in place edit"
         self.cancel_edit()
         event.widget.destroy()  # close edit
         self.edit = None
+        self.lbox.focus()
