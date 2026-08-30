@@ -119,7 +119,7 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
         self.button_frame_roll.rowconfigure(1, weight=1)
         self.button_frame_roll.rowconfigure(2, weight=1)
 
-        self._cur_page = None
+        self._cur_coll = None
         self._filter_page = None
         self._name = None
 
@@ -135,7 +135,7 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
             case _:
                 self.filter_type = None
 
-        self.set_page(self._name, self._cur_page)
+        self.set_page(self._name, self._cur_coll)
 
     def accept_edit(self, newtext: str) -> bool:
         "validate and accept edit or reject it"
@@ -148,17 +148,17 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
         name = self.choices[self.last_selection]
         if newtext == "":
             if name == "":  # skip spurrious adds
-                del self._cur_page[self.last_selection]
+                del self._cur_coll[self.last_selection]
             elif not self._parent.check_delete_from_all(name):
-                del self._cur_page[self.last_selection]
+                del self._cur_coll[self.last_selection]
                 self._parent.set_result_item()  # results might still be displaying this
             else:
                 self._parent.set_result_item()  # deleted by delete from all
         elif self._is_safe(newtext):
             if name == "":  # new entry
-                self._parent.add_to_all(tup := (newtext, self._cur_page[self.last_selection][1]))
-                self._cur_page[self.last_selection] = tup
-                self.set_page(self._name, self._cur_page)
+                self._parent.add_to_all(tup := (newtext, self._cur_coll[self.last_selection][1]))
+                self._cur_coll[self.last_selection] = tup
+                self.set_page(self._name, self._cur_coll)
             elif name == newtext:  # skip unchanged entries
                 return
             elif self._parent.name_available(newtext):
@@ -182,7 +182,7 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
             )
             return
 
-        self.set_page(self._name, self._cur_page)
+        self.set_page(self._name, self._cur_coll)
 
     def set_page(self, name: str | None, lst: list | None, sort = True):
         "sets the contents of the page panel"
@@ -193,7 +193,7 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
             self.title_var.set("Page")
         self.last_selection = None
         if lst is None:
-            self._cur_page = None
+            self._cur_coll = None
             self.choices = []
             self.update_lbox()
             self.grid_set()
@@ -201,7 +201,7 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
 
         if sort:
             lst.sort(key = lambda x: x[0])
-        self._cur_page = lst
+        self._cur_coll = lst
         self._filter_page = self._filter()
         self.choices = [n[0] for n in self._filter_page]
         self.update_lbox()
@@ -232,25 +232,25 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
 
     def do_lbox_sel(self, *args):  # pylint: disable=unused-argument
         "handles the 'page' column to choose which table, page, or formula to generate from; triggers re-roll"
-        if not self._cur_page:
+        if not self._cur_coll:
             return
 
         if self._sel() is not None:  # allow 0 to pass inspection
             if self._parent.state == State.ROLL:
-                self._parent.set_result_item(self._cur_page[self.last_selection])
+                self._parent.set_result_item(self._cur_coll[self.last_selection])
 
     def do_double_page(self, e):  # pylint: disable=unused-argument
         "handles double click on the 'page' column to choose what to edit"
-        if self.check_page():
+        if self.check_coll():
             return
 
         if self._sel() is not None:
             if self._parent.state == State.EDIT:
-                self._parent.set_result_item(self._cur_page[self.last_selection])
+                self._parent.set_result_item(self._cur_coll[self.last_selection])
 
     def do_edit_item(self, *args):  # pylint: disable=unused-argument
-        "handle edit item button, and double click"
-        if self.check_page():
+        "handle edit item button, double click. and F2"
+        if self.check_coll():
             return "continue"
 
         if self._sel() is not None:
@@ -258,17 +258,9 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
 
         return "continue"
 
-    def _finish_start_edit(self, item: tuple[str, table | Formula | MetaFormula], prompt: str):
-        "common code to complete starting an edit"
-        self._cur_page.append(item)
-        self.set_page(self._name, self._cur_page, False)
-        self.last_selection = len(self._filter_page)-1
-        self.look()
-        return self._start_edit(prompt)
-
-    def check_page(self):
-        "returns true if there is no page"
-        if self._cur_page is None:
+    def check_coll(self):
+        "returns true if there is no current collection"
+        if self._cur_coll is None:
             messagebox.showerror(
                 title="Missing Collection",
                 message="You must select a collection to perform this task."
@@ -276,59 +268,67 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
             return True
         return False
 
-    def do_new_form(self):
-        "handle new Form button"
-        if self.check_page():
-            return "continue"
-
-        if self.filter_type and self.filter_type != Formula:
-            return "continue"
-
-        return self._finish_start_edit(("", Formula([], [], "")), "New Formula")
+    def _finish_add(self, item: tuple[str, table | Formula | MetaFormula], prompt: str):
+        "common code to complete starting an edit for adding a new item"
+        self._cur_coll.append(item)
+        self.set_page(self._name, self._cur_coll, False)
+        self.last_selection = len(self._filter_page)-1
+        self.look()
+        return self._start_edit(prompt)
 
     def do_new_list(self):
         "handle new list button"
-        if self.check_page():
+        if self.check_coll():
             return "continue"
 
         if self.filter_type and self.filter_type != list:
             return "continue"
 
-        return self._finish_start_edit(("", []), "New List")
+        return self._finish_add(("", []), "New List")
+
+    def do_new_form(self):
+        "handle new Form button"
+        if self.check_coll():
+            return "continue"
+
+        if self.filter_type and self.filter_type != Formula:
+            return "continue"
+
+        return self._finish_add(("", Formula([], [], "")), "New Formula")
 
     def do_new_meta(self):
         "handle new MetaFormula button"
-        if self.check_page():
+        if self.check_coll():
             return "continue"
 
         if self.filter_type and self.filter_type != MetaFormula:
             return "continue"
 
-        return self._finish_start_edit(("", MetaFormula([], [], "")), "New MetaFormula")
+        return self._finish_add(("", MetaFormula([], [], "")), "New MetaFormula")
 
     def do_copy_item(self):
         "handle add item button"
-        if not self._cur_page or self.last_selection is None:
+        if not self._cur_coll or self.last_selection is None:
             messagebox.showerror(
                 title="Missing Collection",
                 message="You must select a collection to copy an item from."
             )
             return
-        idx, tab = self._parent.get_name_index(self.choices[self.last_selection])
-        if idx is None:
-            return
+
+        _, tab = self._parent.get_name_index(self.choices[self.last_selection])
+        # assert idx is not None # if its in our choices, it must exist.
         self._parent.do_clipboard(self._parent.get_name(tab))
 
     def _filter(self):
-        "filter the data"
+        "filter the data by type: list, formula, or metaformula"
         if self.filter_type is None:
-            return self._cur_page
+            return self._cur_coll
 
-        return [n for n in self._cur_page if isinstance(n[1], self.filter_type)]
+        return [n for n in self._cur_coll if isinstance(n[1], self.filter_type)]
 
     def do_insert_item(self):
         "insert an item into our list"
-        if self.check_page():
+        if self.check_coll():
             return
 
         newitem = askstring("Insert Item", "Name of the item; {} are optional, no duplicates").strip()
@@ -340,22 +340,33 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
             newitem = newitem[:-1]
 
         if not self._is_safe(newitem):
+            messagebox.showerror(
+                title="Illegal characters",
+                message="some of the characters you entered are not legal."
+            )
             return # name must be safe
 
         if self._parent.name_available(newitem):
+            messagebox.showerror(
+                title="Item not found",
+                message="The Item you named could not be found."
+            )
             return # name must exist
 
-        if any(x[0] == newitem for x in self._cur_page):
-            return # cannot have duplicates in the same page!
+        if any(x[0] == newitem for x in self._cur_coll):
+            messagebox.showerror(
+                title="Duplicate!",
+                message="There cannot be duplicates in the same collection!"
+            )
+            return # cannot have duplicates in the same collection!
 
-        _, tab = self._parent.get_name_index(newitem)
-        if tab is not None:
-            self._cur_page.append((newitem, tab))
-            self.set_page(self._name, self._cur_page)
+        # n.b. we know the name exists, because we already checked above.
+        self._cur_coll.append((newitem, self._parent.get_name_index(newitem)[1]))
+        self.set_page(self._name, self._cur_coll)
 
     def export(self, path: str):
-        "export a table"
-        if self._cur_page is None or self.last_selection is None:
+        "export a table to a text file; filename = table name"
+        if self._cur_coll is None or self.last_selection is None:
             messagebox.showerror(
                 title="Missing Selection",
                 text="Nothing has been selected for export\n"
@@ -363,10 +374,10 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
             )
             return
 
-        title, tbl = self._cur_page[self.last_selection]
+        title, tbl = self._cur_coll[self.last_selection]
         with open(f"{path}/{title}.txt", "w", encoding="utf-8") as f:
             lines = [
                 f"{iota}. {self._parent.get_name(x)}"
                 for iota, x in enumerate(tbl, 1)
             ]
-            print(*lines, sep='\n', end='\n', file=f)
+            print(*lines, sep='\n', file=f)  # print(..., file=f) is more convient to use
