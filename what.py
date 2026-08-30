@@ -1,6 +1,5 @@
 "the what panel: chooses what top level category to use."
 
-import pickle
 import tkinter as tk
 from tkinter import E, N, S, W, messagebox, ttk
 
