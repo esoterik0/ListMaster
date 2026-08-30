@@ -12,8 +12,13 @@ mazedat.py contains content used under the CC-BY 4.0 License from Maze Rats by B
 
 Alternatively use the windows EXE
 
+## Knownn issues
+- when adding new items, backspace won't work until the entry box is clicked in, or a left or right arrow key is pressed. This seems to be a bug in TK or TKinter, all the other keys work, it has keyboard focus.
+- I have not been able change the font size for popup messages. Nothing works, things the documentation and people/forums say should work just dont. This seems to be an issue with TK or TKinter
+
+I have tried to research these issues but the have had no luck finding an answer.
+
 ## Features
-Currently implmented features, struckout features are not yet implemented.
 
 - roll on random tables, formulas and metaformulas.
 - save set of table
@@ -27,6 +32,8 @@ Currently implmented features, struckout features are not yet implemented.
 - import tables from txt.
 - export table to txt.
 - Drag to reorder items in the what, and results column whilst in edit mode
+- Generate .xls files of pages of random rolls, for printing and future use
+- Log rolls to save for later
 
 ## Basic Usage
 There are three main columns to the program:
@@ -117,8 +124,9 @@ edit mode has:
 - you can add '{tables}' or '{table} element' etc.
 - Edit item - also double click and F2
 - delete an item; edit it to nothing ""
-- Finish Editing
-- drag to move items
+- Finish Editing; closes the panel
+- Drag to move items
+- Pressing enter while the panel has focus will add a new entry
 
 ### Menus
 
@@ -133,16 +141,16 @@ edit mode has:
 - Just Quit (No prompt) - just quit no save no prompt.
 
 #### Import
-Only works in Edit mode, disabled in roll mode
+Only works in Edit mode, disabled in roll mode.
 
 - import list (txt)
 
-imports a list from text, the filename is the title. it will show you the list verify and edit before saving
+imports a list from text, the filename is the title. it will show you the list to verify and edit before saving.
 
 - import list (pdf)
 
 imports lists from a pdf. Choose a page or pages, and press parse, the middle column will have all
-the text blocks from the page or pages. Each block starts with the number of newlines in the block, and the first line or part thereof. Every time you hit parse it will erase everything in the other two columns
+the text blocks from the page or pages. Each block starts with the number of newlines in the block, and the first line or part thereof. Every time you hit parse it will erase everything in the other two columns.
 
 The title can be separate from the list or on top of the list. If the title is separate there are buttons to set or add to the title. The title can also be edited manuallly.
 
@@ -151,7 +159,7 @@ Double click on a block to add it to the list. If the list is one block per entr
 the third column contains the list it can be edited or added to.
 
 Save will save the table to the currently open collection, and clear the third column.
-Save & Quit will save the table to the currenly open collection, and close the dialog
+Save & Quit will save the table to the currenly open collection, and close the dialog.
 
 one could set a page, pase, save lists, set a new page parse, ...
 
@@ -161,7 +169,7 @@ one could set a page, pase, save lists, set a new page parse, ...
 
 exports the currently seleceted list, only works in roll mode.
 
-A path is given the filename will be the tablename.txt
+A path is given the filename will be the 'tablename.txt'.
 
 #### About
 has the about command
