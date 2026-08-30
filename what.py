@@ -71,6 +71,8 @@ class WhatPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
             ):
                 del self.choices[self.last_selection]
                 del self.what_list[self.last_selection]
+                self._parent.set_page("", None) # incase we are displaying this
+                self._parent.set_result_item()  # results might still be displaying this
                 return
 
         if self._is_safe(newtext):
