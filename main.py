@@ -334,5 +334,5 @@ class MainPanel(ttk.Frame, PanelCom):  # pylint: disable=too-many-ancestors,too-
 
     def _clear_panels(self):
         "clear other panels"
-        self._page.set_page("", [])
+        self._page.set_page("", None)
         self.set_result_item()
