@@ -126,11 +126,16 @@ class WhatPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
             return
 
         l = len(self.choices)
-        if start >= l or end >= l:
+        if start >= l or end > l:
             return
 
-        # swap them
-        # TODO:: make this move one item to a new slot
+        self.choices.insert(end, self.choices[start])
+        self.what_list.insert(end, self.what_list[start])
+        if end < start:
+            start += 1 # we inserted before our index so we must add one to compensate
+        del self.choices[start]
+        del self.what_list[start]
+
         self.choices[start], self.choices[end] = self.choices[end], self.choices[start]
         self.what_list[start], self.what_list[end] = self.what_list[end], self.what_list[start]
         self.update_lbox()

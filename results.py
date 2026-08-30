@@ -286,15 +286,24 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
             if (start == 0 or end == 0):
                 return
 
-        # TODO:: make this move one item to a new slot
         match(self.item):
             case dat.MetaFormula():
-                self.item.formula[start], self.item.formula[end] = self.item.formula[end], self.item.formula[start]
+                self.item.formula.insert(end, self.item.formula[start])
+                if end < start:
+                    start += 1 # we inserted before our index so we must add one to compensate
+                del self.item.formula[start]
             case dat.Formula():
-                self.item.formula[start], self.item.formula[end] = self.item.formula[end], self.item.formula[start]
-                self.item.labels[start], self.item.labels[end] = self.item.labels[end], self.item.labels[start]
+                self.item.formula.insert(end, self.item.formula[start])
+                self.item.labels.insert(end, self.item.labels[start])
+                if end < start:
+                    start += 1 # we inserted before our index so we must add one to compensate
+                del self.item.formula[start]
+                del self.item.labels[start]
             case list():
-                self.item[start], self.item[end] = self.item[end], self.item[start]
+                self.item.insert(end, self.item[start])
+                if end < start:
+                    start += 1 # we inserted before our index so we must add one to compensate
+                del self.item[start]
 
         self.set_item_edit()
 

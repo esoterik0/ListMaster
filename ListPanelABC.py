@@ -113,6 +113,7 @@ class ListPanelABC(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
         x1, y1 = self.last_click
         dist = (x2-x1)**2 + (y2-y1)**2
 
+        # must move a distance before we count it as a drag
         if dist < self.drag_dist:
             return
 
@@ -123,8 +124,12 @@ class ListPanelABC(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
 
     def drag(self, start, end):
         "does completes the drag, may be overridden"
-        # swap them
-        self.choices[start], self.choices[end] = self.choices[end], self.choices[start]
+
+        self.choices.insert(end, self.choices[start])
+        if end < start:
+            start += 1 # we inserted before our index so we must add one to compensate
+        del self.choices[start]
+
         self.update_lbox()
 
     def look(self):
