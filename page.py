@@ -4,7 +4,7 @@ import tkinter as tk
 from tkinter import E, N, S, W, messagebox, ttk
 from tkinter.simpledialog import askstring
 
-from enums import ItemColor, ItemType, State
+from enums import ItemColor, ItemType, State, table
 from gendata import Formula, MetaFormula
 from ListTitlePanelABC import ListTitlePanelABC
 from PanelCom import PanelCom
@@ -73,7 +73,6 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
             command=self.do_new_meta,
         )
         self.new_meta.grid(column=0, row=2, sticky=(N, S, E, W))
-        self.new_meta["state"] = "disabled"
 
         self.new_form = ttk.Button(
             self.button_frame_edit, text="New Formula",
@@ -152,6 +151,9 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
                 del self._cur_page[self.last_selection]
             elif not self._parent.check_delete_from_all(name):
                 del self._cur_page[self.last_selection]
+                self._parent.set_result_item()  # results might still be displaying this
+            else:
+                self._parent.set_result_item()  # deleted by delete from all
         elif self._is_safe(newtext):
             if name == "":  # new entry
                 self._parent.add_to_all(tup := (newtext, self._cur_page[self.last_selection][1]))
@@ -190,10 +192,16 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
         else:
             self.title_var.set("Page")
         self.last_selection = None
-        if lst is not None:
-            if sort:
-                lst.sort(key = lambda x: x[0])
-            self._cur_page = lst
+        if lst is None:
+            self._cur_page = None
+            self.choices = []
+            self.update_lbox()
+            self.grid_set()
+            return
+
+        if sort:
+            lst.sort(key = lambda x: x[0])
+        self._cur_page = lst
         self._filter_page = self._filter()
         self.choices = [n[0] for n in self._filter_page]
         self.update_lbox()
@@ -250,51 +258,60 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
 
         return "continue"
 
+    def _finish_start_edit(self, item: tuple[str, table | Formula | MetaFormula], prompt: str):
+        "common code to complete starting an edit"
+        self._cur_page.append(item)
+        self.set_page(self._name, self._cur_page, False)
+        self.last_selection = len(self._filter_page)-1
+        self.look()
+        return self._start_edit(prompt)
+
+    def _check_page(self):
+        if self._cur_page is None:
+            messagebox.showerror(
+                title="Missing Collection",
+                message="You must select a collection to add items to."
+            )
+            return True
+        return False
+
     def do_new_form(self):
         "handle new Form button"
-        if self._cur_page is None:
+        if self._check_page():
             return "continue"
 
         if self.filter_type and self.filter_type != Formula:
             return "continue"
 
-        name = ""
-
-        form = Formula([], [], name)
-        self._cur_page.append((name, form))
-        self.set_page(self._name, self._cur_page, False)
-        self.last_selection = len(self._filter_page)-1
-        self.look()
-        return self._start_edit("New Formula")
+        return self._finish_start_edit(("", Formula([], [], "")), "New Formula")
 
     def do_new_list(self):
         "handle new list button"
-        if self._cur_page is None:
+        if self._check_page():
             return "continue"
 
         if self.filter_type and self.filter_type != list:
             return "continue"
 
-        self._cur_page.append(("", []))
-        self.set_page(self._name, self._cur_page, False)
-        self.last_selection = len(self._filter_page)-1
-        self.look()
-        return self._start_edit("New List")
+        return self._finish_start_edit(("", []), "New List")
 
     def do_new_meta(self):
         "handle new MetaFormula button"
-        if self._cur_page is None:
+        if self._check_page():
             return "continue"
 
         if self.filter_type and self.filter_type != MetaFormula:
             return "continue"
 
-        # todo:: implement new meta formula creation
-        return "continue"
+        return self._finish_start_edit(("", MetaFormula([], [], "")), "New MetaFormula")
 
     def do_copy_item(self):
         "handle add item button"
-        if self.last_selection is None:
+        if not self._cur_page or self.last_selection is None:
+            messagebox.showerror(
+                title="Missing Collection",
+                message="You must select a collection to copy an item from."
+            )
             return
         idx, tab = self._parent.get_name_index(self.choices[self.last_selection])
         if idx is None:
