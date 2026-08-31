@@ -160,7 +160,7 @@ class ListPanelABC(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
         if text is None:
             text = self.lbox.get(self.last_selection)
 
-        entry = tk.Entry(self.lbox, borderwidth=0, highlightthickness=1)
+        entry = ttk.Entry(self.lbox, borderwidth=0, highlightthickness=1)
         self.edit = entry # allow's external cancelation
 
         entry.bind("<Return>", self._accept_edit)

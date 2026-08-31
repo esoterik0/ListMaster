@@ -27,7 +27,7 @@ class import_txt(import_base):  # pylint: disable=too-many-instance-attributes
         self.button_frame.rowconfigure(1, weight=1)
         self.button_frame.grid(row=0, column=0, sticky=(N, E, W))
 
-        self.file_label = tk.Label(self.button_frame, text=f"File: {file}")
+        self.file_label = ttk.Label(self.button_frame, text=f"File: {file}")
         self.file_label.grid(row=0, column=0, sticky=(E, W))
 
         self.save_button = ttk.Button(

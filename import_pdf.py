@@ -87,7 +87,7 @@ class import_pdf(import_base):  # pylint: disable=too-many-instance-attributes
             self.page_frame.columnconfigure(x, weight=1)
         self.page_frame.grid(row=butrow, column=0, pady=self.pady)
 
-        self.page_label = tk.Label(self.page_frame, text="Page #: ")
+        self.page_label = ttk.Label(self.page_frame, text="Page #: ")
         self.page_label.grid(row=0, column=0,sticky=(E, W))
 
         self.page_entry = ttk.Entry(self.page_frame, textvariable=self.page_var)
@@ -356,7 +356,7 @@ class import_pdf(import_base):  # pylint: disable=too-many-instance-attributes
         # checking the distance moved between events now
         del self.pdf_list.choices[idx]
         del self.lines[idx]
-        
+
         self.pdf_list.update_lbox()
 
     def _process(self, idx: int):

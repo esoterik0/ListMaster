@@ -83,7 +83,7 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
 
         self.num_pages_var = tk.StringVar()
         self.num_pages_var.set(f"{SINGLE}")
-        self.roll_buttons["num_pages"] = tk.Entry(
+        self.roll_buttons["num_pages"] = ttk.Entry(
             self.roll_button_frame,
             textvariable=self.num_pages_var
         )
