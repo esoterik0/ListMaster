@@ -443,8 +443,19 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
         if not self.path:  # if the user hasn't chosen a filename yet, ask them to do so
             self.do_path()
 
+        match(self.item):
+            case list():
+                form = dat.Formula([self.item], [self.item_name], self.item_name)
+            case dat.Formula() | dat.MetaFormula():
+                form = self.item
+
         if self.path:  # the user could have cancelled the dialog
-            dat.manufacture(self.item, self.path, self.item_name, self.num)
+            dat.manufacture(form, self.path, self.item_name, self.num)
+
+        messagebox.showinfo(
+            title="Success",
+            message="Your .xls files have been created."
+        )
 
     def do_done(self):
         "handle the done editing button"
