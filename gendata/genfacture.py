@@ -35,7 +35,7 @@ double = [f'{a}{b}' for b in letters for a in letters]
 cols = letters + double  # excel cols
 
 
-def generate(  # pylint: disable=too-many-arguments,too-many-locals
+def generate(  # pylint: disable=too-many-arguments,too-many-locals,R0917
     foo: Callable[[], Generator[list[str], Any, None]],  # generator function pylint: disable=disallowed-name
     out_name: str | None = None,  # filename
     split: int = 6,  # split
