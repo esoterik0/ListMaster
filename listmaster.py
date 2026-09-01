@@ -223,7 +223,7 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
             message="ListMaster: manages random tables\n"
                     "https://github.com/esoterik0/ListMaster\n"
                     "Version 1.0\n\n"
-                    "contains content used under the CC-BY 4.0 License from Maze Rats by Ben Milton."
+                    "Contains content used under the CC-BY 4.0 License from Maze Rats by Ben Milton."
         )
 
     def export_coll(self):
