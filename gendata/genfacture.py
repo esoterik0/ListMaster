@@ -38,9 +38,9 @@ cols = letters + double  # excel cols
 def generate(  # pylint: disable=too-many-arguments,too-many-locals,R0917
     foo: Callable[[], Generator[list[str], Any, None]],  # generator function pylint: disable=disallowed-name
     out_name: str | None = None,  # filename
-    split: int = 6,  # split
+    split: int = 6,
     left_margin: bool | None = None,  # margins: left:True, right:False, center: None
-    width: float = PAGE_WIDTH,  # page witdth to use depending on program and size of paper.
+    width: float = PAGE_WIDTH,  # page witdth to use depending on size of paper.
     thick: Side = Side(border_style="thick", color="FF000000"),  # cel border
     font: Font = Font("Crimson Text SemiBold"),  # font to use, must be in current directory, or path to file
     gray: PatternFill = PatternFill(patternType='solid', fgColor=Color(rgb="FFE8E8E8")),  # pattern for header bg
@@ -125,7 +125,7 @@ def generate(  # pylint: disable=too-many-arguments,too-many-locals,R0917
     wb.save(out_name)  # save the file
 
 
-def manufacture(  # pylint: disable=too-many-arguments
+def manufacture(  # pylint: disable=too-many-arguments,R0917
     form: Formula,
     path: str = "",
     prefix: str = "gen",  # file template prefix
