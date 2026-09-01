@@ -1,6 +1,5 @@
 "module window/dialog, to import a list from text file"
 
-import tkinter as tk
 from tkinter import E, N, W, ttk
 
 from import_base import import_base
