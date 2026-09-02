@@ -43,10 +43,10 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
         #   |- Commands
         self.menu = tk.Menu(self.root)
         self.file_menu = tk.Menu(self.menu)
-        self.file_menu.add_command(label="New / Clear data", command=self.on_new)
+        self.file_menu.add_command(label="New / Clear Database", command=self.on_new)
         self.file_menu.add_command(label="Reset to defaults", command=self.on_reset)
         self.file_menu.add_separator()
-        self.file_menu.add_command(label="Load", command=self.on_load)  # Replaces the data
+        self.file_menu.add_command(label="Load Database", command=self.on_load)  # Replaces the data
         self.file_menu.add_command(label="Import Database", command=self.on_import)  # Adds the the data
         self.file_menu.add_separator()
         self.file_menu.add_command(label="Save", command=self.on_save)  # Save over the current file
