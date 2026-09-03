@@ -4,27 +4,40 @@ Create, Maintain, and roll random tables for RPG or other use. Single or group c
 ### Content used under license
 mazedat.py contains content used under the CC-BY 4.0 License from Maze Rats by Ben Milton.
 
+Crimson Text Font under SIL
+
 # Usage
 - Install python 3.12.6 or later
 - Open a command prompt and pick or make a folder ex. `md PyApps`  and enter it `cd PyApps`
 - create and enter a virtual environment (optional)
 
-`python -m venv ./venv/ListMaster`
+    `python -m venv ./venv/ListMaster`
 
-`./venv/ListMaster/Scripts/activate`
+    `./venv/ListMaster/Scripts/activate`
 - Clone into a folder ListMaster
 
-`git clone git@github.com:esoterik0/ListMaster.git ListMaster`
+    `git clone git@github.com:esoterik0/ListMaster.git ListMaster`
 - enter the ListMaster folder
 
-`cd ListMaster`
+    `cd ListMaster`
 - install libraries
 
-`pip install -r LM.pip`
+    `pip install -r LM.pip`
 - start the program
 
-`python start.py`
+    `python start.py`
 
+Once installed, One can create a shortcut to a script to start the program. Start in pyapps or what ever folder you installed ListMaster into.
+
+    .\venv\ListMaster\Scripts\Activate.bat
+
+or
+
+
+    .\venv\ListMaster\Scripts\Activate.ps1
+
+    cd ListMaster
+    pythonw start.py
 ## Knownn issues
 - when adding new items, backspace won't work until the entry box is clicked in, or a left or right arrow key is pressed. This seems to be a bug in TK or TKinter, all the other keys work, it has keyboard focus.
 - I have not been able change the font size for popup messages. Nothing works, things the documentation and people/forums say should work just dont. This seems to be an issue with TK or TKinter
@@ -56,7 +69,7 @@ There are three main columns to the program:
 - Results
 
 There are two modes:
-- Dice Tables: Dice mode
+- Dice Tables: Roll mode
 - Add/Edit Tables: Edit Mode
 
 There are three types of tables
@@ -105,9 +118,9 @@ In edit mode you can:
 ### Select page
 This column lists the 'pages' in the 'book'/collection.
 
-You can choose which 'page' to roll, some are lists, some are formuals, etc. you can filter the pages by list, formula, metaformula, or by nothing.
+You can choose which 'page' to roll, some are lists, some are formuals, etc. you can filter the pages by list, formula, metaformula, or no filter.
 
-When you choose what to roll the table is sent to the results panel and rolled.
+When you choose what table to roll it is sent to the results panel and rolled.
 
 #### Edit Mode
 In edit mode there are buttons to:
@@ -147,10 +160,10 @@ edit mode has:
 ### Menus
 
 #### File
-- New / Clear data - gives you an empty database
-- Reset to defaults - load the mazerats deafults
-- Load - load a previously saved data base
-- Import Database - import and merge databases
+- New / Clear database - gives you an empty database
+- Reset to defaults - replace the contents with the mazerats deafults
+- Load database - load a previously saved data base
+- Import database - import and merge databases
 - Save - Save the database to default name
 - Save as - Save the database to specified name
 - Save & Quit - Save the data base and quit
@@ -183,9 +196,10 @@ one could set a page, pase, save lists, set a new page parse, ...
 
 - Export list (txt)
 
-exports the currently seleceted list, only works in roll mode.
+Exports the currently seleceted list, only works in roll mode. A path is given and the filename will be the 'tablename.txt'.
+- export collection
 
-A path is given the filename will be the 'tablename.txt'.
+Exports the currently seleceted collection, only works in roll mode. A file name is given to write out the .dat file.
 
 #### About
 has the about command
