@@ -21,7 +21,7 @@ class WhatPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
         self.lbox.bind("<Double-1>", self.edit_cat)
         self.lbox.bind("<F2>", self.edit_cat)
 
-        self.title_var.set("What")
+        self.title_var.set("What Collection")
 
         # radio button set
         self.mode_var = tk.StringVar()

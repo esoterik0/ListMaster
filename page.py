@@ -21,7 +21,7 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
         self.lbox.bind("<Double-1>", self.do_double_page)
         self.lbox.bind("<F2>", self.do_edit_item)
 
-        self.title_var.set("Page")
+        self.title_var.set("Select Page")
 
         # buttons for ROLL mode
         self.button_frame_roll = ttk.Frame(self)
@@ -188,9 +188,9 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
         "sets the contents of the page panel"
         self._name = name
         if self._name:
-            self.title_var.set(f'Page "{name}"')
+            self.title_var.set(f'Select Page: "{name}"')
         else:
-            self.title_var.set("Page")
+            self.title_var.set("Select Page")
         self.last_selection = None
         if lst is None:
             self._cur_coll = None

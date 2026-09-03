@@ -57,7 +57,7 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
         # add double click.
         self.lbox.bind("<Double-1>", self.do_double_select)
         self.lbox.bind("<F2>", self.do_double_select)
-        self.lbox.bind("<Return>", self.do_add_enter)
+        self.lbox.bind("<Return>", self.do_add_event)
 
         self.title_var.set("Results")
 
@@ -88,6 +88,7 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
             textvariable=self.num_pages_var
         )
         self.roll_buttons["num_pages"].grid(column=1, row=1, sticky=(N, S, E, W))
+        self.roll_buttons["num_pages"].bind("<Return>", self.do_reroll_event)
 
         self.roll_buttons["clip_copy"] = ttk.Button(
             self.roll_button_frame, text="Copy to clipboard",
@@ -405,9 +406,13 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
                 self.roll_button_frame.grid()
                 match(self.item):
                     case list():
-                        self.roll_buttons["num_pages_label"].configure(text="No. times to roll (& pages)")
+                        self.roll_buttons["num_pages_label"].configure(text="No. of rolls (& pages)")
                     case dat.MetaFormula() | dat.Formula():
                         self.roll_buttons["num_pages_label"].configure(text="No. pages")
+
+    def do_reroll_event(self, *args):
+        "passthrough to strip args"
+        self.do_reroll()
 
     def do_reroll(self):
         "handles the re-roll button, generates and populates the results column"
@@ -445,6 +450,7 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
 
         match(self.item):
             case list():
+                # make temporary formual for list
                 form = dat.Formula([self.item], [self.item_name], self.item_name)
             case dat.Formula() | dat.MetaFormula():
                 form = self.item
@@ -464,14 +470,14 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
         self.set_result([])
         self.ungrid_set()
 
-    def do_add_enter(self, *args): # pylint: disable=W0613
+    def do_add_event(self, *args): # pylint: disable=W0613
         "for bind to call, calls do_add"
         return self.do_add()
 
     def do_add(self):
         "add item to item button"
         if self._parent.state != State.EDIT:
-            return
+            return "continue"
 
         if self.item is not None:
             nw = ""
@@ -515,6 +521,8 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
         "set log file button"
         if log := filedialog.asksaveasfilename():
             self.logfile = log
+        else:
+            self.logfile = ""
 
     def do_logroll(self):
         "reroll and log the results button"
@@ -523,8 +531,17 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
 
     def do_log(self):
         "log the results button"
-        with open(self.logfile, "a", encoding="utf-8") as f:
-            print(f"rolling {self.item_name}", *self.choices, sep='\n', end='\n\n', file=f)
+        if not self.logfile:
+            self.do_set_log()
+
+        if self.logfile:  # make sure something was chosen.
+            with open(self.logfile, "a", encoding="utf-8") as f:
+                print(f"rolling {self.item_name}", *self.choices, sep='\n', end='\n\n', file=f)
+        else:
+            messagebox.showerror(
+                title="Missing file name",
+                message="You must choose a file name for your log."
+            )
 
     def _copy_clip(self):
         "copy the results to the clipboard"

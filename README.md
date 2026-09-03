@@ -5,12 +5,25 @@ Create, Maintain, and roll random tables for RPG or other use. Single or group c
 mazedat.py contains content used under the CC-BY 4.0 License from Maze Rats by Ben Milton.
 
 # Usage
-- Clone into a folder ListMaster
+- Install python 3
+- pick a folder ex. `Python`  and enter it `cd Python`
 - create and enter a virtual environment (optional)
-- from the ListMaster folder run: 'pip install -r LM.pip
-- from the ListMaster folder run: `python start.py'
 
-Alternatively use the windows EXE
+`python -m venv ./venv/ListMaster`
+
+`./venv/ListMaster/Scripts/activate`
+- enter the ListMaster folder
+
+`cd ListMaster`
+- Clone into a folder ListMaster
+
+`git clone git@github.com:esoterik0/ListMaster.git ListMaster`
+- install libraries
+
+`pip install -r LM.pip`
+- start the program
+
+`python start.py`
 
 ## Knownn issues
 - when adding new items, backspace won't work until the entry box is clicked in, or a left or right arrow key is pressed. This seems to be a bug in TK or TKinter, all the other keys work, it has keyboard focus.
@@ -20,25 +33,26 @@ I have tried to research these issues but the have had no luck finding an answer
 
 ## Features
 
-- roll on random tables, formulas and metaformulas.
-- save set of table
-- load set of tables
-- import set of tables
-- create random tables.
-- create random formulas; a set of tables to roll at once.
-- create random metaformulas; a table of similar formulas to choose from.
-- edit random tables.
-- import tables from pdf.
-- import tables from txt.
-- export table to txt.
+- Roll on random tables, formulas and metaformulas.
+- Save set of table
+- Export a single collection
+- Load set of tables
+- Import set of tables
+- Create random tables.
+- Create random formulas; a set of tables to roll at once.
+- Create random metaformulas; a table of similar formulas to choose from.
+- Edit random tables.
+- Import tables from pdf.
+- Import tables from txt.
+- Export table to txt.
 - Drag to reorder items in the what, and results column whilst in edit mode
 - Generate .xls files of pages of random rolls, for printing and future use
 - Log rolls to save for later
 
 ## Basic Usage
 There are three main columns to the program:
-- What
-- Page
+- What collection
+- Select page
 - Results
 
 There are two modes:
@@ -61,7 +75,7 @@ a basic list. a list can contain
 References to other tables must be surrounded by {}, Page has a copy item functon to help with this.
 
 #### Formula
-A named collection of tables to roll all at once, i.e. a NPC. Entries may be any type of table.
+A named collection of tables to roll all at once, i.e. a NPC; entries may be any type of table.
 
 Entries look like 'Name ;{Table}'
 
@@ -70,7 +84,7 @@ A collection of similar formulas, that share a set of names, one formula is chos
 
 The top line in edit mode will have a ';' separated list of names. Each other entry is a '`' (backtick) separated list of tables.
 
-### What
+### What collection
 What book/collection to choose from.
 
 There is a special collection at the top called 'All Tables', this contains all tables in the data base. The other collections pull from this. When you add a table, it gets added to all tables.
@@ -88,10 +102,12 @@ In edit mode you can:
 - edit a collection - double click or F2 to edit
 - drag to move items
 
-### Page
+### Select page
 This column lists the 'pages' in the 'book'/collection.
 
 You can choose which 'page' to roll, some are lists, some are formuals, etc. you can filter the pages by list, formula, metaformula, or by nothing.
+
+When you choose what to roll the table is sent to the results panel and rolled.
 
 #### Edit Mode
 In edit mode there are buttons to:
@@ -113,7 +129,7 @@ There are buttons, etc. to:
 - Copy Result to Clipboard
 - Choose path for xls file
 - Set number of pages to generate for the .xls file & times to roll on basic tables
-- generate an .xls file
+- Generate an .xls file. -- You may need to install the included `CrimsonText-SemiBold.ttf` for the .xls files to work, the paging and spacing might not work with another font.
 - Set the log file
 - Re-roll and log
 - Log the roll

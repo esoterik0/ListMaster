@@ -27,6 +27,7 @@ class ListEditPanel(ListPanelABC):  # pylint: disable=too-many-ancestors,too-man
 
         self.lbox.bind("<Delete>", self.remove)
         self.lbox.bind("<BackSpace>", self.remove)
+        self.lbox.bind("<Return>", self.do_add_event)
 
         self.button_frame = ttk.Frame(self)
         self.button_frame.grid(column=0, row=self.ROW, sticky=(E, W))
@@ -73,6 +74,10 @@ class ListEditPanel(ListPanelABC):  # pylint: disable=too-many-ancestors,too-man
             return self._start_edit(self.choices[self.last_selection])
 
         return "continue"
+
+    def do_add_event(self, *args):
+        "pass through to remove args"
+        return self.add_item()
 
     def add_item(self):
         "add item"
