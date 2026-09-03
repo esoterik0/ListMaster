@@ -6,18 +6,18 @@ mazedat.py contains content used under the CC-BY 4.0 License from Maze Rats by B
 
 # Usage
 - Install python 3
-- pick a folder ex. `Python`  and enter it `cd Python`
+- pick or make a folder ex. `md PyApps`  and enter it `cd PyApps`
 - create and enter a virtual environment (optional)
 
 `python -m venv ./venv/ListMaster`
 
 `./venv/ListMaster/Scripts/activate`
-- enter the ListMaster folder
-
-`cd ListMaster`
 - Clone into a folder ListMaster
 
 `git clone git@github.com:esoterik0/ListMaster.git ListMaster`
+- enter the ListMaster folder
+
+`cd ListMaster`
 - install libraries
 
 `pip install -r LM.pip`
