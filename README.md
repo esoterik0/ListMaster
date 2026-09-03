@@ -5,7 +5,7 @@ Create, Maintain, and roll random tables for RPG or other use. Single or group c
 mazedat.py contains content used under the CC-BY 4.0 License from Maze Rats by Ben Milton.
 
 # Usage
-- Install python 3
+- Install python 3.12.6 or later
 - Open a command prompt and pick or make a folder ex. `md PyApps`  and enter it `cd PyApps`
 - create and enter a virtual environment (optional)
 
