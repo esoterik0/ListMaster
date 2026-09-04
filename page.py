@@ -331,7 +331,9 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
         if self.check_coll():
             return
 
-        newitem = askstring("Insert Item", "Name of the item; {} are optional, no duplicates").strip()
+        newitem = askstring(
+            "Insert Item", "Name of the item; {} are optional, no duplicates"
+        ).strip()
 
         # strip {}
         if newitem[0] == "{":
@@ -377,7 +379,7 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
         title, tbl = self._cur_coll[self.last_selection]
         with open(f"{path}/{title}.txt", "w", encoding="utf-8") as f:
             lines = [
-                f"{iota}. {self._parent.get_name(x)}"
+                f"{iota:2}. {self._parent.get_name(x)}"
                 for iota, x in enumerate(tbl, 1)
             ]
-            print(*lines, sep='\n', file=f)  # print(..., file=f) is more convient to use
+            print(*lines, sep='\n', file=f)  # print with file=f is more convient to use
