@@ -379,7 +379,7 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
         title, tbl = self._cur_coll[self.last_selection]
         with open(f"{path}/{title}.txt", "w", encoding="utf-8") as f:
             lines = [
-                f"{iota:2}. {self._parent.get_name(x)}"
+                f"{iota:02}. {self._parent.get_name(x)}"
                 for iota, x in enumerate(tbl, 1)
             ]
             print(*lines, sep='\n', file=f)  # print with file=f is more convient to use
