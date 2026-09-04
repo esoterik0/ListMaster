@@ -51,4 +51,3 @@ class import_base(tk.Toplevel):
             fname = fname[0:x]
 
         return fname, path, ext
-
