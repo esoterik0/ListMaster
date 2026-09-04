@@ -75,7 +75,7 @@ class ListEditPanel(ListPanelABC):  # pylint: disable=too-many-ancestors,too-man
 
         return "continue"
 
-    def do_add_event(self, *args):
+    def do_add_event(self, *args):  # pylint: disable=W0613
         "pass through to remove args"
         return self.add_item()
 
