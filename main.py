@@ -6,15 +6,13 @@ from tkinter import E, N, S, W, messagebox, ttk
 import dill as pickle
 
 import gendata as dat
-from enums import COLWEIGHT, HEIGHT, WIDTH, State, table
+from enums import COLWEIGHT, FNAME, HEIGHT, WIDTH, State, table
+from import_pdf import import_pdf
+from import_txt import import_txt
 from page import PagePanel
 from PanelCom import PanelCom
 from results import ResultsPanel
 from what import WhatPanel
-from import_txt import import_txt
-from import_pdf import import_pdf
-
-FNAME = "tables.dat"
 
 
 class MainPanel(ttk.Frame, PanelCom):  # pylint: disable=too-many-ancestors,too-many-instance-attributes,too-many-public-methods
