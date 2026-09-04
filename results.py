@@ -410,7 +410,7 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
                     case dat.MetaFormula() | dat.Formula():
                         self.roll_buttons["num_pages_label"].configure(text="No. pages")
 
-    def do_reroll_event(self, *args):
+    def do_reroll_event(self, *args):  # pylint: disable=W0613
         "passthrough to strip args"
         self.do_reroll()
 
@@ -430,8 +430,6 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
                                 dat.gen_form(self.item)
                             )
                         ]
-                    case _:
-                        pass
             else:
                 self.choices = []  # clear the list
             self.set_result()
@@ -458,10 +456,10 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
         if self.path:  # the user could have cancelled the dialog
             dat.manufacture(form, self.path, self.item_name, self.num)
 
-        messagebox.showinfo(
-            title="Success",
-            message="Your .xls files have been created."
-        )
+            messagebox.showinfo(
+                title="Success",
+                message="Your .xls files have been created."
+            )
 
     def do_done(self):
         "handle the done editing button"
