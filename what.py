@@ -137,9 +137,6 @@ class WhatPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
             start += 1 # we inserted before our index so we must add one to compensate
         del self.choices[start]
         del self.what_list[start]
-
-        self.choices[start], self.choices[end] = self.choices[end], self.choices[start]
-        self.what_list[start], self.what_list[end] = self.what_list[end], self.what_list[start]
         self.update_lbox()
 
     def get_what(self) -> tuple[list[tuple[str, table]], list[str]]:
@@ -158,7 +155,7 @@ class WhatPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
                 self._parent.set_result_item()
 
     def add_cat(self):
-        "add a new category to the what panel"
+        "add a new collection to the what panel"
         self.choices.append("")
         self.what_list.append([])
         self.update_lbox()
@@ -167,7 +164,7 @@ class WhatPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
         return self._start_edit("")
 
     def edit_cat(self, *args): # pylint: disable=W0613
-        "edit the name of a category on the what panel"
+        "edit the name of a collection on the what panel"
 
         if self._parent.state != State.EDIT:
             return "continue"
