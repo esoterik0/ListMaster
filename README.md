@@ -1,10 +1,5 @@
 # ListMaster
-Create, Maintain, and roll random tables for RPG or other use. Single or group choices. Makes printable pages.
-
-### Content used under license
-mazedat.py contains content used under the CC-BY 4.0 License from Maze Rats by Ben Milton.
-
-Crimson Text Font under SIL
+Create, maintain, and roll random tables for RPG or other use. Single or group choices. Makes printable pages. Import from pdf or txt files.
 
 # Usage
 - Install python 3.12.6 or later
@@ -38,9 +33,9 @@ or
 
     cd ListMaster
     pythonw start.py
-## Knownn issues
-- when adding new items, backspace won't work until the entry box is clicked in, or a left or right arrow key is pressed. This seems to be a bug in TK or TKinter, all the other keys work, it has keyboard focus.
-- I have not been able change the font size for popup messages. Nothing works, things the documentation and people/forums say should work just dont. This seems to be an issue with TK or TKinter
+## Known issues
+- when adding new items or editing existing items, backspace won't work until the entry box is clicked in, or a left or right arrow key is pressed. This seems to be a bug in TK or TKinter; all the other keys work, it has keyboard focus.
+- I have not been able change the font size for popup messages. Nothing works, things the documentation and people/forums say should work just dont; as far as I can tell I should have been able to change the size. This seems to be an issue with TK or TKinter.
 
 I have tried to research these issues but the have had no luck finding an answer.
 
@@ -204,3 +199,10 @@ Exports the currently seleceted collection, only works in roll mode. A file name
 #### About
 has the about command
 shows the about dialog.
+
+# Misc
+
+#### Content used under license
+mazedat.py contains content used under the CC-BY 4.0 License from Maze Rats by Ben Milton.
+
+Crimson Text Font under SIL
