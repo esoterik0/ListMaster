@@ -383,3 +383,8 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
                 for iota, x in enumerate(tbl, 1)
             ]
             print(*lines, sep='\n', file=f)  # print with file=f is more convient to use
+
+        messagebox.showinfo(
+            title="Success",
+            message=f"The table {title} has been eported."
+        )
