@@ -1,7 +1,7 @@
 # ListMaster
 Create, maintain, and roll random tables for RPG or other use. Single or group choices. Makes printable pages. Import from pdf or txt files.
 
-# Usage
+# Installation
 - Install python 3.12.6 or later
 - Open a command prompt and pick or make a folder ex. `md PyApps`  and enter it `cd PyApps`
 - create and enter a virtual environment (optional)
