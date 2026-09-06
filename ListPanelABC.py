@@ -160,15 +160,15 @@ class ListPanelABC(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
         if text is None:
             text = self.lbox.get(self.last_selection)
 
-        entry = ttk.Entry(self.lbox, borderwidth=0, highlightthickness=1)
+        entry = tk.Entry(self.lbox, borderwidth=0, highlightthickness=1)
         self.edit = entry # allow's external cancelation
 
         entry.bind("<Return>", self._accept_edit)
         entry.bind("<Escape>", self._cancel_edit)
 
         entry.insert(0, text)
-        entry.selection_from(0)
-        entry.selection_to("end")
+        entry.select_from(0)
+        entry.select_to("end")
         entry.place(relx=0, y=self.lbox.bbox(self.last_selection)[1], relwidth=1, width=-1)
         entry.focus_set()
         entry.grab_set()
