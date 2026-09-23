@@ -9,6 +9,7 @@ import gendata as dat
 from enums import LOG, SINGLE, State, table
 from ListTitlePanelABC import ListTitlePanelABC
 from PanelCom import PanelCom
+import util
 from util import int_nun
 
 
@@ -519,8 +520,12 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
         "set log file button"
         if log := filedialog.asksaveasfilename():
             self.logfile = log
+            if not self.path:
+                _, path, _ = util.get_title_path_ext_from_file(log)
+                self.path = path + "/"
         else:
             self.logfile = ""
+
 
     def do_logroll(self):
         "reroll and log the results button"
