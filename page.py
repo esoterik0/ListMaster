@@ -87,13 +87,6 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
         )
         self.new_list.grid(column=0, row=0, sticky=(N, S, E, W))
 
-        self.add_item = ttk.Button(
-            self.button_frame_edit,
-            text="Copy Item Name",
-            command=self.do_copy_item
-        )
-        self.add_item.grid(column=1, row=1, sticky=(N, S, E, W))
-
         self.edit_item = ttk.Button(
             self.button_frame_edit,
             text="Edit Item",
@@ -101,12 +94,26 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
         )
         self.edit_item.grid(column=1, row=0, sticky=(N, S, E, W))
 
+        self.add_item = ttk.Button(
+            self.button_frame_edit,
+            text="Copy Item Name",
+            command=self.do_copy_item
+        )
+        self.add_item.grid(column=1, row=1, sticky=(N, S, E, W))
+
         self.insert_item = ttk.Button(
             self.button_frame_edit,
             text="Insert Item",
             command=self.do_insert_item
         )
         self.insert_item.grid(column=1, row=2, sticky=(N, S, E, W))
+
+        self.duplicate = ttk.Button(
+            self.button_frame_edit,
+            text="Duplicate Item",
+            command=self.do_duplicate
+        )
+        self.duplicate.grid(column=1, row=3, sticky=(N, S, E, W))
 
         self.button_frame_edit.rowconfigure(0, weight=1)
         self.button_frame_edit.rowconfigure(1, weight=1)
@@ -388,3 +395,12 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
             title="Success",
             message=f"The table {title} has been eported."
         )
+
+    def do_duplicate(self):
+        "duplicate a table"
+
+        if self.last_selection is not None:
+            dup = self._cur_coll[self.last_selection]
+            new = (dup[0] + " Copy", dup[1])
+            self._cur_coll.append(new)
+            self.set_page(self._name, self._cur_coll)
