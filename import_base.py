@@ -2,6 +2,7 @@
 
 import re
 import tkinter as tk
+import util
 from tkinter import E, N, S, W, ttk
 
 
@@ -39,15 +40,4 @@ class import_base(tk.Toplevel):
 
     def _get_title_path_ext_from_file(self) -> tuple[str, str, str]:
         "gets the title from a filename"
-        path = ""
-        fname = self.filename
-        if (x := max(fname.rfind('/'), fname.rfind('\\'))) >= 0:
-            path = fname[0:x]
-            fname = fname[x+1:]
-
-        ext = ""
-        if (x := fname.rfind('.')) >= 0:
-            ext = fname[x+1:]
-            fname = fname[0:x]
-
-        return fname, path, ext
+        return util.get_title_path_ext_from_file(self.filename)
