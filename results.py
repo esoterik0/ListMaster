@@ -243,9 +243,10 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
                     del self.item.labels[self.last_selection]
                 case list():
                     del self.item[self.last_selection]
+            self.set_item_edit()
             return
 
-        match (self.item):
+        match (self.item)
             case dat.MetaFormula():
                 if self.last_selection == 0:
                     self.item.labels = list(
@@ -437,7 +438,7 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
 
     def do_path(self):
         "gets the path"
-        self.path = filedialog.askdirectory()
+        self.path = filedialog.askdirectory(initialdir=self.path if self.path else None)
         if self.path:
             self.path += "/"  # prepare for appending to later
 
@@ -518,13 +519,17 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
 
     def do_set_log(self):
         "set log file button"
-        if log := filedialog.asksaveasfilename():
+        if log := filedialog.asksaveasfilename(
+            confirmoverwrite=False,
+            initialdir=self.path if self.path else None,
+            defaultextension=".log"
+        ):
             self.logfile = log
             if not self.path:
                 _, path, _ = util.get_title_path_ext_from_file(log)
                 self.path = path + "/"
         else:
-            self.logfile = ""
+            self.logfile = LOG
 
 
     def do_logroll(self):
