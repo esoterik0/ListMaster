@@ -246,7 +246,7 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
             self.set_item_edit()
             return
 
-        match (self.item)
+        match (self.item):
             case dat.MetaFormula():
                 if self.last_selection == 0:
                     self.item.labels = list(
