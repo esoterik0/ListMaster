@@ -401,6 +401,8 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
 
         if self.last_selection is not None:
             dup = self._cur_coll[self.last_selection]
-            new = (dup[0] + " Copy", dup[1])
-            self._cur_coll.append(new)
+            new = (dup[0] + " Copy", dup[1].copy())
+            self._parent.add_to_all(new)
+            if (self._name != "All tables"):
+                self._cur_coll.append(new)
             self.set_page(self._name, self._cur_coll)
