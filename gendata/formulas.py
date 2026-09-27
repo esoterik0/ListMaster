@@ -16,6 +16,9 @@ class Formula:  # pylint: disable=too-few-public-methods
     def __len__(self):
         return len(self.formula)
 
+    def copy(self):
+        return Formula(self.formula.copy(), self.labels.copy(), self.name + " Copy", self.split)
+
 
 class MetaFormula(Formula):  # pylint: disable=too-few-public-methods
     "indicates this is a list of formulas"
