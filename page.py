@@ -143,34 +143,29 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
                 self.filter_type = None
 
         self.set_page(self._name, self._cur_coll)
-
     def accept_edit(self, newtext: str) -> bool:
         "validate and accept edit or reject it"
-        if self.last_selection is None:
-            return # ignore broken edits
-
-        if self.last_selection >= len(self.choices):
+        if (self.last_selection is None or # ignore broken edits
+            self.last_selection >= len(self.choices)):
             return
 
         name = self.choices[self.last_selection]
         if newtext == "":
-            if name == "":  # skip spurrious adds
-                del self._cur_coll[self.last_selection]
-            elif not self._parent.check_delete_from_all(name):
-                del self._cur_coll[self.last_selection]
-                self._parent.set_result_item()  # results might still be displaying this
-            else:
-                self._parent.set_result_item()  # deleted by delete from all
+            self._accept_edit_delete(name)
         elif self._is_safe(newtext):
             if name == "":  # new entry
-                self._parent.add_to_all(tup := (newtext, self._cur_coll[self.last_selection][1]))
-                self._cur_coll[self.last_selection] = tup
+                self._parent.add_to_all(
+                    tup := (newtext, self._cur_coll[self.last_selection][1])
+                )
+                if self._name != "All tables":  # prevent double adding from 'All tables'
+                    self._cur_coll[self.last_selection] = tup
                 self.set_page(self._name, self._cur_coll)
             elif name == newtext:  # skip unchanged entries
                 return
             elif self._parent.name_available(newtext):
                 self._parent.rename(name, newtext) # change all
             else:
+                # must exit the modal now so we can put up a message box
                 self.edit.destroy()
                 self.edit = None
                 messagebox.showerror(
@@ -179,17 +174,40 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
                 )
                 return
         else:
+            # must exit the modal now so we can put up a message box
             self.edit.destroy()
             self.edit = None
             messagebox.showerror(
                 title="Invallid characters",
                 message="Your entry contains invallid characters\n"
-                     "the only characters allowed are\n"
-                     "'a-z','A-z','0-9','.,|&:+-()[] '",
+                     "the allowed characters are: '\\w.,|&:+()[]- '\n"
+                     "\\w means word characters like a-z, A-z, 0-9 + accents\n"
+                     "characters reservered for special use are: ';{}`'",
             )
             return
 
         self.set_page(self._name, self._cur_coll)
+        if newtext:
+            self.look_at(newtext)
+
+    def _accept_edit_delete(self, name):
+        "delete portion of accept exit."
+        if name == "":  # skip spurrious adds
+            del self._cur_coll[self.last_selection]
+        elif not self._parent.check_delete_from_all(name):
+            if self._name != "All tables":
+                del self._cur_coll[self.last_selection]
+                self._parent.set_result_item()  # results might still be displaying this
+            else:
+                # must exit the modal now so we can put up a message box
+                self.edit.destroy()
+                self.edit = None
+                messagebox.showerror(
+                    title="You are in All tables",
+                    message="You are in All tables, you must delete from all or not at all!"
+                )
+        else:
+            self._parent.set_result_item()  # deleted by delete from all
 
     def set_page(self, name: str | None, lst: list | None, sort = True):
         "sets the contents of the page panel"
@@ -403,6 +421,6 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
             dup = self._cur_coll[self.last_selection]
             new = (dup[0] + " Copy", dup[1].copy())
             self._parent.add_to_all(new)
-            if (self._name != "All tables"):
+            if self._name != "All tables":
                 self._cur_coll.append(new)
             self.set_page(self._name, self._cur_coll)
