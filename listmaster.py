@@ -124,7 +124,8 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
             filedialog.asksaveasfilename(
                 initialdir=path,
                 initialfile=file,
-                defaultextension=".dat"
+                defaultextension=".dat",
+                filetypes=[("Database files", "*.dat"), ("All files", "*.*")]
             )
         )
         self._main.do_save()
@@ -187,7 +188,8 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
             filedialog.askopenfilename(
                 initialdir=path,
                 initialfile=file,
-                defaultextension=".dat"
+                defaultextension=".dat",
+                filetypes=[("Database files", "*.dat"), ("All files", "*.*")]
             )
         )
 
@@ -200,17 +202,28 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
             filedialog.askopenfilename(
                 initialdir=path,
                 initialfile=file,
-                defaultextension=".dat"
+                defaultextension=".dat",
+                filetypes=[("Database files", "*.dat"), ("All files", "*.*")]
             )
         )
 
     def on_import_pdf(self):
         "import from pdf"
-        self._main.do_import_pdf(filedialog.askopenfilename(defaultextension=".pdf"))
+        self._main.do_import_pdf(
+            filedialog.askopenfilename(
+                defaultextension=".pdf",
+                filetypes=[("PDF's", "*.pdf"), ("All files", "*.*")]
+            )
+        )
 
     def on_import_txt(self):
         "import from txt"
-        self._main.do_import_txt(filedialog.askopenfilename(defaultextension=".txt"))
+        self._main.do_import_txt(
+            filedialog.askopenfilename(
+                defaultextension=".txt",
+                filetypes=[("Text files", "*.txt"), ("All files", "*.*")]
+            )
+        )
 
     def export_text(self):
         "export to text"
