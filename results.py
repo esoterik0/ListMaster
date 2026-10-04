@@ -516,6 +516,8 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
         "popup an edit window in place"
         if self.last_selection is not None:
             self._start_edit(self.choices[self.last_selection])
+        else:
+            self.do_add()
 
     def do_set_log(self):
         "set log file button"
