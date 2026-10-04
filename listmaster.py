@@ -212,7 +212,7 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
         self._main.do_import_pdf(
             filedialog.askopenfilename(
                 defaultextension=".pdf",
-                filetypes=[("PDF's", "*.pdf"), ("All files", "*.*")]
+                filetypes=[("PDFs", "*.pdf"), ("All files", "*.*")]
             )
         )
 
@@ -241,4 +241,12 @@ class ListMaster:  # pylint: disable=too-many-instance-attributes
 
     def export_coll(self):
         "export collection"
-        self._main.do_export_coll(filedialog.askopenfilename(defaultextension=".dat"))
+        path, file = self.get_path_file()
+        self._main.do_export_coll(
+            filedialog.asksaveasfilename(
+                initialdir=path,
+                initialfile=file,
+                defaultextension=".dat",
+                filetypes=[("Database files", "*.dat"), ("All files", "*.*")]
+            )
+        )
