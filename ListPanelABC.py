@@ -25,7 +25,7 @@ class ListPanelABC(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
     def __init__(
         self,
         parent,
-        safe=r"\w.,|&:+()\[\]\- ",  # we want to preserve ';{}`' for delimiter use
+        safe=r"\w.,|&:+()[\] -",  # we want to preserve ';{}`' for delimiter use
         drag=False,
         **kwargs
     ):
@@ -136,6 +136,14 @@ class ListPanelABC(ttk.Frame):  # pylint: disable=too-many-ancestors,too-many-in
         "activates and scrolls to the last selection"
         self.lbox.see(self.last_selection)
         self.lbox.activate(self.last_selection)
+
+    def look_at(self, newtext):
+        "look at a string"
+        for idx, st in enumerate(self.choices):
+            if newtext == st:
+                self.last_selection = idx
+                self.look()
+                return
 
     def do_lbox_sel(self, *args):
         "Must be overridden by subclass; subclasses have different behavior."
