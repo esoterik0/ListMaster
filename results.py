@@ -524,7 +524,8 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
         if log := filedialog.asksaveasfilename(
             confirmoverwrite=False,
             initialdir=self.path if self.path else None,
-            defaultextension=".log"
+            defaultextension=".log",
+            filetypes=[("Log files", "*.log"), ("All files", "*.*")]
         ):
             self.logfile = log
             if not self.path:
