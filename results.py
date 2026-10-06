@@ -436,6 +436,18 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
                 self.choices = []  # clear the list
             self.set_result()
 
+    def reroll_one(self, idx: int):
+        """
+        reroll one part of a formula or meta formula;
+        Assert self.item is dat.MetaFormula() | dat.Formula()
+        """
+        self.choices[idx] = f"{
+            self.item.labels[idx-1]   # we subtract one for label and ...
+        }: {
+            dat.gen_list(self.item.formula[idx-1])  # formula indexing; rerolling here
+        }"
+        self.set_result() # show the result
+
     def do_path(self):
         "gets the path"
         self.path = filedialog.askdirectory(initialdir=self.path if self.path else None)
@@ -502,13 +514,39 @@ class ResultsPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too
 
     def do_lbox_sel(self, *args):  # pylint: disable=unused-argument
         "selection clicking"
-        self._sel()
+        self.do_sel(args[0].y)
+
+    def do_sel(self, y):
+        "conditionally call _sel()"
+        nearest = self.lbox.nearest(y)
+
+        if bbox := self.lbox.bbox(nearest):
+            bottom = bbox[1] + bbox[3]
+            if y > bottom:
+                self.last_selection = None
+            else:
+                self._sel()
 
     def do_double_select(self, *args):  # pylint: disable=unused-argument
         "selection double clicking"
-        self._sel()
-        if self._parent.state == State.EDIT:
-            return self.do_edit()
+        self.do_sel(args[0].y)
+        match self._parent.state:
+            case State.EDIT:
+                return self.do_edit()
+            case State.ROLL:
+                return self.do_double_roll()
+        return "return"
+
+    def do_double_roll(self):
+        "event subhandler that handles what to do with a double click in roll mode."
+        if not self.last_selection:  #should fire on 0 and None
+            return "return"
+
+        match(self.item):
+            case list():
+                return "return"
+            case dat.MetaFormula() | dat.Formula():
+                self.reroll_one(self.last_selection)
 
         return "return"
 
