@@ -20,6 +20,7 @@ class PagePanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
 
         self.lbox.bind("<Double-1>", self.do_double_page)
         self.lbox.bind("<F2>", self.do_edit_item)
+        self.lbox.bind("<Return>", self.do_double_page)
 
         self.title_var.set("Select Page")
 
