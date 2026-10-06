@@ -20,6 +20,7 @@ class WhatPanel(ListTitlePanelABC):  # pylint: disable=too-many-ancestors,too-ma
 
         self.lbox.bind("<Double-1>", self.edit_cat)
         self.lbox.bind("<F2>", self.edit_cat)
+        self.lbox.bind("<Return>", self.do_lbox_sel)
 
         self.title_var.set("What Collection")
 
